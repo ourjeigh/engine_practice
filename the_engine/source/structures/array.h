@@ -3,6 +3,7 @@
 #pragma once
 
 #include "types/types.h"
+#include <cassert>
 
 template<class t_type, int32 k_max_size>
 class c_array
@@ -26,16 +27,17 @@ protected:
 	// how can we track usage in debug builds?
 };
 
+
 template<class t_type, int32 k_max_size>
-class c_stack : c_array<t_type, k_max_size>
+class c_stack : public c_array<t_type, k_max_size>
 {
 public:
-	c_stack() { m_top = -1; }
+	c_stack<t_type, k_max_size>() : m_top(-1) {}
 
 	void push(t_type item)
 	{
 		assert(!full());
-		m_data[++m_top] = item;
+		this->m_data[++m_top] = item;
 	}
 
 	void pop()
@@ -47,19 +49,21 @@ public:
 	t_type top()
 	{
 		assert(!empty());
-		return m_data[m_top];
+		return this->m_data[m_top];
 	}
 
-	int32 used() { return m_top; }
+	t_type* get_item(int32 index)
+	{
+		assert(0 <= index);
+		assert(index <= m_top);
+		return &this->m_data[index];
+	}
+
+	int32 used() { return m_top + 1; }
 	bool empty() { return m_top == -1; }
 	bool full() { return m_top == k_max_size - 1; }
-private:
+protected:
 	int32 m_top;
-
-	//debug only
-	int32 d_max_used;
 };
-
-#include "structures/array.inl"
 
 #endif //__ARRAY_H__

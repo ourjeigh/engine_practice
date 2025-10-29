@@ -31,6 +31,7 @@ TEST(C_STACK, C_STACK_PUSH_POP_TOP)
 	stack.push(1.0f);
 	stack.push(3.0f);
 
+	EXPECT_EQ(stack.used(), 3);
 	EXPECT_TRUE(stack.full());
 
 	stack.pop();

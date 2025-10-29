@@ -155,11 +155,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="source\asserts.cpp" />
+    <ClCompile Include="source\engine\engine.cpp" />
+    <ClCompile Include="source\logging\logging.cpp" />
     <ClCompile Include="source\main.cpp" />
-    <ClCompile Include="source\structures\array.inl" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="source\asserts.h" />
+    <ClInclude Include="source\engine\engine.h" />
+    <ClInclude Include="source\logging\logging.h" />
     <ClInclude Include="source\structures\array.h" />
+    <ClInclude Include="source\structures\string.h" />
     <ClInclude Include="source\types\types.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -18,7 +18,13 @@
     <ClCompile Include="source\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="source\structures\array.inl">
+    <ClCompile Include="source\engine\engine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\logging\logging.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\asserts.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -27,6 +33,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="source\types\types.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\engine\engine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\logging\logging.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\structures\string.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\asserts.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

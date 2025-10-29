@@ -1,8 +1,9 @@
-#include <iostream>
-using namespace std;
+#include <engine/engine.h>
 
 int main()
 {
-	cout << "yoho" << endl;
+	c_engine engine;
+	engine.init();
+
 	return 0;
 }
