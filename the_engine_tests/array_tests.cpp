@@ -2,11 +2,38 @@
 #include "types/types.h"
 #include "structures/array.h"
 
-TEST(C_ARRAY, C_ARRAY_SIZE) 
+TEST(C_ARRAY, C_ARRAY_SIZE)
 {
 	const int32 size = 10;
 	c_array<real32, size> array;
 	EXPECT_EQ(size, array.size());
+}
+
+TEST(C_ARRAY, C_ARRAY_ITERATORS)
+{
+	const int32 size = 5;
+	c_array<int32, size> array;
+	for (int32 i = 0; i < size; ++i)
+	{
+		array[i] = i * 10;
+	}
+
+	int32 index = 0;
+
+	// check pre increment
+	for (auto it = array.begin(); it != array.end(); ++it)
+	{
+		EXPECT_EQ(array[index], *it);
+		index++;
+	}
+
+	index = 0;
+	// check post increment
+	for (auto it = array.begin(); it != array.end(); it++)
+	{
+		EXPECT_EQ(array[index], *it);
+		index++;
+	}
 }
 
 TEST(C_ARRAY, C_ARRAY_ASSERTS)
@@ -38,6 +65,23 @@ TEST(C_STACK, C_STACK_PUSH_POP_TOP)
 	stack.pop();
 	stack.pop();
 	EXPECT_TRUE(stack.empty());
+}
+
+TEST(C_STACK, C_STACK_ITERATORS)
+{
+	const int32 size = 10;
+	c_stack<int32, size> stack;
+	stack.push(10);
+	stack.push(20);
+	stack.push(30);
+	int32 expected_values[] = { 10, 20, 30 };
+	int32 index = 0;
+	for (auto it = stack.begin(); it != stack.end(); ++it)
+	{
+		EXPECT_EQ(expected_values[index], *it);
+		index++;
+	}
+	EXPECT_EQ(index, 3);
 }
 
 TEST(C_STACK, C_STACK_ASSERTS)

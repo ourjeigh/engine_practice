@@ -78,6 +78,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="string_tests.cpp" />
+    <ClCompile Include="time_tests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\the_engine\the_engine.vcxproj">

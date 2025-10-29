@@ -64,4 +64,5 @@ const char* get_log_level_string(e_log_level level)
 		HALT("Unknown log level");
 		break;
 	}
+	return "unknown";
 }

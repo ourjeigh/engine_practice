@@ -17,7 +17,7 @@ void assert_internal(const char* condition, const char* file, const long line)
 	}
 }
 
-void halt(const char* message, const char* file, const long line)
+void halt_internal(const char* message, const char* file, const long line)
 {
 	log(critical, "Halt: %s [%s:%i]", message, file, line);
 

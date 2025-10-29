@@ -7,7 +7,7 @@ TEST(STRING_TEST, STRING_TEST_PRINT_APPEND)
 	const int32 k_max_size = 64;
 	c_string<k_max_size> test_string;
 	test_string.print("Hello %s!", "World");
-	
+
 	// "Hello World!\0" = 13
 	int32 used = test_string.used();
 	EXPECT_EQ(used, 13);
