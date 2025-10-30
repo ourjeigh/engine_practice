@@ -16,6 +16,7 @@ int main()
 #include <asserts.h>
 #include <engine/engine_system.h>
 #include <engine/input/input_system.h>
+#include <engine/input/input_map.h>
 
 LRESULT CALLBACK process_message_callback(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
@@ -63,13 +64,20 @@ int WINAPI wWinMain(
 	c_engine engine;
 	engine.init();
 
-	// Run the message loop.
+	// Message pump, get this off the main thread
 	MSG msg = { };
-	while (GetMessage(&msg, NULL, 0, 0) != 0)
+	bool quit = false;
+	while (GetMessage(&msg, NULL, 0, 0) != 0 && !quit)
 	{
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 		engine.update();
+
+		const c_key_state* escape_key = input_system_get_key_state(_input_key_special_esc);
+		if (escape_key != nullptr && escape_key->is_down())
+		{
+			quit = true;
+		}
 	}
 
 	return 0;

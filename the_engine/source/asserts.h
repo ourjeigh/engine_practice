@@ -15,6 +15,8 @@
 		halt_internal(message,  __FILE__, __LINE__); \
 	} while (0)
 
+#define STATIC_ASSERT(condition) static_assert(condition)
+
 #define NOP() __nop()
 
 void assert_internal(const char* condition, const char *file, const long line);

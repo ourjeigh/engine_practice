@@ -74,5 +74,8 @@
     <ClInclude Include="source\engine\input\input_map.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="source\memory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

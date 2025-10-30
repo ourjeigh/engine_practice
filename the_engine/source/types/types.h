@@ -14,4 +14,6 @@ typedef unsigned long long uint64;
 typedef float real32;
 typedef double real64;
 
+const uint8 k_uint8_max = 0xFF;
+
 #endif //__TYPES_H__
