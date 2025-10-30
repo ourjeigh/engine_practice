@@ -2,7 +2,7 @@
 #define __ENGINE_SYSTEM_H__
 #pragma once
 
-// inherit from this to make a game
+// inherit from this to make an engine
 class c_engine_system
 {
 public:
@@ -19,4 +19,5 @@ protected:
 void engine_systems_init();
 void engine_systems_term();
 void engine_systems_update();
+
 #endif //__ENGINE_SYSTEM_H__

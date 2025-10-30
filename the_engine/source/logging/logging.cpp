@@ -4,6 +4,8 @@
 #include <types/types.h>
 #include <structures/string.h>
 #include "asserts.h"
+#include "windows.h"
+#include <debugapi.h>
 
 const int32 k_max_log_length = 256;
 
@@ -36,6 +38,8 @@ void log(e_log_level level, const char* format, ...)
 	if (g_log_config.log_to_console)
 	{
 		puts(output.get_const_char());
+		OutputDebugString(output.get_const_char());
+		OutputDebugString("\n");
 	}
 
 	if (g_log_config.log_to_file)

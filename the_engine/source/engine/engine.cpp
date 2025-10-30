@@ -8,6 +8,7 @@
 
 static bool init_internal();
 static void term_internal();
+static void update_internal();
 static void loop_begin_internal();
 
 // maybe when we have something to show we'll speed up
@@ -20,7 +21,7 @@ void c_engine::init()
 {
 	if (init_internal())
 	{
-		loop_begin_internal();
+		//loop_begin_internal();
 	}
 	else
 	{
@@ -28,6 +29,12 @@ void c_engine::init()
 		term_internal();
 	}
 }
+
+void c_engine::update()
+{
+	update_internal();
+}
+
 
 void c_engine::term()
 {
@@ -57,18 +64,23 @@ static void loop_begin_internal()
 {
 	while (!g_interrupt_signalled)
 	{
-		c_time_span time_span;
-		time_span.start();
+		c_timer timer;
+		timer.start();
 		engine_systems_update();
-		time_span.stop();
+		timer.stop();
 
-		real64 span_micros = time_span.get_duration_microseconds();
-		real64 span_seconds = time_span.get_duration_seconds();
-		real32 sleep_time = (k_target_frame_interval_seconds - span_seconds);
+		real64 span_micros = timer.get_time_span()->get_duration_microseconds();
+		real64 span_seconds = timer.get_time_span()->get_duration_seconds();
+		real64 sleep_time = (k_target_frame_interval_seconds - span_seconds);
 		log(verbose, "Frame Time: %.2f microseconds. Sleeping for %.6f seconds", span_micros, sleep_time);
 		
 		sleep_for_seconds(sleep_time);
 	}
 
 	term_internal();
+}
+
+static void update_internal()
+{
+	engine_systems_update();
 }

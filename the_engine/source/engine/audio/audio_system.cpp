@@ -14,5 +14,5 @@ void c_audio_system::term()
 
 void c_audio_system::update()
 {
-	log(verbose, "Audio System Update");
+	//log(verbose, "Audio System Update");
 }
