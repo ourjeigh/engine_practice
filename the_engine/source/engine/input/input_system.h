@@ -10,6 +10,8 @@
 typedef uint16 t_message_id;
 typedef uint64 t_param;
 
+const real64 k_input_keydown_allowance_seconds = 0.01f;
+
 enum e_input_event_type : byte
 {
 	_input_event_type_none,
@@ -51,7 +53,16 @@ public:
 	{
 	}
 
-	bool is_down() const { return m_is_down; }
+	bool is_down() const 
+	{ 
+		if (m_is_down) return true;
+
+		auto span = get_time_since(m_last_changed_timestamp);
+		real64 duration_seconds = span.get_duration_seconds();
+
+		return  (duration_seconds < k_input_keydown_allowance_seconds);
+	}
+	
 	t_timestamp get_last_changed_timestamp() const { return m_last_changed_timestamp; }
 
 	void set_key_state(bool is_down, t_timestamp timestamp)

@@ -14,7 +14,7 @@ TEST(MEMORY, CLEAR_STRUCT)
 	test_struct.a = 42;
 	test_struct.b = 3.14f;
 	
-	clear_struct(test_struct);
+	zero_object(test_struct);
 	
 	EXPECT_EQ(test_struct.a, 0);
 	EXPECT_EQ(test_struct.b, 0.0f);

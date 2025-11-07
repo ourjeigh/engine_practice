@@ -32,7 +32,7 @@ struct s_input_state
 	
 	void clear()
 	{
-		clear_struct(*this);
+		zero_object(*this);
 	}
 };
 
@@ -186,7 +186,7 @@ s_input_event process_input_event_internal(const s_input_queued_event& event)
 	c_time_span span(event.timestamp, get_high_precision_timestamp());
 	
 	s_input_event processed_event;
-	clear_struct(processed_event);
+	zero_object(processed_event);
 	
 	processed_event.timestamp = event.timestamp;
 

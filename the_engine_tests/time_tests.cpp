@@ -27,7 +27,7 @@ TEST(TIME, TIME_SPAN_DURATION)
 
 	real64 duration_millis = time_span.get_duration_milliseconds();
 	real64 duration_micros = time_span.get_duration_microseconds();
-	real32 duration_seconds = time_span.get_duration_seconds();
+	real64 duration_seconds = time_span.get_duration_seconds();
 
 	// this may not always match system tolerance
 	const real64 tolerance = 1e-6f;

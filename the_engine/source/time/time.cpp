@@ -52,7 +52,18 @@ uint64 get_high_precision_timestamp()
 	return static_cast<uint64>(counter.QuadPart);
 }
 
+c_time_span get_time_since(t_timestamp since)
+{
+	return c_time_span(since, get_high_precision_timestamp());
+}
+
+
 void sleep_for_seconds(real32 seconds)
 {
-	Sleep(static_cast<DWORD>(seconds * k_millisecons_in_second));
+	Sleep(static_cast<uint32>(seconds * k_millisecons_in_second));
+}
+
+void sleep_for_milliseconds(uint32 milliseconds)
+{
+	Sleep(milliseconds);
 }

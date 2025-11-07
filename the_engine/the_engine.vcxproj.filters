@@ -42,6 +42,12 @@
     <ClCompile Include="source\engine\input\input_system.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="source\threads\threads.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\engine\audio\audio_buffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\structures\array.h">
@@ -75,6 +81,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="source\memory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\threads\threads.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\engine\audio\audio_buffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

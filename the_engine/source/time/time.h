@@ -40,6 +40,9 @@ private:
 };
 
 t_timestamp get_high_precision_timestamp();
+c_time_span get_time_since(t_timestamp since);
+
 void sleep_for_seconds(real32 seconds);
+void sleep_for_milliseconds(uint32 milliseconds);
 
 #endif //__TIME_H__

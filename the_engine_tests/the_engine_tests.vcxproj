@@ -16,7 +16,7 @@
     <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
     <ConfigurationType>Application</ConfigurationType>
     <PlatformToolset>v143</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -53,6 +53,7 @@
       <GenerateMapFile>true</GenerateMapFile>
       <AssemblyDebug>true</AssemblyDebug>
       <AdditionalOptions>/VERBOSE %(AdditionalOptions)</AdditionalOptions>
+      <ForceFileOutput>Enabled</ForceFileOutput>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -72,6 +73,7 @@
       <GenerateMapFile>true</GenerateMapFile>
       <AssemblyDebug>true</AssemblyDebug>
       <AdditionalOptions>/VERBOSE %(AdditionalOptions)</AdditionalOptions>
+      <ForceFileOutput>Enabled</ForceFileOutput>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -85,6 +87,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="string_tests.cpp" />
+    <ClCompile Include="thread_tests.cpp" />
     <ClCompile Include="time_tests.cpp" />
   </ItemGroup>
   <ItemGroup>

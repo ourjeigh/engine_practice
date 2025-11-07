@@ -8,7 +8,9 @@ public:
 	void init();
 	void term();
 	// hack, remove
-	void update();
+	//void update();
 };
 
+void engine_init();
+void engine_term();
 #endif //__ENGINE_H__

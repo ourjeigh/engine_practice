@@ -2,6 +2,9 @@
 #define __TYPES_H__
 #pragma once
 
+typedef wchar_t wchar;
+#define WIDE(x) L##x
+
 typedef short int16;
 typedef long int32;
 typedef long long int64;
