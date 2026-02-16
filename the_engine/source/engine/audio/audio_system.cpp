@@ -28,7 +28,7 @@ void c_audio_system::init()
 	}
 
 	g_audio_engine_thread.init();
-	log(verbose, "Audio System Initialized");
+	log_message(verbose, "Audio System Initialized");
 }
 
 void c_audio_system::term()
@@ -39,7 +39,7 @@ void c_audio_system::term()
 	g_audio_render_thread.term();
 	g_audio_render_thread.join();
 
-	log(verbose, "Audio System Terminated");
+	log_message(verbose, "Audio System Terminated");
 }
 
 void c_audio_system::update()
@@ -136,11 +136,11 @@ bool c_audio_render_thread::setup_audio_sink()
 	if (m_sink.register_sink(g_audio_format))
 	{
 		result = true;
-		log(verbose, "Audio Sink registration succeeded");
+		log_message(verbose, "Audio Sink registration succeeded");
 	}
 	else
 	{
-		log(critical, "Audio Sink registration failed");
+		log_message(critical, "Audio Sink registration failed");
 	}
 
 	return result;

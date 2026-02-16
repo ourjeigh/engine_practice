@@ -72,7 +72,6 @@ public:
 	{
 		ASSERT(this->top() == k_null_char);
 
-		// overwrite existing terminator
 		int32 start = this->m_top;
 		int32 size_left = k_max_size - start;
 		int lenth = expand_args_string(&this->m_data[start], size_left, format, args);

@@ -140,7 +140,7 @@ void window_thread_entry_point(c_window* window)
 
 	if (hwnd == NULL)
 	{
-		log(error, "windows: failed to create window");
+		log_message(error, "windows: failed to create window");
 		return;
 	}
 

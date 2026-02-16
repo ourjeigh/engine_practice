@@ -26,10 +26,6 @@ void c_application::init()
 	m_window.set_event_handler(
 		c_delegate<t_event_callback>::bind<c_application, &c_application::handle_window_event>(this));
 
-	s_log_config log_settings;
-	log_settings.log_to_console = true;
-	log_system_init(log_settings);
-
 	engine_systems_init();
 
 	input_system_add_key_combo_callback(
@@ -68,7 +64,7 @@ void c_application::run()
 		}
 		else
 		{
-			log(warning, "Long Frame Time: %.2f milliseconds", span_millis);
+			log_message(warning, "Long Frame Time: %.2f milliseconds", span_millis);
 		}
 	}
 }

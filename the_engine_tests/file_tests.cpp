@@ -127,6 +127,48 @@ TEST(C_FILE, READ_BYTES)
 	file.close();
 }
 
+TEST(C_FILE, WRITE_BYTES)
+{
+	const char* file_path_string = "C:\\Users\\RJ\\Desktop\\test\\c_file_write_test.txt";
+	c_file_path file_path(file_path_string);
+	
+	t_file_open_mode_flags flags;
+	flags.set(e_file_open_mode::file_open_mode_write, true);
+
+	c_file file;
+	EXPECT_TRUE(file.open(file_path, flags));
+
+	c_array<byte, 2048> buffer;
+	zero_object(buffer);
+
+	for (int32 i = 0; i < 2048; i++)
+	{
+		buffer[i] = static_cast<byte>(i % 128);
+	}
+
+	EXPECT_EQ(file.write_bytes(0, buffer.make_reference_const()), buffer.capacity());
+
+	file.close();
+}
+
+TEST(C_FILE, WRITE_STRING)
+{
+	const char* file_path_string = "C:\\Users\\RJ\\Desktop\\test\\c_file_write_text_test.txt";
+	c_file_path file_path(file_path_string);
+
+	t_file_open_mode_flags flags;
+	flags.set(e_file_open_mode::file_open_mode_write, true);
+
+	c_file file;
+	EXPECT_TRUE(file.open(file_path, flags));
+
+	t_string_1024 string = "hey check one two\nthree four five six!!";
+
+	EXPECT_EQ(file.write_string(0, string.make_reference_const()), string.used());
+
+	file.close();
+}
+
 // fragile, should be fixed up. we just want to make sure that we can properly read thru a whole file, and that when
 // we hit the end of the file, we stop returning bytes
 TEST(C_FILE_BUFFERED, READ_BYTES)

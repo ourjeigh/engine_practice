@@ -49,13 +49,13 @@ void c_input_system::init()
 {
 	g_input_event_queue.clear();
 	g_input_state.clear();
-	log(verbose, "Input System Initialized");
+	log_message(verbose, "Input System Initialized");
 }
 
 void c_input_system::term()
 {
 	g_input_state.clear();
-	log(verbose, "Input System Terminated");
+	log_message(verbose, "Input System Terminated");
 }
 
 void c_input_system::update()
@@ -143,7 +143,7 @@ void process_input_event_queue_internal()
 		{
 			s_input_event_key_data& data = event.key_data;
 			g_input_state.key_states[data.key].set_key_state(data.down, event.timestamp);
-			log(verbose, "input system: key:%i %s repeat:%i", 
+			log_message(verbose, "input system: key:%i %s repeat:%i",
 				data.key, 
 				data.down ? "down" : "up", 
 				data.repeat_count);
@@ -156,7 +156,7 @@ void process_input_event_queue_internal()
 			g_input_state.mouse_state.position.x =  event.mouse_data.x;
 			g_input_state.mouse_state.position.y = event.mouse_data.y;
 			g_input_state.mouse_state.position.last_changedtimestamp = event.timestamp;
-			log(verbose, "input system: mouse position x:%i y:%i", data.x, data.y);
+			log_message(verbose, "input system: mouse position x:%i y:%i", data.x, data.y);
 			break;
 		}
 		case event_type_input_controller:

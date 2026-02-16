@@ -67,6 +67,17 @@ public:
 		return static_cast<const t_derived_array*>(this)->capacity();
 	}
 	
+	t_type* get_item(int32 index)
+	{
+		ASSERT(in_range(0, capacity(), index));
+		return &data()[index];
+	}
+
+	const t_type* get_item_const(int32 index)
+	{
+		return get_item(index);
+	}
+
 	t_type* data()
 	{
 		return static_cast<t_derived_array*>(this)->data();
@@ -189,17 +200,17 @@ public:
 
 	int32 capacity() const { return k_max_size; }
 
-	c_array_reference<t_type> make_reference()
+	virtual c_array_reference<t_type> make_reference()
 	{
 		return c_array_reference<t_type>(m_data, k_max_size);
 	}
 
-	c_array_reference<const t_type> make_reference() const
+	virtual c_array_reference<const t_type> make_reference() const
 	{
 		return c_array_reference<const t_type>(m_data, k_max_size);
 	}
 
-	const c_array_reference<const t_type> make_reference_const() const
+	virtual const c_array_reference<const t_type> make_reference_const() const
 	{
 		return c_array_reference<const t_type>( m_data, k_max_size );
 	}
@@ -227,12 +238,6 @@ public:
 		this->m_data[++m_top] = item;
 	}
 
-	//void pushptr(t_type& item)
-	//{
-	//	ASSERT(!full());
-	//	this->m_data[++m_top] = item;
-	//}
-
 	t_type& push()
 	{
 		ASSERT(!full());
@@ -253,9 +258,13 @@ public:
 
 	t_type* get_item(int32 index)
 	{
-		ASSERT(0 <= index);
 		ASSERT(index <= m_top);
-		return &this->m_data[index];
+		return i_array<c_stack, t_type>::get_item(index);
+	}
+
+	const t_type* get_item_const(int32 index)
+	{
+		return get_item(index);
 	}
 
 	int32 used() const { return m_top + 1; }
@@ -268,8 +277,14 @@ public:
 
 	void copy_from_range(const c_stack<t_type, k_max_size>& other, int32 start, int32 end)
 	{
-		this->c_array<t_type, k_max_size>::copy_from_range(other, start, end);
+		c_array<t_type, k_max_size>::copy_from_range(other, start, end);
 		m_top = end - start;
+	}
+
+	// hmm
+	const c_array_reference<const t_type> make_reference_const() const override
+	{
+		return c_array_reference<const t_type>(this->m_data, used());
 	}
 
 protected:

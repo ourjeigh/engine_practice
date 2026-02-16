@@ -215,6 +215,10 @@ TEST(C_STACK, C_STACK_PUSH_POP_TOP)
 	stack.pop();
 	stack.pop();
 	EXPECT_TRUE(stack.empty());
+
+	auto ref = stack.make_reference_const();
+	;
+	;
 }
 
 TEST(C_STACK, C_STACK_ITERATORS)

@@ -59,6 +59,8 @@ public:
 	bool is_open() const { return m_file_handle.is_valid(); }
 
 	int32 read_bytes(int32 start, int32 length, c_array_reference<byte> out_buffer);
+	int32 write_bytes(int32 start, c_array_reference<const byte> buffer);
+	int32 write_string(int32 start, c_array_reference<const char> buffer);
 
 protected:
 	c_file_path m_path;

@@ -25,7 +25,7 @@ const IID IID_IAudioRenderClient = __uuidof(IAudioRenderClient);
 	HRESULT hres = x; \
 	if (FAILED(hres)) \
 	{ \
-		log(critical, "Windows Call: %s returned non S_OK: [%s]", #x, _com_error(hres).ErrorMessage()); \
+		log_message(critical, "Windows Call: %s returned non S_OK: [%s]", #x, _com_error(hres).ErrorMessage()); \
 		return false; \
 	} \
 } while (0)
@@ -35,7 +35,7 @@ const IID IID_IAudioRenderClient = __uuidof(IAudioRenderClient);
 	HRESULT hres = x; \
 	if (FAILED(hres)) \
 	{ \
-		log(critical, "Windows Call: %s returned non S_OK: [%s]", #x, _com_error(hres).ErrorMessage()); \
+		log_message(critical, "Windows Call: %s returned non S_OK: [%s]", #x, _com_error(hres).ErrorMessage()); \
 		return; \
 	} \
 } while (0)

@@ -70,7 +70,7 @@ bool c_thread::start()
 			if (FAILED(hr))
 			{
 				// if we create the thread but fail to name it, we'll still call that a success
-				log(warning, "Failed to set thread description! [%s]", _com_error(hr).ErrorMessage());
+				log_message(warning, "Failed to set thread description! [%s]", _com_error(hr).ErrorMessage());
 			}
 		}
 
@@ -78,12 +78,12 @@ bool c_thread::start()
 
 		if (!SetThreadPriority(h, priority))
 		{
-			log(warning, "Failed to set thread priority!");
+			log_message(warning, "Failed to set thread priority!");
 		}
 	}
 	else
 	{
-		log(error, "Failed to create thread!");
+		log_message(error, "Failed to create thread!");
 		success = false;
 	}
 
@@ -100,7 +100,7 @@ void c_thread::join()
 	}
 	else
 	{
-		log(error, "Failed to open thread for joining!");
+		log_message(error, "Failed to open thread for joining!");
 		return;
 	}
 

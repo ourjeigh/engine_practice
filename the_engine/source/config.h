@@ -5,6 +5,8 @@
 // internal defines for common ones
 #ifdef _DEBUG
 #define CONFIG_DEBUG
+
+#define FEATURE_LOGGING
 #endif 
 
 #ifdef _WIN64

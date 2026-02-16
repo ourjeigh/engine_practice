@@ -19,6 +19,13 @@ int32 read_file_internal(
 	int32 length,
 	c_array_reference<t_type> out_buffer);
 
+template<class t_type>
+int32 write_file_internal(
+	c_platform_handle& file_handle,
+	t_file_open_mode_flags flags,
+	int32 start,
+	c_array_reference<t_type> buffer);
+
 c_file_path::c_file_path(const t_string_256 path)
 {
 	m_data = path;
@@ -218,7 +225,6 @@ bool c_file::close()
 int32 c_file::read_bytes(int32 start, int32 length, c_array_reference<byte> out_buffer)
 {
 	ASSERT(is_open());
-	ASSERT(in_range_int32(1, out_buffer.capacity(), length));
 
 	return read_file_internal(
 		m_file_handle,
@@ -226,6 +232,19 @@ int32 c_file::read_bytes(int32 start, int32 length, c_array_reference<byte> out_
 		start,
 		length,
 		out_buffer);
+}
+
+int32 c_file::write_bytes(int32 start, c_array_reference<const byte> buffer)
+{
+	ASSERT(is_open());
+	ASSERT(m_flags.test(file_open_mode_write));
+
+	return write_file_internal(m_file_handle, m_flags, start, buffer);
+}
+
+int32 c_file::write_string(int32 start, c_array_reference<const char> buffer)
+{
+	return write_file_internal(m_file_handle, m_flags, start, buffer);
 }
 
 bool c_file_buffered::open(const c_file_path& file_path, t_file_open_mode_flags flags)
@@ -249,7 +268,6 @@ bool c_file_buffered::open(const c_file_path& file_path, t_file_open_mode_flags 
 int32 c_file_buffered::read_bytes(int32 length, c_array_reference<byte> out_buffer)
 {
 	ASSERT(is_open());
-	ASSERT(in_range_int32(1, out_buffer.capacity(), length));
 
 	// if the read request is larger than the buffer capacity, we will be guaranteed to have to do an immediate disk read,
 	// which defeats the purpose of a buffered file. eventually we could support this case, but for now we'll keep it simple 
@@ -276,7 +294,7 @@ int32 c_file_buffered::read_bytes(int32 length, c_array_reference<byte> out_buff
 		m_buffer_position += first_size;
 	}
 
-	log(verbose, "c_file_buffered: first read: %i of %i requested. file: %s",
+	log_message(verbose, "c_file_buffered: first read: %i of %i requested. file: %s",
 		first_size,
 		length,
 		m_path.get_full_path());
@@ -300,7 +318,7 @@ int32 c_file_buffered::read_bytes(int32 length, c_array_reference<byte> out_buff
 		out_bytes_copied += second_size;
 		m_buffer_position = second_size;
 
-		log(verbose, "c_file_buffered: second read: %i of %i requested. file: %s",
+		log_message(verbose, "c_file_buffered: second read: %i of %i requested. file: %s",
 			second_size,
 			length,
 			m_path.get_full_path());
@@ -312,6 +330,7 @@ int32 c_file_buffered::read_bytes(int32 length, c_array_reference<byte> out_buff
 	return out_bytes_copied;
 }
 
+// todo: this all needs to move to a windows platform impl
 
 char get_path_separator()
 {
@@ -362,28 +381,44 @@ int32 read_file_internal(
 		length = out_buffer.capacity();
 	}
 
-	//ASSERT(start + length <= out_buffer.capacity());
-	//ASSERT(flags.test(file_open_mode_read));
+	ASSERT(in_range_int32(0, out_buffer.capacity(), length));
+	ASSERT(flags.test(file_open_mode_read));
 
-	//SetFilePointer(file_handle, start, nullptr, FILE_BEGIN);
 
 	uint32 bytes_read = 0;
 	OVERLAPPED overlapped;
 	zero_object(overlapped);
 	overlapped.Offset = start;
 
-	//LPOVERLAPPED overlapped_ptr = nullptr;
-	LPOVERLAPPED overlapped_ptr = &overlapped;
-
 	bool result = ReadFile(
 		c_platform_handle_factory::get_native_handle_from_platform_handle(file_handle),
 		out_buffer.data(),
 		length,
 		&bytes_read,
-		overlapped_ptr);
-
-	// how could we succeed but read no bytes?
-	//ASSERT(!result || bytes_read > 0);
+		&overlapped);
 
 	return bytes_read;
+}
+
+template<class t_type>
+int32 write_file_internal(
+	c_platform_handle& file_handle,
+	t_file_open_mode_flags flags,
+	int32 start,
+	c_array_reference<t_type> buffer)
+{
+	uint32 bytes_written = 0;
+
+	OVERLAPPED overlapped;
+	zero_object(overlapped);
+	overlapped.Offset = start;
+
+	bool result = WriteFile(
+		c_platform_handle_factory::get_native_handle_from_platform_handle(file_handle),
+		buffer.data(),
+		buffer.capacity(),
+		&bytes_written,
+		&overlapped);
+
+	return bytes_written;
 }
