@@ -4,6 +4,9 @@
 
 #include "config.h"
 #include "engine/engine_system.h"
+#include <engine/file_system/file.h>
+
+const int32 k_log_file_buffer_size = 10 * k_byte_kib;
 
 struct s_log_config
 {
@@ -24,15 +27,17 @@ class c_logging_system : public c_engine_system<c_logging_system>
 {
 public:
 	void init(s_log_config config);
-	virtual void term() override;
-	virtual void update() override;
+	void term() override;
+	void update() override;
 
 	void log(e_log_level level, const char* text, ...);
 
 private:
-	virtual void init() override {};
+	void init() override {};
+	void process_log_events();
 
 	s_log_config m_config;
+	c_file_static_buffered<k_log_file_buffer_size> m_file;
 };
 
 #ifdef FEATURE_LOGGING

@@ -109,12 +109,14 @@ void c_application::handle_escape_key(bool down)
 {
 	if (down)
 	{
+		log_message(verbose, "c_application: escape pressed, begin shutdown");
 		m_running = false;
 	}
 }
 
 void c_application::handle_window_close()
 {
+	log_message(verbose, "c_application: window close called, begin shutdown");
 	m_running = false;
 
 	// tbd if we want to explicitly call term here...

@@ -7,6 +7,9 @@ IGNORE_WINDOWS_WARNINGS_PUSH
 #include <platform/platform_handle_windows.h>
 #include <debug/logging.h>
 
+
+const bool k_file_debug_logging = false;
+
 // move into windows impl
 const uint64 k_file_size_max_word = MAXWORD;
 IGNORE_WINDOWS_WARNINGS_POP
@@ -25,6 +28,7 @@ int32 write_file_internal(
 	t_file_open_mode_flags flags,
 	int32 start,
 	c_array_reference<t_type> buffer);
+
 
 c_file_path::c_file_path(const t_string_256 path)
 {
@@ -160,7 +164,22 @@ bool c_file::open(const c_file_path& file_path, t_file_open_mode_flags flags)
 	// TODO handle read and write sharing separately (maybe delete also??)
 	DWORD share_mode = flags.test(file_open_mode_exclusive) ? 0 : FILE_SHARE_READ | FILE_SHARE_WRITE;
 	LPSECURITY_ATTRIBUTES security = nullptr;
-	DWORD creation_disposition = OPEN_ALWAYS;
+
+	DWORD creation_disposition = NULL;
+	
+	if (flags.test(file_open_mode_read))
+	{
+		creation_disposition = OPEN_EXISTING;
+	}
+	else if (flags.test(file_open_mode_replace))
+	{
+		creation_disposition = CREATE_ALWAYS;
+	}
+	else if (flags.test(file_open_mode_write))
+	{
+		creation_disposition = OPEN_ALWAYS;
+	}
+	
 	DWORD attributes = FILE_ATTRIBUTE_NORMAL;
 	HANDLE template_file = nullptr;
 
@@ -182,7 +201,6 @@ bool c_file::open(const c_file_path& file_path, t_file_open_mode_flags flags)
 		m_path = file_path;
 	}
 
-
 	return result;
 }
 
@@ -198,29 +216,6 @@ bool c_file::close()
 
 	return result;
 }
-
-// this doesn't null terminate the string or set the stack's top
-
-//uint32 c_file::read_string(int32 start, int32 length, c_array_reference<char>& out_buffer)
-//{
-//	ASSERT(is_open());
-//	if (length == out_buffer.capacity())
-//	{
-//		length--;
-//	}
-//
-//
-//	int32 read_count = read_file_internal(
-//		m_file_handle,
-//		m_flags,
-//		start,
-//		length,
-//		out_buffer);
-//
-//
-//
-//	return read_count;
-//}
 
 int32 c_file::read_bytes(int32 start, int32 length, c_array_reference<byte> out_buffer)
 {
@@ -294,10 +289,14 @@ int32 c_file_buffered::read_bytes(int32 length, c_array_reference<byte> out_buff
 		m_buffer_position += first_size;
 	}
 
-	log_message(verbose, "c_file_buffered: first read: %i of %i requested. file: %s",
-		first_size,
-		length,
-		m_path.get_full_path());
+	if (k_file_debug_logging)
+	{
+		log_message(verbose, "c_file_buffered: first read: %i of %i requested. file: %s",
+			first_size,
+			length,
+			m_path.get_full_path());
+
+	}
 
 	if (!eof() && out_bytes_copied < length)
 	{
@@ -318,10 +317,13 @@ int32 c_file_buffered::read_bytes(int32 length, c_array_reference<byte> out_buff
 		out_bytes_copied += second_size;
 		m_buffer_position = second_size;
 
-		log_message(verbose, "c_file_buffered: second read: %i of %i requested. file: %s",
-			second_size,
-			length,
-			m_path.get_full_path());
+		if (k_file_debug_logging)
+		{
+			log_message(verbose, "c_file_buffered: second read: %i of %i requested. file: %s",
+				second_size,
+				length,
+				m_path.get_full_path());
+		}
 	}
 
 	ASSERT(out_bytes_copied || eof());
@@ -409,16 +411,22 @@ int32 write_file_internal(
 {
 	uint32 bytes_written = 0;
 
-	OVERLAPPED overlapped;
-	zero_object(overlapped);
-	overlapped.Offset = start;
+	OVERLAPPED* overlapped_ptr = nullptr;
+
+	if (start != k_invalid)
+	{
+		OVERLAPPED overlapped;
+		zero_object(overlapped);
+		overlapped.Offset = start;
+		overlapped_ptr = &overlapped;
+	}
 
 	bool result = WriteFile(
 		c_platform_handle_factory::get_native_handle_from_platform_handle(file_handle),
 		buffer.data(),
 		buffer.capacity(),
 		&bytes_written,
-		&overlapped);
+		overlapped_ptr);
 
 	return bytes_written;
 }

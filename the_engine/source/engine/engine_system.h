@@ -4,7 +4,7 @@
 
 #include "asserts.h"
 
-// inherit from this to make an engine
+// implement this to make an engine
 template<typename t_system>
 class c_engine_system
 {

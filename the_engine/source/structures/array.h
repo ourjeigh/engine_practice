@@ -200,17 +200,17 @@ public:
 
 	int32 capacity() const { return k_max_size; }
 
-	virtual c_array_reference<t_type> make_reference()
+	c_array_reference<t_type> make_reference()
 	{
 		return c_array_reference<t_type>(m_data, k_max_size);
 	}
 
-	virtual c_array_reference<const t_type> make_reference() const
+	c_array_reference<const t_type> make_reference() const
 	{
 		return c_array_reference<const t_type>(m_data, k_max_size);
 	}
 
-	virtual const c_array_reference<const t_type> make_reference_const() const
+	const c_array_reference<const t_type> make_reference_const() const
 	{
 		return c_array_reference<const t_type>( m_data, k_max_size );
 	}
@@ -272,7 +272,6 @@ public:
 	bool full() const { return m_top == k_max_size - 1; }
 	void clear() { m_top = -1; }
 
-	iterator begin() { return c_array<t_type, k_max_size>::begin(); }
 	iterator end() { return iterator(&this->m_data[m_top + 1]); }
 
 	void copy_from_range(const c_stack<t_type, k_max_size>& other, int32 start, int32 end)
@@ -282,7 +281,7 @@ public:
 	}
 
 	// hmm
-	const c_array_reference<const t_type> make_reference_const() const override
+	const c_array_reference<const t_type> make_reference_const() const
 	{
 		return c_array_reference<const t_type>(this->m_data, used());
 	}

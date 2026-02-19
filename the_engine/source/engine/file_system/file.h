@@ -59,6 +59,8 @@ public:
 	bool is_open() const { return m_file_handle.is_valid(); }
 
 	int32 read_bytes(int32 start, int32 length, c_array_reference<byte> out_buffer);
+
+	// todo: the default writes should be append (start = k_invalid), make new write_at_position or something for explicit start
 	int32 write_bytes(int32 start, c_array_reference<const byte> buffer);
 	int32 write_string(int32 start, c_array_reference<const char> buffer);
 
@@ -69,7 +71,7 @@ protected:
 	uint64 m_file_size;
 };
 
-class c_file_buffered : protected c_file
+class c_file_buffered : public c_file
 {
 public:
 	c_file_buffered() { reset(); }
@@ -96,6 +98,11 @@ public:
 	int32 read_bytes_unbuffered(int32 start, int32 length, c_array_reference<byte> out_buffer) 
 	{
 		return c_file::read_bytes(start, length, out_buffer);
+	}
+
+	int32 write_string(int32 start, c_array_reference<const char> buffer)
+	{
+		return c_file::write_string(start, buffer);
 	}
 
 	bool eof() const { return m_file_position == m_file_size; }

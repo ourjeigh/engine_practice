@@ -70,9 +70,9 @@ public:
 
 	void append_va(const char* format, va_list args)
 	{
-		ASSERT(this->top() == k_null_char);
+		ASSERT(this->empty() || this->top() == k_null_char);
 
-		int32 start = this->m_top;
+		int32 start = this->empty() ? 0 : this->m_top;
 		int32 size_left = k_max_size - start;
 		int lenth = expand_args_string(&this->m_data[start], size_left, format, args);
 		this->m_top += lenth - 1;

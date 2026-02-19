@@ -21,9 +21,13 @@ void engine_systems_init()
 
 void engine_systems_term()
 {
+	log_message(verbose, "Begin Engine System Term");
 	// terminate all engine systems here
 	g_input_system.term();
 	g_audio_system.term();
+
+	log_message(verbose, "Engine System Term Complete");
+	g_logging_system.term();
 }
 
 void engine_systems_update()
@@ -31,4 +35,5 @@ void engine_systems_update()
 	// update all engine systems here
 	g_input_system.update();
 	g_audio_system.update();
+	g_logging_system.update();
 }
