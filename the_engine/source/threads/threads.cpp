@@ -87,6 +87,10 @@ bool c_thread::start()
 		success = false;
 	}
 
+	log_message(verbose, "c_thread: started thread [id: 0x%x, name: %s]",
+		m_thread_id,
+		m_thread_properties.name); // need to convert from wchar
+
 	return success;
 }
 

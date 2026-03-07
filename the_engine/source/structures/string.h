@@ -21,6 +21,7 @@ inline int32 expand_args_string(char* buffer, int32 size, const char* format, va
 	int32 length = _vscprintf(format, args) + 1;
 	ASSERT(length <= size);
 
+	//vsprintf_s(buffer, size, format, args);
 	vsprintf_s(buffer, length, format, args);
 
 	return length;
@@ -29,21 +30,18 @@ inline int32 expand_args_string(char* buffer, int32 size, const char* format, va
 // TODO make this c_static_string and make it have a c_stack<char, k_max_size>
 // then make the base c_string have all the functionality and take in a data member
 
-template<int32 k_max_size>
-class c_string : public c_stack<char, k_max_size>
+class c_string : public c_stack<char>
 {
 public:
 	c_string() { this->clear(); }
-
-	constexpr c_string(const char* string)
-	{
-		this->clear();
-		print(string);
+	explicit c_string(char* data, int32 size) : c_stack<char>(data, size)
+	{ 
+		memory_set(this->data(), k_null_char, this->capacity());
 	}
 
 	void print_va(const char* format, va_list args)
 	{
-		int length = expand_args_string(this->m_data, k_max_size, format, args);
+		int length = expand_args_string(this->data(), this->capacity(), format, args);
 		this->m_top = length - 1;
 		terminate();
 	}
@@ -57,6 +55,8 @@ public:
 				this->push(*string++);
 			}
 		}
+
+		terminate();
 	}
 
 	void printf(const char* format, ...)
@@ -73,8 +73,8 @@ public:
 		ASSERT(this->empty() || this->top() == k_null_char);
 
 		int32 start = this->empty() ? 0 : this->m_top;
-		int32 size_left = k_max_size - start;
-		int lenth = expand_args_string(&this->m_data[start], size_left, format, args);
+		int32 size_left = this->capacity() - start;
+		int lenth = expand_args_string(&this->data()[start], size_left, format, args);
 		this->m_top += lenth - 1;
 		terminate();
 	}
@@ -89,24 +89,14 @@ public:
 
 	const char* get_const_char() const
 	{
+		ASSERT(is_terminated());
+
 		if (this->empty())
 		{
 			return nullptr;
 		}
-
-		return this->m_data;
-	}
-
-	void HACK_post_copy_fixup(int32 chars_written)
-	{
-		if (chars_written == k_max_size)
-		{
-			chars_written--;
-		}
-
-		this->assert_valid_index(chars_written);
-		this->m_top = chars_written;
-		terminate();
+		
+		return this->data();
 	}
 
 	void assert_valid()
@@ -114,6 +104,7 @@ public:
 		assert_valid_index(this->m_top);
 		ASSERT(this->top() == k_null_char);
 	}
+
 
 private:
 	void terminate()
@@ -123,12 +114,33 @@ private:
 			this->push(k_null_char);
 		}
 	}
+
+	bool is_terminated() const
+	{
+		return top() == k_null_char;
+	}
 };
 
-typedef c_string<128> t_string_128;
-typedef c_string<256> t_string_256;
-typedef c_string<512> t_string_512;
-typedef c_string<1024> t_string_1024;
+template<int32 k_max_size>
+class c_static_string : public c_string
+{
+public:
+	c_static_string() : c_string(m_data, k_max_size) {}
+
+	constexpr c_static_string(const char* string) : c_string(m_data, k_max_size)
+	{
+		this->clear();
+		print(string);
+	}
+
+private:
+	char m_data[k_max_size];
+};
+
+typedef c_static_string<128> t_string_128;
+typedef c_static_string<256> t_string_256;
+typedef c_static_string<512> t_string_512;
+typedef c_static_string<1024> t_string_1024;
 
 /// <summary>
 /// </summary>

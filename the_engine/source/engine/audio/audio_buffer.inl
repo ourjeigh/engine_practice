@@ -50,7 +50,7 @@ int32 c_audio_ring_buffer<t_type, k_channel_count, k_size>::write(const c_audio_
 
 	for (int32 channel_index = 0; channel_index < in_buffer->channel_count(); channel_index++)
 	{
-		memory_copy(&m_buffer.get_channel(channel_index)[m_write_position], &(in_buffer->get_channel_const(channel_index))[0], sizeof(t_type) * first_block);
+		memory_copy((m_buffer.get_channel(channel_index) + m_write_position), (in_buffer->get_channel_const(channel_index)), sizeof(t_type) * first_block);
 	}
 
 	if (first_block < samples_to_write)
@@ -59,7 +59,7 @@ int32 c_audio_ring_buffer<t_type, k_channel_count, k_size>::write(const c_audio_
 
 		for (int32 channel_index = 0; channel_index < in_buffer->channel_count(); channel_index++)
 		{
-			memory_copy(&m_buffer.get_channel(channel_index)[0], &in_buffer->get_channel_const(channel_index)[first_block], sizeof(t_type) * second_block);
+			memory_copy(m_buffer.get_channel(channel_index), (in_buffer->get_channel_const(channel_index) + first_block), sizeof(t_type) * second_block);
 		}
 	}
 

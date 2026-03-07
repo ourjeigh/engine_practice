@@ -25,6 +25,11 @@ public:
 		return *m_instance;
 	}
 
+	static bool is_valid()
+	{
+		return m_instance != nullptr;
+	}
+
 protected:
 	c_engine_system()
 	{

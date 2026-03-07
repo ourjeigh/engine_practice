@@ -20,24 +20,36 @@ int32 read_file_internal(
 	t_file_open_mode_flags flags,
 	int32 start,
 	int32 length,
-	c_array_reference<t_type> out_buffer);
+	c_array<t_type>& out_buffer);
 
 template<class t_type>
 int32 write_file_internal(
 	c_platform_handle& file_handle,
 	t_file_open_mode_flags flags,
 	int32 start,
-	c_array_reference<t_type> buffer);
+	const c_array<t_type>& buffer);
 
 
-c_file_path::c_file_path(const t_string_256 path)
+c_file_path::c_file_path(const char* path)
 {
-	m_data = path;
+	m_data.print(path);
+}
+
+c_file_path::c_file_path(const t_string_256& path)
+{
+	m_data.copy_from(path);
 }
 
 c_file_path::c_file_path(const c_file_path& other)
 {
-	m_data = other.m_data;
+	m_data.copy_from(other.m_data);
+	//m_data = other.m_data;
+}
+
+c_file_path& c_file_path::operator=(const c_file_path& other)
+{
+	m_data.copy_from(other.m_data);
+	return *this;
 }
 
 bool c_file_path::exists() const
@@ -217,7 +229,7 @@ bool c_file::close()
 	return result;
 }
 
-int32 c_file::read_bytes(int32 start, int32 length, c_array_reference<byte> out_buffer)
+int32 c_file::read_bytes(int32 start, int32 length, c_array<byte>& out_buffer)
 {
 	ASSERT(is_open());
 
@@ -229,7 +241,7 @@ int32 c_file::read_bytes(int32 start, int32 length, c_array_reference<byte> out_
 		out_buffer);
 }
 
-int32 c_file::write_bytes(int32 start, c_array_reference<const byte> buffer)
+int32 c_file::write_bytes(int32 start, const c_array<byte>& buffer)
 {
 	ASSERT(is_open());
 	ASSERT(m_flags.test(file_open_mode_write));
@@ -237,7 +249,7 @@ int32 c_file::write_bytes(int32 start, c_array_reference<const byte> buffer)
 	return write_file_internal(m_file_handle, m_flags, start, buffer);
 }
 
-int32 c_file::write_string(int32 start, c_array_reference<const char> buffer)
+int32 c_file::write_string(int32 start, const c_array<char>& buffer)
 {
 	return write_file_internal(m_file_handle, m_flags, start, buffer);
 }
@@ -260,7 +272,7 @@ bool c_file_buffered::open(const c_file_path& file_path, t_file_open_mode_flags 
 	return result;
 }
 
-int32 c_file_buffered::read_bytes(int32 length, c_array_reference<byte> out_buffer)
+int32 c_file_buffered::read_bytes(int32 length, c_array<byte>& out_buffer)
 {
 	ASSERT(is_open());
 
@@ -376,7 +388,7 @@ int32 read_file_internal(
 	t_file_open_mode_flags flags,
 	int32 start,
 	int32 length,
-	c_array_reference<t_type> out_buffer)
+	c_array<t_type>& out_buffer)
 {
 	if (length == 0)
 	{
@@ -407,7 +419,7 @@ int32 write_file_internal(
 	c_platform_handle& file_handle,
 	t_file_open_mode_flags flags,
 	int32 start,
-	c_array_reference<t_type> buffer)
+	const c_array<t_type>& buffer)
 {
 	uint32 bytes_written = 0;
 

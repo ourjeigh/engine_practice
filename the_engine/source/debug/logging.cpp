@@ -14,7 +14,7 @@ IGNORE_WINDOWS_WARNINGS_PUSH
 IGNORE_WINDOWS_WARNINGS_POP
 
 // characters in a log string
-const int32 k_max_log_string_length = 256;
+const int32 k_max_log_string_length = 512;
 
 // log events in stack
 const int32 k_max_log_count = 1024;
@@ -26,11 +26,11 @@ struct s_log_event
 	real64 time_seconds;
 	uint32 thread_id;
 	e_log_level level;
-	c_string<k_max_log_string_length> message;
+	c_static_string<k_max_log_string_length> message;
 };
 
 // todo: this needs to be thread safe
-c_stack<s_log_event, k_max_log_count> g_log_stack;
+c_static_stack<s_log_event, k_max_log_count> g_log_stack;
 
 const char* get_log_level_string(e_log_level level);
 
@@ -45,8 +45,9 @@ void c_logging_system::init(s_log_config config)
 	flags.set(file_open_mode_replace, true);
 	m_file.open(path, flags);
 
-	t_string_128 header = "Timestamp\tTime\tThreadId\tLevel\tMessage\n";
-	m_file.write_string(k_invalid, header.make_reference_const());
+	t_string_128 header = "Timestamp\tTime\tThread\tLevel\tMessage\n";
+	header.pop();
+	m_file.write_string(k_invalid, header.make_array());
 }
 
 void c_logging_system::term()
@@ -67,8 +68,8 @@ void c_logging_system::log(e_log_level level, const char* format, ...)
 	t_timestamp current_time = get_high_precision_timestamp();  
 	c_time_span time_since_start = get_session_time()->time_since_start(current_time);  
 
-	c_string<k_max_log_string_length> output;
-	c_string<k_max_log_string_length> message;
+	c_static_string<k_max_log_string_length> output;
+	c_static_string<k_max_log_string_length> message;
 	message.clear();
 
 	output.printf("%llu %2.3f %s: ", current_time, time_since_start.get_duration_seconds(), get_log_level_string(level));  
@@ -93,7 +94,7 @@ void c_logging_system::log(e_log_level level, const char* format, ...)
 		new_event.time_seconds = time_since_start.get_duration_seconds();
 		new_event.thread_id = get_current_thread_id();
 		new_event.level = level;
-		new_event.message = message;
+		new_event.message.copy_from(message);
 	}
 }
 
@@ -104,8 +105,8 @@ void c_logging_system::process_log_events()
 		for (auto it = g_log_stack.begin(); it != g_log_stack.end(); ++it)
 		{
 			const s_log_event& evt = *it;
-			c_string<k_max_log_string_length> output;
-			output.printf("%llu\t%2.5f\t0x%x\t%s\t%s\n",
+			c_static_string<k_max_log_string_length> output;
+			output.printf("%llu\t%06.3f\t0x%x\t%s\t%s\n",
 				evt.timestamp,
 				evt.time_seconds,
 				evt.thread_id,
@@ -115,7 +116,7 @@ void c_logging_system::process_log_events()
 			// hack, should c_string.make_reference remove the trailing null term?
 			// we don't want to write it to file...
 			output.pop(); 
-			m_file.write_string(k_invalid, output.make_reference_const());
+			m_file.write_string(k_invalid, output.make_array());
 		}
 
 		g_log_stack.clear();

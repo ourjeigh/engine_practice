@@ -7,7 +7,7 @@
 #define CONFIG_DEBUG
 
 #define FEATURE_LOGGING
-#endif 
+#endif //_DEBUG
 
 #ifdef _WIN64
 #define PLATFORM_WINDOWS

@@ -43,7 +43,7 @@ struct s_backbuffer
 	int32 width;
 	int32 height;
 	BITMAPINFO bmi;
-	c_array<uint32, k_window_buffer_size> memory;
+	c_static_array<uint32, k_window_buffer_size> memory;
 };
 
 static s_backbuffer g_backbuffer = {};

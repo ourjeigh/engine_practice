@@ -24,12 +24,12 @@ struct s_input_queued_event
 
 struct s_input_state
 {
-	c_array<c_key_state, k_input_key_count> key_states;
+	c_static_array<c_key_state, k_input_key_count> key_states;
 	c_mouse_state mouse_state;
 
 	void clear()
 	{
-		zero_object(key_states);
+		key_states.zero_data();
 		zero_object(mouse_state);
 	}
 };
@@ -41,7 +41,7 @@ void process_input_event_queue_internal();
 
 // called and written from the message pump, processed in the input system update
 // todo this needs to be thread safe
-c_stack<s_input_queued_event, 256> g_input_event_queue;
+c_static_stack<s_input_queued_event, 256> g_input_event_queue;
 s_input_state g_input_state;
 
 // public methods

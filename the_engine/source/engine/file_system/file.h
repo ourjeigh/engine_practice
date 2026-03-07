@@ -18,8 +18,11 @@ class c_file_path
 {
 public:
 	c_file_path() { m_data.clear(); }
-	c_file_path(const t_string_256 path);
+	c_file_path(const char* path);
+	c_file_path(const t_string_256& path);
 	c_file_path(const c_file_path& other);
+	c_file_path& operator=(const c_file_path& other);
+
 	~c_file_path() {}
 
 	bool exists() const;
@@ -58,11 +61,11 @@ public:
 
 	bool is_open() const { return m_file_handle.is_valid(); }
 
-	int32 read_bytes(int32 start, int32 length, c_array_reference<byte> out_buffer);
+	int32 read_bytes(int32 start, int32 length, c_array<byte>& out_buffer);
 
 	// todo: the default writes should be append (start = k_invalid), make new write_at_position or something for explicit start
-	int32 write_bytes(int32 start, c_array_reference<const byte> buffer);
-	int32 write_string(int32 start, c_array_reference<const char> buffer);
+	int32 write_bytes(int32 start, const c_array<byte>& buffer);
+	int32 write_string(int32 start, const c_array<char>& buffer);
 
 protected:
 	c_file_path m_path;
@@ -75,8 +78,13 @@ class c_file_buffered : public c_file
 {
 public:
 	c_file_buffered() { reset(); }
+	c_file_buffered(c_array<byte>& buffer) : m_buffer(buffer) { reset(); }
 
-	void set_buffer(c_array_reference<byte> buffer) { m_buffer = buffer; }
+	void set_buffer(c_array<byte>& buffer) 
+	{ 
+		m_buffer = buffer; 
+	}
+
 	void set_read_position(int32 read_position)
 	{
 		ASSERT(read_position < m_file_size);
@@ -94,13 +102,13 @@ public:
 		return c_file::close(); 
 	}
 
-	int32 read_bytes(int32 length, c_array_reference<byte> out_buffer);
-	int32 read_bytes_unbuffered(int32 start, int32 length, c_array_reference<byte> out_buffer) 
+	int32 read_bytes(int32 length, c_array<byte>& out_buffer);
+	int32 read_bytes_unbuffered(int32 start, int32 length, c_array<byte>& out_buffer) 
 	{
 		return c_file::read_bytes(start, length, out_buffer);
 	}
 
-	int32 write_string(int32 start, c_array_reference<const char> buffer)
+	int32 write_string(int32 start, const c_array<char>& buffer)
 	{
 		return c_file::write_string(start, buffer);
 	}
@@ -116,7 +124,7 @@ protected:
 	}
 
 	// consider switching this to a stack since m_buffer_end is essentially tracking top
-	c_array_reference<byte> m_buffer;
+	c_array<byte> m_buffer;
 	int32 m_buffer_position;
 	int32 m_buffer_end;
 	int32 m_file_position;
@@ -131,11 +139,12 @@ class c_file_static_buffered : public c_file_buffered
 public:
 	c_file_static_buffered() : c_file_buffered()
 	{
-		this->m_buffer = m_storage.make_reference();
+		// since m_storage is not initialized until after the parent is, we must set the buffer explicitly after
+		set_buffer(m_storage);
 	}
 
 private:
-	c_array<byte, k_size> m_storage;
+	c_static_array<byte, k_size> m_storage;
 };
 
 char get_path_separator();

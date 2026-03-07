@@ -4,13 +4,15 @@
 
 TEST(C_ARRAY, C_ARRAY_COPY_CONSTRUCTOR)
 {
-	c_array<int32, 5> array1;
+	c_static_array<int32, 5> array1;
 	for (int32 i = 0; i < 5; ++i)
 	{
 		array1[i] = i * 2;
 	}
 
-	c_array<int32, 5> array2 = array1;
+	c_static_array<int32, 5> array2;
+	array2.copy_from(array1);
+
 	for (int32 i = 0; i < 5; ++i)
 	{
 		EXPECT_EQ(array1[i], array2[i]);
@@ -19,13 +21,13 @@ TEST(C_ARRAY, C_ARRAY_COPY_CONSTRUCTOR)
 
 TEST(C_ARRAY, C_ARRAY_COPY)
 {
-	c_array<int32, 5> array1;
+	c_static_array<int32, 5> array1;
 	for (int32 i = 0; i < 5; ++i)
 	{
 		array1[i] = i * 2;
 	}
 
-	c_array<int32, 5> array2;
+	c_static_array<int32, 5> array2;
 
 	array2 = array1;
 	for (int32 i = 0; i < 5; ++i)
@@ -37,14 +39,14 @@ TEST(C_ARRAY, C_ARRAY_COPY)
 TEST(C_ARRAY, C_ARRAY_SIZE)
 {
 	const int32 size = 10;
-	c_array<real32, size> array;
+	c_static_array<real32, size> array;
 	EXPECT_EQ(size, array.capacity());
 }
 
 TEST(C_ARRAY, C_ARRAY_ITERATORS)
 {
 	const int32 size = 5;
-	c_array<int32, size> array;
+	c_static_array<int32, size> array;
 	for (int32 i = 0; i < size; ++i)
 	{
 		array[i] = i * 10;
@@ -71,39 +73,39 @@ TEST(C_ARRAY, C_ARRAY_ITERATORS)
 TEST(C_ARRAY, C_ARRAY_ASSERTS)
 {
 	const int32 size = 10;
-	c_array<real32, size> array;
+	c_static_array<real32, size> array;
 	EXPECT_DEATH({ array[12] = 5.0f; }, ".*");
 }
 
 TEST(C_ARRAY_REF, MAKE_REFERENCE)
 {
 
-	c_array<int32, 5> array1 = { 1, 2, 3, 4, 5 };
+	c_static_array<int32, 5> array1 = { 1, 2, 3, 4, 5 };
 
-	c_array_reference<int32> ref = array1.make_reference();
-
-	for (int32 i = 0; i < 5; i++)
-	{
-		EXPECT_EQ(ref[i], i + 1);
-	}
-}
-
-TEST(C_ARRAY_REF, MAKE_REFERENCE_CONST)
-{
-	c_array<int32, 5> array1 = { 1, 2, 3, 4, 5};
-	c_array_reference<const int32> ref = array1.make_reference_const();
+	/*c_array<int32> ref(array1);
 
 	for (int32 i = 0; i < 5; i++)
 	{
 		EXPECT_EQ(ref[i], i + 1);
-	}
+	}*/
 }
+
+//TEST(C_ARRAY_REF, MAKE_REFERENCE_CONST)
+//{
+//	c_static_array<int32, 5> array1 = { 1, 2, 3, 4, 5};
+//	c_array<int32> ref = array1;
+//
+//	for (int32 i = 0; i < 5; i++)
+//	{
+//		EXPECT_EQ(ref[i], i + 1);
+//	}
+//}
 
 TEST(I_ARRAY, COPY_FROM_SAME_TYPE)
 {
-	c_array<int32, 10> array1 = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+	c_static_array<int32, 10> array1 = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
 
-	c_array<int32, 10> array2;
+	c_static_array<int32, 10> array2;
 
 	array2.copy_from_range(array1, 0, 10);
 
@@ -115,9 +117,9 @@ TEST(I_ARRAY, COPY_FROM_SAME_TYPE)
 
 TEST(I_ARRAY, COPY_FROM_DIFF_TYPE)
 {
-	c_array<int32, 10> array1 = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+	c_static_array<int32, 10> array1 = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
 
-	c_array<int32, 5> array2;
+	c_static_array<int32, 5> array2;
 
 	array2.copy_from_range(array1, 0, 5);
 
@@ -129,10 +131,10 @@ TEST(I_ARRAY, COPY_FROM_DIFF_TYPE)
 
 TEST(I_ARRAY, COPY_FROM_REF)
 {
-	c_array<int32, 10> array1 = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
-	c_array<int32, 5> array2;
+	c_static_array<int32, 10> array1 = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+	c_static_array<int32, 5> array2;
 
-	array2.copy_from_range(array1.make_reference(), 0, 5);
+	array2.copy_from_range(array1, 0, 5);
 
 	for (int32 i = 0; i < 5; i++)
 	{
@@ -142,11 +144,11 @@ TEST(I_ARRAY, COPY_FROM_REF)
 
 TEST(I_ARRAY, COPY_FROM_OFFSET)
 {
-	c_array<int32, 10> array1 = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+	c_static_array<int32, 10> array1 = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
 
-	c_array<int32, 5> array2;
+	c_static_array<int32, 5> array2;
 
-	array2.copy_from_range(array1.make_reference(), 2, 7);
+	array2.copy_from_range(array1, 2, 7);
 
 	for (int32 i = 0; i < 5; i++)
 	{
@@ -156,25 +158,24 @@ TEST(I_ARRAY, COPY_FROM_OFFSET)
 
 TEST(I_ARRAY, COPY_FROM_BAD_RANGE)
 {
-	c_array<int32, 10> array1 = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+	c_static_array<int32, 10> array1 = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
-	c_array_reference<int32> ref1 = array1.make_reference();
+	c_static_array<int32, 5> array2;
 
-	c_array<int32, 5> array2;
-
-	EXPECT_DEATH(array2.copy_from_range(ref1, 2, 8), ".*");
+	EXPECT_DEATH(array2.copy_from_range(array1, 2, 8), ".*");
 }
 
 TEST(I_ARRAY, COPY_FROM_RANGE_OFFSET)
 {
-	c_array<int32, 10> array1 = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-	c_array<int32, 10> array2;
-	zero_object(array2);
+	c_static_array<int32, 10> array1 = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+	c_static_array<int32, 10> array2;
+	array2.zero_data();
+	//memory_zero(array2.data(), sizeof(int32) * array2.capacity());
 
 	const int32 start = 2;
 	const int32 end = 5;
 	const int32 offset = 2;
-	c_array<int32, 10> expected = { 0, 0, 2, 3, 4, 0, 0, 0, 0, 0 };
+	c_static_array<int32, 10> expected = { 0, 0, 2, 3, 4, 0, 0, 0, 0, 0 };
 
 	array2.copy_from_range_offset(array1, start, end, offset);
 
@@ -186,9 +187,9 @@ TEST(I_ARRAY, COPY_FROM_RANGE_OFFSET)
 
 TEST(I_ARRAY, EQUALS_OPERATOR)
 {
-	const c_array<int32, 10> array_match_1 = { 1, 2, 3, 4 , 5, 6, 7, 8, 9, 10 };
-	const c_array<int32, 10> array_match_2 = { 1, 2, 3, 4 , 5, 6, 7, 8, 9, 10 };
-	const c_array<int32, 10> array_no_match = { 1, 2, 3, 4 , 5, 6, 7, 8, 4, 10};
+	const c_static_array<int32, 10> array_match_1 = { 1, 2, 3, 4 , 5, 6, 7, 8, 9, 10 };
+	const c_static_array<int32, 10> array_match_2 = { 1, 2, 3, 4 , 5, 6, 7, 8, 9, 10 };
+	const c_static_array<int32, 10> array_no_match = { 1, 2, 3, 4 , 5, 6, 7, 8, 4, 10};
 
 	EXPECT_EQ(array_match_1, array_match_2);
 	EXPECT_NE(array_match_1, array_no_match);
@@ -197,7 +198,7 @@ TEST(I_ARRAY, EQUALS_OPERATOR)
 TEST(C_STACK, C_STACK_PUSH_POP_TOP)
 {
 	const int32 size = 3;
-	c_stack<real32, size> stack;
+	c_static_stack<real32, size> stack;
 
 	EXPECT_TRUE(stack.empty());
 
@@ -215,16 +216,12 @@ TEST(C_STACK, C_STACK_PUSH_POP_TOP)
 	stack.pop();
 	stack.pop();
 	EXPECT_TRUE(stack.empty());
-
-	auto ref = stack.make_reference_const();
-	;
-	;
 }
 
 TEST(C_STACK, C_STACK_ITERATORS)
 {
 	const int32 size = 10;
-	c_stack<int32, size> stack;
+	c_static_stack<int32, size> stack;
 	stack.push(10);
 	stack.push(20);
 	stack.push(30);
@@ -241,7 +238,7 @@ TEST(C_STACK, C_STACK_ITERATORS)
 TEST(C_STACK, C_STACK_ASSERTS)
 {
 	const int32 size = 2;
-	c_stack<real32, size> stack;
+	c_static_stack<real32, size> stack;
 
 	EXPECT_DEATH(stack.top(), ".*");
 	EXPECT_DEATH(stack.pop(), ".*");
@@ -300,11 +297,12 @@ TEST(C_BIT_ARRAY, TEST_ALL)
 
 TEST(ARRAY, ARRAY_HAS_NON_ZERO_VALUES)
 {
-	c_array<int32, 256> array;
-	zero_object(array);
+	c_static_array<int32, 256> array;
+	array.zero_data();
+	//memory_zero(array.data(), sizeof(int32) * array.capacity());
 
-	EXPECT_FALSE(array_has_non_zero_data(array.make_reference()));
+	EXPECT_FALSE(array_has_non_zero_data(array));
 
 	array[200] = -253;
-	EXPECT_TRUE(array_has_non_zero_data(array.make_reference()));
+	EXPECT_TRUE(array_has_non_zero_data(array));
 }

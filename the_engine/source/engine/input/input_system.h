@@ -138,7 +138,7 @@ public:
 
 struct s_key_combo
 {
-	c_stack<e_input_keycode, 8> keys;
+	c_static_stack<e_input_keycode, 8> keys;
 };
 
 using t_key_combo_callback = void(bool);
@@ -177,7 +177,7 @@ public:
 	}
 
 private:
-	c_stack<s_key_combo_delegate, 32> m_key_combo_callbacks;
+	c_static_stack<s_key_combo_delegate, 32> m_key_combo_callbacks;
 };
 
 void input_system_handle_event(s_event& event);

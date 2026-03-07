@@ -137,17 +137,18 @@ TEST(ALLOCATOR, STACK_ALLOCATOR_TOO_BIG)
 	byte test_memory[k_byte_kb];
 	c_stack_allocator allocator(test_memory, sizeof(test_memory));
 
-	EXPECT_DEATH(allocator.allocate(sizeof(c_array<int32,1000>), alignof(c_array<int32, 1000>)), ".*");
+	EXPECT_DEATH(allocator.allocate(sizeof(c_static_array<int32,1000>), alignof(c_static_array<int32, 1000>)), ".*");
 }
 
 TEST(ALLOCATOR, STACK_ALLOCATOR_JUST_RIGHT)
 {
-	byte test_memory[k_byte_kb];
+	const int32 buffer_size = 1000;
+	byte test_memory[sizeof(c_static_array<byte, buffer_size >)];
 	c_stack_allocator allocator(test_memory, sizeof(test_memory));
 	
 	void* ptr = nullptr;
 
-	EXPECT_NO_FATAL_FAILURE(ptr = allocator.allocate(sizeof(c_array<byte, 1000>), alignof(c_array<byte, 1000>)));
+	EXPECT_NO_FATAL_FAILURE(ptr = allocator.allocate(sizeof(c_static_array<byte, buffer_size >), alignof(c_static_array<byte, buffer_size>)));
 
 	EXPECT_FALSE(ptr == nullptr);
 }

@@ -16,7 +16,7 @@ TEST(STRING_TEST, STRING_TEST_PRINT)
 TEST(STRING_TEST, STRING_TEST_PRINTF_APPEND)
 {
 	const int32 k_max_size = 64;
-	c_string<k_max_size> test_string;
+	c_static_string<k_max_size> test_string;
 	test_string.printf("Hello %s!", "World");
 
 	// "Hello World!\0" = 13
@@ -31,7 +31,7 @@ TEST(STRING_TEST, STRING_TEST_PRINTF_APPEND)
 TEST(STRING_TEST, STRING_TEST_ASSERTS)
 {
 	const int32 k_max_size = 16;
-	c_string<k_max_size> test_string;
+	c_static_string<k_max_size> test_string;
 
 	// should fit
 	test_string.printf("Hello %s!", "Bob");

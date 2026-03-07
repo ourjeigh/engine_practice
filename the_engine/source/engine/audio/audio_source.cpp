@@ -88,8 +88,8 @@ void c_audio_source_file_streamed::set_file(c_file_path file_path)
 	flags.set(file_open_mode_read, true);
 	m_file.open(file_path, flags);
 
-	c_array<byte, 2048> header_buffer;
-	m_file.read_bytes_unbuffered(0, header_buffer.capacity(), header_buffer.make_reference());
+	c_static_array<byte, 2048> header_buffer;
+	m_file.read_bytes_unbuffered(0, header_buffer.capacity(), header_buffer);
 
 	uint32 index = 0;
 	s_audio_wav_header_riff riff_chunk;
@@ -197,12 +197,12 @@ void c_audio_source_file_streamed::get_samples(t_audio_buffer_real32& out_buffer
 {
 	const int32 sample_count = out_buffer.size();
 
-	c_array<byte, 4096> temp_buffer;
+	c_static_array<byte, 4096> temp_buffer;
 
-	int32 bytes_to_read = sample_count * m_format.block_align;
+	const int32 bytes_to_read = sample_count * m_format.block_align;
 	ASSERT(bytes_to_read < temp_buffer.capacity());
 
-	int32 bytes_read = m_file.read_bytes(bytes_to_read, temp_buffer.make_reference());
+	int32 bytes_read = m_file.read_bytes(bytes_to_read, temp_buffer);
 
 	c_static_audio_buffer<real32, 2, 1024> audio_buffer;
 
@@ -212,6 +212,7 @@ void c_audio_source_file_streamed::get_samples(t_audio_buffer_real32& out_buffer
 	{
 		for (int32 channenl_index = 0; channenl_index < m_format.channel_count; channenl_index++)
 		{
+			// TODO: this involves way too much switch logic. rework to just do the switch once
 			real32 sample = convert_sample_to_real32(&temp_buffer.data()[byte_index + (bytes_per_sample * channenl_index)], m_format.sample_type);
 			audio_buffer.get_channel(channenl_index)[sample_index] = sample;
 		}
@@ -233,7 +234,7 @@ void c_audio_source_file_streamed::get_samples(t_audio_buffer_real32& out_buffer
 			int32 second_pass_bytes_to_read = bytes_to_read - bytes_read;
 
 			m_file.set_read_position(m_format.data_position);
-			int32 second_pass = m_file.read_bytes(second_pass_bytes_to_read, temp_buffer.make_reference());
+			int32 second_pass = m_file.read_bytes(second_pass_bytes_to_read, temp_buffer);
 			ASSERT(second_pass == bytes_to_read - bytes_read);
 
 			sample_index = 0;

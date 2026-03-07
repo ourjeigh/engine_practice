@@ -79,8 +79,9 @@ class c_static_audio_buffer : public c_audio_buffer<t_type>
 public:
 	c_static_audio_buffer() : c_audio_buffer<t_type>(k_channel_count, k_size)
 	{
-		this->m_data = &m_storage[0][0];
-		zero_object(m_storage); 
+		this->set_data(&m_storage[0]);
+		//this->m_data = &m_storage[0][0];
+		//zero_object(m_storage); 
 	}
 
 	c_static_audio_buffer(const c_static_audio_buffer& other) { m_storage = other.m_storage; }
@@ -101,13 +102,13 @@ public:
 	t_type* get_channel(int32 channel_index)
 	{
 		ASSERT(0 <= channel_index && channel_index < k_channel_count);
-		return &m_storage[channel_index][0];
+		return &m_storage[channel_index * k_size];
+		//return &m_storage[channel_index][0];
 	}
 
 	const t_type* get_channel_const(int32 channel_index) const
 	{
-		ASSERT(0 <= channel_index && channel_index < k_channel_count);
-		return &m_storage[channel_index][0];
+		return get_channel(channel_index);
 	}
 
 	void get_interleaved(t_type* out_buffer, int32 sample_count)
@@ -129,14 +130,15 @@ public:
 	//	return &m_storage[channel_index][0];
 	//}
 private:
-	c_array<c_array<t_type, k_size>, k_channel_count> m_storage;
+	//c_static_array<c_static_array<t_type, k_size>, k_channel_count> m_storage;
+	c_static_array<t_type, k_size * k_channel_count> m_storage;
 };
 
 template<typename t_type, int32 k_channel_count, int32 k_size>
 class c_audio_ring_buffer
 {
 public:
-	c_audio_ring_buffer() : m_write_position(0), m_read_position(0) { zero_object(m_buffer); }
+	c_audio_ring_buffer() : m_write_position(0), m_read_position(0) { m_buffer.zero(); }
 	~c_audio_ring_buffer() {}
 
 	// returns actual samples written
@@ -156,7 +158,7 @@ template<typename t_type, int32 k_channel_count, int32 k_size>
 class c_audio_threadsafe_ring_buffer
 {
 public:
-	c_audio_threadsafe_ring_buffer() : m_write_position(0), m_read_position(0) { zero_object(m_buffer); }
+	c_audio_threadsafe_ring_buffer() : m_write_position(0), m_read_position(0) { m_buffer.zero(); }
 	~c_audio_threadsafe_ring_buffer() {}
 
 	// returns actual samples written
