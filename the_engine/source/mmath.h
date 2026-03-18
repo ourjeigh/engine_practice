@@ -41,7 +41,7 @@ inline int32 math_pin_int32(int32 min, int32 max, int32 val)
 }
 
 template<typename t_type>
-t_type math_abs(t_type in)
+constexpr t_type math_abs(t_type in)
 {
 	return in > 0 ? in : -in;
 }
@@ -49,6 +49,9 @@ t_type math_abs(t_type in)
 template<typename t_type>
 constexpr t_type math_pow(t_type base, int32 exp)
 {
+	// TODO: create fractional power that returns float
+	ASSERT(exp >= 0);
+
 	if (exp == 0)
 	{
 		return 1;
@@ -131,6 +134,19 @@ constexpr real32 math_sin(real32 x)
 constexpr real32 math_cos(real32 x)
 {
 	return static_cast<real32>(math_cos(static_cast<real64>(x)));
+}
+
+template<typename t_type>
+constexpr int32 math_digit_count(t_type x)
+{
+	int32 count = 0;
+	while (x)
+	{
+		count++;
+		x /= 10;
+	}
+
+	return count;
 }
 
 #endif //__MAMTH_H__

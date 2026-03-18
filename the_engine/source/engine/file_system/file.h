@@ -2,7 +2,7 @@
 #define __FILE_H__
 #pragma once
 
-#include "structures/string.h"
+#include "structures/string/string.h"
 #include "structures/array.h"
 #include <platform/platform_handle.h>
 

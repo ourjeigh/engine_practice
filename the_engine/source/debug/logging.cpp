@@ -1,7 +1,7 @@
 #include "logging.h"
 
 #include <types/types.h>
-#include <structures/string.h>
+#include <structures/string/string.h>
 #include "asserts.h"
 #include <time/time.h>
 #include "threads/threads.h"
@@ -9,12 +9,11 @@
 
 IGNORE_WINDOWS_WARNINGS_PUSH
 #include "windows.h"
-#include <cstdarg>
+//#include <cstdarg>
 #include <debugapi.h>
 IGNORE_WINDOWS_WARNINGS_POP
 
 // characters in a log string
-const int32 k_max_log_string_length = 512;
 
 // log events in stack
 const int32 k_max_log_count = 1024;
@@ -45,7 +44,7 @@ void c_logging_system::init(s_log_config config)
 	flags.set(file_open_mode_replace, true);
 	m_file.open(path, flags);
 
-	t_string_128 header = "Timestamp\tTime\tThread\tLevel\tMessage\n";
+	t_string_128 header = "Timestamp\t\tTime\tThread\tLevel\tMessage\n";
 	header.pop();
 	m_file.write_string(k_invalid, header.make_array());
 }
@@ -62,25 +61,21 @@ void c_logging_system::update()
 	process_log_events();
 }
 
-void c_logging_system::log(e_log_level level, const char* format, ...)  
-{  
+void c_logging_system::log_internal(
+	e_log_level level,
+	c_string message)
+{
 	// todo: get thread number & name  
-	t_timestamp current_time = get_high_precision_timestamp();  
+	t_timestamp current_time = get_high_precision_timestamp();
 	c_time_span time_since_start = get_session_time()->time_since_start(current_time);  
 
 	c_static_string<k_max_log_string_length> output;
-	c_static_string<k_max_log_string_length> message;
-	message.clear();
 
-	output.printf("%llu %2.3f %s: ", current_time, time_since_start.get_duration_seconds(), get_log_level_string(level));  
-
-	va_list args;  
-	va_start(args, format);  
-	message.append_va(format, args);  
-	va_end(args);  
-
-	output.append(message.get_const_char());
-	output.append("\n");
+	output.printf("{u} {f2.3} {s}: {s}\n", 
+		current_time, 
+		time_since_start.get_duration_seconds(), 
+		get_log_level_string(level),
+		message.get_const_char());
 
 	if (m_config.log_to_console)  
 	{  
@@ -106,7 +101,7 @@ void c_logging_system::process_log_events()
 		{
 			const s_log_event& evt = *it;
 			c_static_string<k_max_log_string_length> output;
-			output.printf("%llu\t%06.3f\t0x%x\t%s\t%s\n",
+			output.printf("{u}\t{f6.3}\t0x{x4}\t{s}\t{s}\n",
 				evt.timestamp,
 				evt.time_seconds,
 				evt.thread_id,

@@ -31,13 +31,18 @@ template<typename t_type> inline constexpr bool operator!=(const t_type& lhs, co
 template<typename t_type> inline constexpr bool operator!=(const e_invalid& lhs, const t_type& rhs) { return !(lhs == rhs); }
 
 
-const char k_char_max = 0xF;
+const char k_char_max = 0x7F;
 const byte k_byte_max = 0xFF;
 
 const int8 k_int8_max = 0x7F;
 const int16 k_int16_max = 0x7FFF;
 const int32 k_int32_max = 0x7FFFFFFF;
 const int64 k_int64_max = 0x7FFFFFFFFFFFFFFF;
+
+const int8 k_int8_min = static_cast<int8>(0x80);
+const int16 k_int16_min = static_cast<int16>(0x8000);
+const int32 k_int32_min = static_cast<int32>(0x80000000);
+const int64 k_int64_min = static_cast<int64>(0x8000000000000000);
 
 const uint8 k_uint8_max = 0xFF;
 const uint16 k_uint16_max = 0xFFFF;
@@ -61,6 +66,12 @@ inline constexpr uint8 int32_to_uint8(int32 in)
 inline constexpr int64 int32_to_int64(int32 in)
 {
 	return in;
+}
+
+inline constexpr int8 int64_to_int8(int64 in)
+{
+	ASSERT(in <= static_cast<int64>(k_int8_max));
+	return static_cast<int8>(in);
 }
 
 inline constexpr int32 int64_to_int32(int64 in)
@@ -129,6 +140,12 @@ inline uint32 real64_to_uint32(real64 in)
 	ASSERT(in >= 0.0);
 	ASSERT(in <= static_cast<real64>(k_uint32_max));
 	return static_cast<uint32>(in);
+}
+
+inline char wchar_to_char(const wchar in)
+{
+	ASSERT(in <= k_char_max);
+	return static_cast<char>(in);
 }
 
 // this feels like it belongs somewhere else

@@ -7,6 +7,7 @@
 #include <engine/file_system/file.h>
 
 const int32 k_log_file_buffer_size = 10 * k_byte_kib;
+const int32 k_max_log_string_length = 512;
 
 struct s_log_config
 {
@@ -30,11 +31,27 @@ public:
 	void term() override;
 	void update() override;
 
-	void log(e_log_level level, const char* text, ...);
+	template<typename... t_args>
+	void log(e_log_level level, const char* format, t_args... args)
+	{
+		c_static_string<k_max_log_string_length> message;
+		message.clear();
+		message.appendf(format, args...);
+
+		log_internal(level, message);
+	}
+
+	void log(e_log_level level, c_string message)
+	{
+		ASSERT(message.used() <= k_max_log_string_length);
+		log_internal(level, message);
+	}
 
 private:
 	void init() override {};
 	void process_log_events();
+
+	void log_internal(e_log_level level, c_string message);
 
 	s_log_config m_config;
 	c_file_static_buffered<k_log_file_buffer_size> m_file;

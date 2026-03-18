@@ -19,6 +19,9 @@ public:
 		iterator operator++(int) { iterator temp = *this; ++(*this); return temp; }
 		iterator& operator--() { --m_ptr; return *this; }
 		iterator operator--(int) { iterator temp = *this; --(*this); return temp; }
+
+		// todo: make const interators
+
 		bool operator== (const iterator& other) const { return m_ptr == other.m_ptr; }
 		bool operator!= (const iterator& other) const { return !(*this == other); }
 
@@ -31,7 +34,9 @@ public:
 		invalidate();
 	}
 
-	explicit c_array(const c_array& other) : m_data_ref(other.m_data_ref), m_size(other.m_size) 
+	c_array(t_type* data, int32 size) : m_data_ref(data), m_size(size) {}
+
+	c_array(const c_array& other) : m_data_ref(other.m_data_ref), m_size(other.m_size) 
 	{
 		ASSERT(is_valid());
 	}
@@ -86,7 +91,11 @@ public:
 
 	iterator begin() { return iterator(&data()[0]); }
 	iterator end() { return iterator(&data()[capacity()]); }
+	
+	// todo: make const interators
 
+	iterator begin_reverse() { return iterator(&data()[capacity() - 1]); }
+	iterator end_reverse() { return iterator(&data()[-1]); }
 	int32 capacity() const
 	{
 		return m_size;
@@ -160,8 +169,21 @@ public:
 		memory_zero(data(), sizeof(t_type) * m_size);
 	}
 
-	// it'd be good to make this protected
-	explicit c_array(t_type* data, int32 size) : m_data_ref(data), m_size(size) {}
+	c_array<t_type> make_sub_array(int32 start, int32 end)
+	{
+		assert_valid_index(start);
+		assert_valid_index(end);
+		ASSERT(end > start);
+
+		const int32 length = end - start;
+		return c_array<t_type>(&data()[start], length);
+	}
+
+	const c_array<t_type> make_sub_array_const(int32 start, int32 end) const
+	{
+		return make_sub_array(start, end);
+	}
+
 protected:
 
 	void assert_valid_index(int32 index) const
@@ -176,37 +198,6 @@ private:
 	// would like this to be const, but it breaks copy assignment
 	int32 m_size;
 };
-
-//template<class t_type>
-//class c_array : public i_array<c_array<t_type>, t_type>
-//{
-//public:
-//	c_array() : m_data_ref(nullptr), m_capacity(0) {}
-//
-//	explicit c_array(t_type* data, int32 capacity) : m_data_ref(data), m_capacity(capacity) {}
-//
-//	c_array(const c_array& other) : m_data_ref(other.m_data_ref), m_capacity(other.m_capacity) {}
-//
-//	c_array& operator=(const c_array& other)
-//	{
-//		m_data_ref = other.m_data_ref;
-//		m_capacity = other.m_capacity;
-//		return *this;
-//	}
-//
-//	bool is_valid() { return m_data_ref != nullptr; }
-//	int32 capacity() const { return m_capacity; }
-//	t_type* data() { return m_data_ref; }
-//	const t_type* data() const { return m_data_ref; }
-//
-//protected:
-//
-//private:
-//	friend class i_array<c_array<t_type>, t_type>;
-//	
-//	t_type* m_data_ref;
-//	int32 m_capacity;
-//};
 
 template<class t_type, int32 k_max_size>
 class c_static_array : public c_array<t_type>
@@ -251,27 +242,10 @@ public:
 
 	int32 capacity() const { return k_max_size; }
 
-	/*c_array<t_type> make_reference()
-	{
-		return c_array<t_type>(m_data, k_max_size);
-	}
-
-	c_array<const t_type> make_reference() const
-	{
-		return c_array<const t_type>(m_data, k_max_size);
-	}
-
-	const c_array<const t_type> make_reference_const() const
-	{
-		return c_array<const t_type>( m_data, k_max_size );
-	}*/
-
 	t_type* data() { return m_data; }
 	const t_type* const_data() const { return m_data; }
 
 protected:
-	//friend class i_array<c_static_array<t_type, k_max_size>, t_type>;
-
 	t_type m_data[k_max_size];
 };
 
@@ -294,6 +268,15 @@ public:
 	{
 		ASSERT(!full());
 		return this->data()[++m_top];
+	}
+
+	void push_from(const c_array<t_type> other)
+	{
+		ASSERT(free() >= other.capacity());
+		memory_copy(&this->data()[++m_top], other.data(), sizeof(t_type) * other.capacity());
+
+		m_top += other.capacity() - 1;
+		ASSERT(m_top <= this->capacity());
 	}
 
 	void pop()
@@ -326,16 +309,16 @@ public:
 	}
 
 	int32 used() const { return m_top + 1; }
+	int32 free() const { return this->capacity() - used(); }
 	bool empty() const { return m_top == -1; }
 	bool full() const { return m_top == this->capacity() - 1; }
 	void clear() { m_top = -1; }
 
 	iterator end() { return iterator(&this->data()[m_top + 1]); }
+	iterator begin_reverse() { return iterator(&this->data()[m_top]); }
 
 	void copy_from(const c_stack<t_type>& other)
 	{
-		//todo: remove this and properly handle the min capacity case
-		ASSERT(this->capacity() == other.capacity());
 		c_array<t_type>::copy_from(other);
 		m_top = other.m_top;
 	}
@@ -516,118 +499,4 @@ bool array_has_non_zero_data(c_array<t_type>& array)
 
 	return false;
 }
-
-
-// -------------------------------------------------------------------------
-// v2
-
-template<typename t_type>
-class c_array_v2
-{
-public:
-	struct iterator
-	{
-		iterator(t_type* ptr) : m_ptr(ptr) {}
-		t_type& operator*() const { return *m_ptr; }
-		t_type* operator->() { return m_ptr; }
-		iterator& operator++() { ++m_ptr; return *this; }
-		iterator operator++(int) { iterator temp = *this; ++(*this); return temp; }
-		iterator& operator--() { --m_ptr; return *this; }
-		iterator operator--(int) { iterator temp = *this; --(*this); return temp; }
-		bool operator== (const iterator& other) const { return m_ptr == other.m_ptr; }
-		bool operator!= (const iterator& other) const { return !(*this == other); }
-
-	private:
-		t_type* m_ptr;
-	};
-
-	c_array_v2(t_type* data, int32 size) : m_data_ref(data), m_size(size) {};
-
-	t_type& operator[](int32 index)
-	{
-		assert_valid_index(index);
-		return data()[index];
-	}
-
-	const t_type& operator[](int32 index) const
-	{
-		assert_valid_index(index);
-		return data()[index];
-	}
-
-	bool operator==(const c_array_v2<t_type>& other) const
-	{
-		bool equal = false;
-		if (capacity() == other.capacity())
-		{
-			equal = true;
-
-			for (int32 i = 0; equal && i < capacity(); i++)
-			{
-				equal = data()[i] == other.data()[i];
-			}
-		}
-
-		return equal;
-	}
-
-	bool operator!=(const c_array_v2<t_type>& other) const
-	{
-		return !(operator==(other));
-	}
-
-	iterator begin() { return iterator(m_data_ref); }
-	iterator end() { return iterator(m_data_ref[capacity()]); }
-
-	int32 capacity() const
-	{
-		return m_size;
-	}
-
-	t_type* get_item(int32 index)
-	{
-		ASSERT(in_range(0, capacity(), index));
-		return m_data_ref[index];
-	}
-
-	const t_type* get_item_const(int32 index)
-	{
-		return get_item(index);
-	}
-
-	t_type* data()
-	{
-		return m_data_ref;
-	}
-
-	const t_type* data() const
-	{
-		return m_data_ref;
-	}
-
-	bool is_valid() const 
-	{ 
-		return m_data_ref != nullptr;
-	}
-
-protected:
-	void assert_valid_index(int32 index) const
-	{
-		ASSERT(in_range(0, capacity() - 1));
-		//ASSERT(index >= 0);
-		//ASSERT(index < capacity());
-	}
-
-	t_type* m_data_ref;
-	int32 m_size;
-};
-
-template<typename t_type, int32 k_size>
-class c_array_static_v2 : public c_array_v2<t_type>
-{
-public:
-	c_array_static_v2() : c_array_v2<t_type>(&m_data, k_size) {}
-private:
-	t_type m_data[k_size];
-};
 #endif //__ARRAY_H__

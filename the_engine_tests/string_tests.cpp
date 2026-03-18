@@ -1,8 +1,14 @@
 #include "pch.h"
 #include "types/types.h"
-#include <structures/string.h>
-#include <structures/string_id.h>
+#include <structures/string/string.h>
+#include <structures/string/string_id.h>
 #include <asserts.h>
+//#include <structures/string/string_format.h>
+
+
+const char* k_int64_max_string =   "9223372036854775807";
+const char* k_int64_min_string =  "-9223372036854775808";
+const char* k_uint64_max_string = "18446744073709551615";
 
 TEST(STRING_TEST, STRING_TEST_PRINT)
 {
@@ -13,18 +19,137 @@ TEST(STRING_TEST, STRING_TEST_PRINT)
 	EXPECT_EQ(string_compare(test_string, string.get_const_char()), 0);
 }
 
+TEST(STRING_FORMAT, ATOI_VALID_INPUTS)
+{
+	EXPECT_EQ(atoi(t_string_128("0").make_array()), 0);
+	EXPECT_EQ(atoi(t_string_128("1").make_array()), 1);
+	EXPECT_EQ(atoi(t_string_128("   \t   -4\r").make_array()), -4);
+	EXPECT_EQ(atoi(t_string_128("12345").make_array()), 12345);
+	EXPECT_EQ(atoi(t_string_128("-5283451235632").make_array()), -5283451235632);
+
+	EXPECT_EQ(atoi(t_string_128(k_int64_min_string).make_array()), k_int64_min);
+	EXPECT_EQ(atoi(t_string_128(k_int64_max_string).make_array()), k_int64_max);
+
+	EXPECT_EQ(atoi(t_string_128("9223372036854775806").make_array()), k_int64_max -1);
+	EXPECT_EQ(atoi(t_string_128("-9223372036854775807").make_array()), k_int64_min + 1);
+}
+
+TEST(STRING_FORMAT, ATOI_INVALID_INPUTS)
+{
+	EXPECT_EQ(atoi(t_string_128("poop").make_array()), 0);
+
+	EXPECT_EQ(atoi(t_string_128("9223372036854775808").make_array()), k_int64_max);
+	EXPECT_EQ(atoi(t_string_128("-9223372036854775809").make_array()), k_int64_min);
+
+	EXPECT_EQ(atoi(t_string_128(k_uint64_max_string).make_array()), k_int64_max);
+}
+
+TEST(STRING_FORMAT, CHAR_CHECKS)
+{
+	EXPECT_TRUE(is_uppercase('A'));
+	EXPECT_TRUE(is_uppercase('P'));
+	EXPECT_TRUE(is_uppercase('Z'));
+
+	EXPECT_TRUE(is_lowercase('a'));
+	EXPECT_TRUE(is_lowercase('p'));
+	EXPECT_TRUE(is_lowercase('z'));
+
+	EXPECT_TRUE(is_letter('a'));
+	EXPECT_TRUE(is_letter('Q'));
+	EXPECT_TRUE(is_letter('r'));
+	EXPECT_TRUE(is_letter('Z'));
+
+	EXPECT_TRUE(is_digit('0'));
+	EXPECT_TRUE(is_digit('1'));
+	EXPECT_TRUE(is_digit('8'));
+	EXPECT_TRUE(is_digit('9'));
+
+	EXPECT_TRUE(is_whitespace(' '));
+	EXPECT_TRUE(is_whitespace('	'));
+	EXPECT_TRUE(is_whitespace('\n'));
+	EXPECT_TRUE(is_whitespace('\r'));
+
+	EXPECT_FALSE(is_uppercase('a'));
+	EXPECT_FALSE(is_uppercase('8'));
+	EXPECT_FALSE(is_uppercase('	'));
+
+	EXPECT_FALSE(is_lowercase('M'));
+	EXPECT_FALSE(is_lowercase('Z'));
+	EXPECT_FALSE(is_lowercase('7'));
+
+	EXPECT_FALSE(is_letter(')'));
+	EXPECT_FALSE(is_letter('+'));
+	EXPECT_FALSE(is_letter('5'));
+}
+
+TEST(STRING_FORMAT, SWITCH_CASE)
+{
+	EXPECT_EQ('a', to_lower_char('A'));
+	EXPECT_EQ('p', to_lower_char('P'));
+	EXPECT_EQ('a', to_lower_char('a'));
+	EXPECT_EQ('-', to_lower_char('-'));
+
+	EXPECT_EQ('A', to_upper_char('a'));
+	EXPECT_EQ('M', to_upper_char('m'));
+	EXPECT_EQ('Z', to_upper_char('z'));
+	EXPECT_EQ('R', to_upper_char('R'));
+	EXPECT_EQ(']', to_upper_char(']'));
+}
+
+TEST(STRING_FORMAT, PARSE_FORMAT)
+{
+	t_arg_format_buffer format;
+	parse_format_buffer("i2.1", format);
+
+	EXPECT_EQ(format.used(), 4);
+}
+
+TEST(STRING_FORMAT, PARSE_SPEC)
+{
+	t_arg_format_buffer format;
+	parse_format_buffer("i2.1", format);
+	
+	s_format_spec spec = parse_spec(format);
+
+	EXPECT_EQ(spec.type, 'i');
+	EXPECT_EQ(spec.width, 2);
+	EXPECT_EQ(spec.precision, 1);
+}
+
+TEST(STRING_TEST, STRING_TEST_PRINTF_STRING)
+{
+	const int32 k_max_size = 64;
+	c_static_string<k_max_size> test_string;
+	test_string.printf("Hello {s}!", "World");
+
+	int32 used = test_string.used();
+	EXPECT_EQ(used, 13);
+	EXPECT_TRUE(test_string.top() == '\0');
+	EXPECT_STREQ("Hello World!", test_string.get_const_char());
+}
+
+TEST(STRING_TEST, STRING_TEST_PRINTF_INT)
+{
+	const int32 k_max_size = 64;
+	c_static_string<k_max_size> test_string;
+	test_string.printf("The answer is {i}.", 42L);
+	EXPECT_STREQ("The answer is 42.", test_string.get_const_char());
+}
+
 TEST(STRING_TEST, STRING_TEST_PRINTF_APPEND)
 {
 	const int32 k_max_size = 64;
 	c_static_string<k_max_size> test_string;
-	test_string.printf("Hello %s!", "World");
+	test_string.printf("Hello {s}!", "World");
+	//test_string.printf("Hello %s!", "World");
 
 	// "Hello World!\0" = 13
 	int32 used = test_string.used();
 	EXPECT_EQ(used, 13);
 	EXPECT_TRUE(test_string.top() == '\0');
 	EXPECT_STREQ("Hello World!", test_string.get_const_char());
-	test_string.append(" The answer is %d.", 42);
+	//test_string.appendf(" The answer is %d.", 42);
+	test_string.appendf(" The answer is {i}.", 42L);
 	EXPECT_STREQ("Hello World! The answer is 42.", test_string.get_const_char());
 }
 
@@ -34,10 +159,12 @@ TEST(STRING_TEST, STRING_TEST_ASSERTS)
 	c_static_string<k_max_size> test_string;
 
 	// should fit
-	test_string.printf("Hello %s!", "Bob");
+	test_string.printf("Hello {s}!", "Bob");
+	//test_string.printf("Hello %s!", "Bob");
 
 	// should not fit
-	EXPECT_DEATH(test_string.printf("This string is way too long %d", 12345), ".*");
+	//EXPECT_DEATH(test_string.printf("This string is way too long %d", 12345), ".*");
+	EXPECT_DEATH(test_string.printf("This string is way too long {d}", 12345), ".*");
 }
 
 TEST(STRING_TEST, STRING_COMPARE_EQUALS)
@@ -100,8 +227,8 @@ TEST(STRING, STRING_COMPARE_TOO_BIG)
 
 	EXPECT_DEATH(string_compare(long_string1, long_string2), ".*");
 
-	delete long_string1;
-	delete long_string2;
+	delete[] long_string1;
+	delete[] long_string2;
 }
 
 TEST(STRING, STRING_LENGTH)
@@ -135,4 +262,138 @@ TEST(STRING_ID, EQUALS)
 
 	EXPECT_EQ(test_string1, test_string2);
 	EXPECT_NE(test_string1, test_string3);
+}
+
+TEST(STRING_FORMAT, BOOL)
+{
+	t_string_128 string;
+
+	string_format_from_bool(true, 0, string);
+	string.terminate();
+	EXPECT_TRUE(are_strings_equal("true", string.get_const_char()));
+	string.clear();
+
+	string_format_from_bool(false, 0, string);
+	string.terminate();
+	EXPECT_TRUE(are_strings_equal("false", string.get_const_char()));
+	string.clear();
+
+	string_format_from_bool(true, 1, string);
+	string.terminate();
+	EXPECT_TRUE(are_strings_equal("t", string.get_const_char()));
+	string.clear();
+
+	string_format_from_bool(false, 1, string);
+	string.terminate();
+	EXPECT_TRUE(are_strings_equal("f", string.get_const_char()));
+	string.clear();
+}
+
+TEST(STRING_FORMAT, INT)
+{
+	t_string_128 string;
+
+	string_format_from_int(0, 0, string);
+	string.terminate();
+	EXPECT_TRUE(are_strings_equal("0", string.get_const_char()));
+	string.clear();
+
+	string_format_from_int(256, 0, string);
+	string.terminate();
+	EXPECT_TRUE(are_strings_equal("256", string.get_const_char()));
+	string.clear();
+
+	string_format_from_int(-256, 0, string);
+	string.terminate();
+	EXPECT_TRUE(are_strings_equal("-256", string.get_const_char()));
+	string.clear();
+
+	string_format_from_int(k_int64_max, 0, string);
+	string.terminate();
+	EXPECT_TRUE(are_strings_equal("9223372036854775807", string.get_const_char()));
+	string.clear();
+
+	string_format_from_int(k_int64_min, 0, string);
+	string.terminate();
+	EXPECT_TRUE(are_strings_equal("-9223372036854775808", string.get_const_char()));
+	string.clear();
+
+	string_format_from_int(k_uint64_max, 0, string);
+	string.terminate();
+	EXPECT_TRUE(are_strings_equal("18446744073709551615", string.get_const_char()));
+}
+
+TEST(STRING_FORMAT, REAL64)
+{
+	real64 test = -234512.320004;
+	t_string_128 string;
+	string_format_from_real(test, 0, 6, string);
+	string.terminate();
+
+	EXPECT_TRUE(are_strings_equal("-234512.320004", string.get_const_char()));
+}
+
+TEST(STRING_FORMAT, HEX)
+{
+	t_string_128 string;
+
+	{
+		int8 input = -1;
+		string_format_to_hex(input, 0, string);
+		string.terminate();
+		EXPECT_TRUE(are_strings_equal("FF", string.get_const_char()));
+		string.clear();
+	}
+
+	{
+		int16 input = -1;
+		string_format_to_hex(input, 0, string);
+		string.terminate();
+		EXPECT_TRUE(are_strings_equal("FFFF", string.get_const_char()));
+		string.clear();
+
+		input = 757;
+		string_format_to_hex(input, 0, string);
+		string.terminate();
+		EXPECT_TRUE(are_strings_equal("02F5", string.get_const_char()));
+		string.clear();
+
+		input = -4870;
+		string_format_to_hex(input, 0, string);
+		string.terminate();
+		EXPECT_TRUE(are_strings_equal("ECFA", string.get_const_char()));
+		string.clear();
+	}
+
+	{
+		int32 input = -1;
+		string_format_to_hex(input, 0, string);
+		string.terminate();
+		EXPECT_TRUE(are_strings_equal("FFFFFFFF", string.get_const_char()));
+		string.clear();
+
+		input = -4870;
+		string_format_to_hex(input, 0, string);
+		string.terminate();
+		EXPECT_TRUE(are_strings_equal("FFFFECFA", string.get_const_char()));
+		string.clear();
+
+		input = 10;
+		string_format_to_hex(input, 0, string);
+		string.terminate();
+		EXPECT_TRUE(are_strings_equal("0000000A", string.get_const_char()));
+		string.clear();
+
+		input = 256;
+		string_format_to_hex(input, 0, string);
+		string.terminate();
+		EXPECT_TRUE(are_strings_equal("00000100", string.get_const_char()));
+		string.clear();
+
+		input = -487294710;
+		string_format_to_hex(input, 0, string);
+		string.terminate();
+		EXPECT_TRUE(are_strings_equal("E2F4790A", string.get_const_char()));
+		string.clear();
+	}
 }

@@ -79,3 +79,11 @@ TEST(MATH, COS)
 	EXPECT_NEAR(math_cos(((3 * k_math_real32_pi) / 2)),					0.0f, tolerance);
 	EXPECT_NEAR(math_cos(k_math_real32_two_pi),							1.0f, tolerance);
 }
+
+TEST(MATH, NUM_DIGITS)
+{
+	EXPECT_EQ(math_digit_count(0), 0);
+	EXPECT_EQ(math_digit_count(1), 1);
+	EXPECT_EQ(math_digit_count(1234), 4);
+	EXPECT_EQ(math_digit_count(k_int32_max), 10);
+}

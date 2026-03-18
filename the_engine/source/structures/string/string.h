@@ -4,50 +4,61 @@
 
 #include "structures/array.h"
 #include <types/types.h>
-
+#include "structures/string/string_format.h"
 #include "platform/platform.h"
 
 IGNORE_WINDOWS_WARNINGS_PUSH
 // TODO: remove
-#include <stdio.h>
-#include <cstdarg>
+//#include <stdio.h>
+//#include <cstdarg>
 IGNORE_WINDOWS_WARNINGS_POP
 
 const char k_null_char = '\0';
 
-inline int32 expand_args_string(char* buffer, int32 size, const char* format, va_list args)
-{
-	 //doesn't count terminating '\0' even tho it will write one
-	int32 length = _vscprintf(format, args) + 1;
-	ASSERT(length <= size);
-
-	//vsprintf_s(buffer, size, format, args);
-	vsprintf_s(buffer, length, format, args);
-
-	return length;
-}
-
-// TODO make this c_static_string and make it have a c_stack<char, k_max_size>
-// then make the base c_string have all the functionality and take in a data member
+//inline int32 expand_args_string(char* buffer, int32 size, const char* format, va_list args)
+//{
+//	 //doesn't count terminating '\0' even tho it will write one
+//	int32 length = _vscprintf(format, args) + 1;
+//	ASSERT(length <= size);
+//
+//	//vsprintf_s(buffer, size, format, args);
+//	vsprintf_s(buffer, length, format, args);
+//
+//	return length;
+//}
+template<int32 k_max_size>
+class c_static_string;
 
 class c_string : public c_stack<char>
 {
 public:
 	c_string() { this->clear(); }
+
 	explicit c_string(char* data, int32 size) : c_stack<char>(data, size)
 	{ 
 		memory_set(this->data(), k_null_char, this->capacity());
 	}
 
-	void print_va(const char* format, va_list args)
-	{
-		int length = expand_args_string(this->data(), this->capacity(), format, args);
-		this->m_top = length - 1;
-		terminate();
-	}
+	//void print_va(const char* format, va_list args)
+	//{
+	//	int length = expand_args_string(this->data(), this->capacity(), format, args);
+	//	this->m_top = length - 1;
+	//	terminate();
+	//}
 
 	void print(const char* string)
 	{
+		clear();
+		append(string);
+	}
+
+	void append(const char* string)
+	{
+		if (!empty() && is_terminated())
+		{
+			pop();
+		}
+
 		if (string != nullptr)
 		{
 			while (*string != k_null_char)
@@ -59,43 +70,37 @@ public:
 		terminate();
 	}
 
-	void printf(const char* format, ...)
+	template<typename... t_args>
+	void printf(const char* format, t_args... args)
 	{
-		// TODO: write custom va_args
-		va_list args;
-		va_start(args, format);
-		print_va(format, args);
-		va_end(args);
+		clear();
+		appendf(format, args...);
 	}
 
-	void append_va(const char* format, va_list args)
+	template<typename... t_args>
+	void appendf(const char* format, t_args... args)
 	{
-		ASSERT(this->empty() || this->top() == k_null_char);
+		ASSERT(format != nullptr);
 
-		int32 start = this->empty() ? 0 : this->m_top;
-		int32 size_left = this->capacity() - start;
-		int lenth = expand_args_string(&this->data()[start], size_left, format, args);
-		this->m_top += lenth - 1;
+		if (!empty() && is_terminated())
+		{
+			pop();
+		}
+
+		appendf_internal(format, args...);
+
 		terminate();
-	}
-
-	void append(const char* format, ...)
-	{
-		va_list args;
-		va_start(args, format);
-		append_va(format, args);
-		va_end(args);
 	}
 
 	const char* get_const_char() const
 	{
-		ASSERT(is_terminated());
-
 		if (this->empty())
 		{
 			return nullptr;
 		}
 		
+		ASSERT(is_terminated());
+
 		return this->data();
 	}
 
@@ -105,8 +110,6 @@ public:
 		ASSERT(this->top() == k_null_char);
 	}
 
-
-private:
 	void terminate()
 	{
 		if (this->top() != k_null_char)
@@ -115,9 +118,48 @@ private:
 		}
 	}
 
+private:
+
 	bool is_terminated() const
 	{
 		return top() == k_null_char;
+	}
+
+	void appendf_internal(const char*& format)
+	{
+		push_unformatted_string(format);
+		ASSERT(*format == k_null_char);
+	}
+
+	template<typename t_type, typename... t_args>
+	void appendf_internal(const char*& format, t_type first, t_args... args)
+	{
+		// process first
+		push_unformatted_string(format);
+
+		// we still have args to parse so we better have an arg format ready
+		ASSERT(*format == k_string_format_char_begin);
+		format++;
+
+		t_arg_format_buffer arg_format_buffer;
+		parse_format_buffer(format, arg_format_buffer);
+		string_format(arg_format_buffer, first, *this);
+		
+		format += arg_format_buffer.used();
+
+		ASSERT(*format == k_string_format_char_end);
+		format++;
+
+		appendf_internal(format, args...);
+	}
+
+	void push_unformatted_string(const char*& format)
+	{
+		// todo: handle escaped (eg "{{blah}}") 
+		while (*format != k_null_char && *format != k_string_format_char_begin)
+		{
+			push(*format++);
+		}
 	}
 };
 
@@ -199,6 +241,11 @@ constexpr int32 string_compare(const char* left, const char* right)
 	}
 
 	return 0;
+}
+
+constexpr bool are_strings_equal(const char* left, const char* right)
+{
+	return string_compare(left, right) == 0;
 }
 
 constexpr int32 string_length(const char* string)

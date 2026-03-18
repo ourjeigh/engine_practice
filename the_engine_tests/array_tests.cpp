@@ -218,6 +218,17 @@ TEST(C_STACK, C_STACK_PUSH_POP_TOP)
 	EXPECT_TRUE(stack.empty());
 }
 
+TEST(C_STACK, PUSH_FROM)
+{
+	c_static_stack<int32, 5> stack;
+	c_static_array<int32, 3> data1 = { 1,2,3 };
+
+	EXPECT_TRUE(stack.empty());
+	stack.push_from(data1);
+
+	EXPECT_EQ(stack.used(), data1.capacity());
+}
+
 TEST(C_STACK, C_STACK_ITERATORS)
 {
 	const int32 size = 10;
