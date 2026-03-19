@@ -143,7 +143,7 @@ private:
 
 		t_arg_format_buffer arg_format_buffer;
 		parse_format_buffer(format, arg_format_buffer);
-		string_format(arg_format_buffer, first, *this);
+		format_arg(arg_format_buffer, first, *this);
 		
 		format += arg_format_buffer.used();
 
@@ -160,6 +160,13 @@ private:
 		{
 			push(*format++);
 		}
+	}
+
+	template<typename t_type>
+	inline void format_arg(t_arg_format_buffer format, const t_type& value, t_char_stack& out)
+	{
+		const s_format_spec spec = parse_spec(format);
+		s_string_formatter<t_type>::format(spec, value, out);
 	}
 };
 

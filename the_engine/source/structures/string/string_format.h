@@ -3,7 +3,6 @@
 #pragma once
 
 #include <types/types.h>
-#include "platform/platform.h"
 
 inline extern const char k_null_char;
 const char k_string_format_char_begin = '{';
@@ -291,7 +290,6 @@ inline const void* to_format_ptr(const void* in)
 	return in;
 }
 
-
 template<typename t_type>
 struct s_string_formatter
 {
@@ -532,12 +530,4 @@ inline s_format_spec parse_spec(t_arg_format_buffer& format)
 	return spec;
 
 }
-
-template<typename T>
-inline void string_format(t_arg_format_buffer format, const T& value, t_char_stack& out)
-{
-	const s_format_spec spec = parse_spec(format);
-	s_string_formatter<T>::format(spec, value, out);
-}
-
 #endif //__STRING_FORMAT_H__
