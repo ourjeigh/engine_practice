@@ -246,8 +246,11 @@ void c_audio_source_file_streamed::get_samples(t_audio_buffer_real32& out_buffer
 					real32 sample = convert_sample_to_real32(&temp_buffer.data()[byte_index + (bytes_per_sample * channenl_index)], m_format.sample_type);
 					audio_buffer.get_channel(channenl_index)[sample_index] = sample;
 				}
+
 				sample_index++;
 			}
+
+			m_position += sample_index;
 
 			out_buffer.copy_from(audio_buffer);
 		}

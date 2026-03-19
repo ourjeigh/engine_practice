@@ -7,7 +7,6 @@ IGNORE_WINDOWS_WARNINGS_PUSH
 #include <platform/platform_handle_windows.h>
 #include <debug/logging.h>
 
-
 const bool k_file_debug_logging = false;
 
 // move into windows impl
@@ -303,7 +302,7 @@ int32 c_file_buffered::read_bytes(int32 length, c_array<byte>& out_buffer)
 
 	if (k_file_debug_logging)
 	{
-		log_message(verbose, "c_file_buffered: first read: %i of %i requested. file: %s",
+		log_message(verbose, "c_file_buffered: first read: {i} of {i} requested. file: {s}",
 			first_size,
 			length,
 			m_path.get_full_path());
@@ -313,25 +312,37 @@ int32 c_file_buffered::read_bytes(int32 length, c_array<byte>& out_buffer)
 	if (!eof() && out_bytes_copied < length)
 	{
 		// read a new chunk into the buffer
-		int32 bytes_read = c_file::read_bytes(m_file_position, m_buffer.capacity(), m_buffer);
-		m_file_position += bytes_read;
-		m_buffer_end = bytes_read;
+		int32 bytes_read_to_buffer = c_file::read_bytes(m_file_position, m_buffer.capacity(), m_buffer);
+		m_file_position += bytes_read_to_buffer;
+		m_buffer_end = bytes_read_to_buffer;
+
+		if (k_file_debug_logging)
+		{
+			log_message(verbose, "c_file_buffered: refilled buffer. got {i} of {i} requested bytes file: {s}",
+				bytes_read_to_buffer,
+				m_buffer.capacity(),
+				m_path.get_full_path());
+		}
 
 		// if we didn't read a full buffer, it should be because we hit eof
-		if (bytes_read < m_buffer.capacity())
+		if (bytes_read_to_buffer < m_buffer.capacity())
 		{
 			ASSERT(eof());
+			if (k_file_debug_logging)
+			{
+				log_message(verbose, "c_file_buffered: eof. file: {s}", m_path.get_full_path());
+			}
 		}
 
 		// copy the remaing bytes needed into the output from the beginning of the buffer
-		int32 second_size = math_min<int32>(bytes_read, length - out_bytes_copied);
+		int32 second_size = math_min<int32>(bytes_read_to_buffer, length - out_bytes_copied);
 		out_buffer.copy_from_range_offset(m_buffer, 0, second_size, first_size);
 		out_bytes_copied += second_size;
 		m_buffer_position = second_size;
 
 		if (k_file_debug_logging)
 		{
-			log_message(verbose, "c_file_buffered: second read: %i of %i requested. file: %s",
+			log_message(verbose, "c_file_buffered: second read: {i} of {i} requested. file: {s}",
 				second_size,
 				length,
 				m_path.get_full_path());
