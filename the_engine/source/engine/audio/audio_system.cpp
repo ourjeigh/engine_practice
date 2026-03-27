@@ -34,10 +34,7 @@ void c_audio_system::init()
 void c_audio_system::term()
 {
 	g_audio_engine_thread.term();
-	g_audio_engine_thread.join();
-
 	g_audio_render_thread.term();
-	g_audio_render_thread.join();
 
 	log_message(verbose, "Audio System Terminated");
 }
@@ -67,6 +64,7 @@ void c_audio_engine_thread::init()
 void c_audio_engine_thread::term()
 {
 	m_is_running = false;
+	join();
 }
 
 void c_audio_engine_thread::audio_engine_thread_entry_point(c_audio_engine_thread* thread)
@@ -159,6 +157,7 @@ void c_audio_render_thread::init()
 void c_audio_render_thread::term()
 {
 	m_is_running = false;
+	join();
 }
 
 // private methods
@@ -201,10 +200,11 @@ void c_audio_render_thread::render_audio()
 		}
 		
 		// not reliable enough
-		/*if (d_read_initialized)
+		if (d_read_initialized && read_samples != buffer_size)
 		{
-			ASSERT(read_samples == buffer_size);
-		}*/
+			log_message(warning, "c_audio_render_thread::render_audio: unable to read full output buffer for rendering [needed: {u}, got: {i}]",
+				buffer_size, read_samples);
+		}
 #endif
 
 		m_sink.render_complete(buffer_size);

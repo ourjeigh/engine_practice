@@ -3,6 +3,7 @@
 #pragma once
 
 #include "asserts.h"
+#include "types/types.h"
 
 // implement this to make an engine
 template<typename t_system>
@@ -13,19 +14,19 @@ public:
 	virtual void term() = 0;
 	virtual void update() = 0;
 
-	static t_system& get()
+	static_function t_system& get()
 	{
 		ASSERT(m_instance);
 		return *m_instance;
 	}
 
-	static const t_system& get_const()
+	static_function const t_system& get_const()
 	{
 		ASSERT(m_instance);
 		return *m_instance;
 	}
 
-	static bool is_valid()
+	static_function bool is_valid()
 	{
 		return m_instance != nullptr;
 	}

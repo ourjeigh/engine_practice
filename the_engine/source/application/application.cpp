@@ -64,7 +64,7 @@ void c_application::run()
 		}
 		else
 		{
-			log_message(warning, "Long Frame Time: %.2f milliseconds", span_millis);
+			log_message(warning, "Long Frame Time: {f.2} milliseconds", span_millis);
 		}
 	}
 }

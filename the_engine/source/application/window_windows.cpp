@@ -9,6 +9,7 @@
 #include "structures/array.h"
 #include "threads/threads.h"
 #include "mmath.h"
+#include "rendering/render_system.h"
 
 IGNORE_WINDOWS_WARNINGS_PUSH
 #include "windows.h"
@@ -18,98 +19,49 @@ IGNORE_WINDOWS_WARNINGS_POP
 //remove
 const char* k_application_name = "SiMM Engine";
 
-LRESULT CALLBACK process_message_callback(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-void window_thread_entry_point(c_window* window);
 
-void c_window::init()
-{
-	c_thread window_thread;
-
-	window_thread.create(THREAD_FUNCTION(window_thread_entry_point), THREAD_ARGS(this), WIDE("Window Thread"));
-	window_thread.start();
-}
-
-void c_window::term()
-{
-}
-
-
-const int32 k_window_max_height = 2400;
-const int32 k_window_max_width = 3840;
-const int32 k_window_buffer_size = k_window_max_height * k_window_max_width;
-
-struct s_backbuffer
+struct s_window_info
 {
 	int32 width;
 	int32 height;
 	BITMAPINFO bmi;
-	c_static_array<uint32, k_window_buffer_size> memory;
 };
 
-static s_backbuffer g_backbuffer = {};
+static_global HWND g_hwnd; 
+static_global s_window_info g_window_info = {};
 
-void resize_backbuffer(HWND hwnd, int width, int height)
+LRESULT CALLBACK process_message_callback(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+void c_window_thread::init()
 {
-	g_backbuffer.width = width;
-	g_backbuffer.height = height;
-
-	g_backbuffer.bmi = {};
-	g_backbuffer.bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-	g_backbuffer.bmi.bmiHeader.biWidth = width;
-	g_backbuffer.bmi.bmiHeader.biHeight = -height; // top-down
-	g_backbuffer.bmi.bmiHeader.biPlanes = 1;
-	g_backbuffer.bmi.bmiHeader.biBitCount = 32;
-	g_backbuffer.bmi.bmiHeader.biCompression = BI_RGB;
+	create(THREAD_FUNCTION(c_window_thread::window_thread_entry_point), THREAD_ARGS(this), WIDE("Window Thread"));
+	start();
 }
 
-void render()
+void c_window_thread::term()
 {
+	m_running = false;
+	join();
+}
 
-	// Clear to dark gray
-	for (int y = 0; y < g_backbuffer.height; y++)
+void c_window_thread::window_thread_entry_point(c_window_thread const_ptr thread)
+{
+	if (thread->setup_window())
 	{
-		for (int x = 0; x < g_backbuffer.width; x++)
+		thread->m_running = true;
+
+		while (thread->m_running)
 		{
-			g_backbuffer.memory[y * g_backbuffer.width + x] = 0xFF202020;
+			thread->message_pump();
+			thread->render();
 		}
 	}
 
-	const c_mouse_state* mouse_state = input_system_get_mouse_state();
-	int32 mouse_x = math_pin_int32(25, g_backbuffer.width - 26, mouse_state->position.x);
-	int32 mouse_y = math_pin_int32(25, g_backbuffer.height - 26, mouse_state->position.y);
-
-	const uint32 color = input_system_get_key_state(input_mouse_left)->is_down() ?
-		0xFFFF0000 : // red
-		0x0000FFFF; // ?
-
-	// Simple test square
-	for (int y = mouse_y - 25; y < mouse_y + 25; y++)
-	{
-		for (int x = mouse_x - 25; x < mouse_x + 26; x++)
-		{
-			g_backbuffer.memory[y * g_backbuffer.width + x] = color;
-		}
-	}
+	zero_object(g_hwnd);
+	zero_object(g_window_info);
 }
 
-void present(HWND hwnd)
-{
-	HDC hdc = GetDC(hwnd);
-
-	StretchDIBits(
-		hdc,
-		0, 0, g_backbuffer.width, g_backbuffer.height,
-		0, 0, g_backbuffer.width, g_backbuffer.height,
-		g_backbuffer.memory.data(),
-		&g_backbuffer.bmi,
-		DIB_RGB_COLORS,
-		SRCCOPY
-	);
-
-	ReleaseDC(hwnd, hdc);
-}
-
-void window_thread_entry_point(c_window* window)
+bool c_window_thread::setup_window()
 {
 	// Register the window class.
 	const char* CLASS_NAME = k_application_name;
@@ -118,6 +70,7 @@ void window_thread_entry_point(c_window* window)
 
 	WNDCLASS window_class = {};
 
+	window_class.style = CS_OWNDC;
 	window_class.lpfnWndProc = process_message_callback;
 	window_class.hInstance = instance;
 	window_class.lpszClassName = CLASS_NAME;
@@ -125,7 +78,7 @@ void window_thread_entry_point(c_window* window)
 	RegisterClass(&window_class);
 
 	// Create the window.
-	HWND hwnd = CreateWindowEx(
+	g_hwnd = CreateWindowEx(
 		0,								// Optional window styles.
 		CLASS_NAME,						// Window class
 		k_application_name,				// Window text
@@ -138,62 +91,86 @@ void window_thread_entry_point(c_window* window)
 		NULL							// Additional application data
 	);
 
-	if (hwnd == NULL)
+	if (g_hwnd == NULL)
 	{
-		log_message(error, "windows: failed to create window");
-		return;
+		log_message(error, "c_window_thread: failed to create window");
+		return false;
 	}
 
 	SetLastError(0);
 
 	LONG_PTR result = SetWindowLongPtr(
-		hwnd,
+		g_hwnd,
 		GWLP_USERDATA,
-		reinterpret_cast<LONG_PTR>(window));
+		reinterpret_cast<LONG_PTR>(this));
 
-	if (result == 0)
-	{
-		HRESULT result = HRESULT_FROM_WIN32 (GetLastError());
-		NOP();
-	}
+	ShowWindow(g_hwnd, SW_SHOWDEFAULT);
 
+	return true;
+}
 
-	ShowWindow(hwnd, SW_SHOWDEFAULT);
-
+void c_window_thread::message_pump()
+{
 	MSG msg;
 	zero_object(msg);
 
-	bool quit = false;
-	while (GetMessage(&msg, hwnd, 0, 0) != 0 && !quit)
+	while (PeekMessageA(&msg, g_hwnd, 0, 0, PM_REMOVE))
 	{
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
-
-		render();
-		present(hwnd);
-
-		//// this should be moved to engine code and signalled to the message thread
-		//const c_key_state* escape_key = input_system_get_key_state(_input_key_special_esc);
-		//if (escape_key != nullptr && escape_key->is_down())
-		//{
-		//	quit = true;
-		//}
 	}
+}
+
+void c_window_thread::render()
+{
+	const s_backbuffer* backbuffer = c_render_system::get().get_backbuffer();
+
+	HDC hdc = GetDC(g_hwnd);
+
+	s_rect source_rect(0, 0, backbuffer->width, backbuffer->height);
+	s_rect dest_rect(0, 0, g_window_info.width, g_window_info.height);
+
+	StretchDIBits(
+		hdc,
+		dest_rect.x, dest_rect.y, dest_rect.width, dest_rect.height, // dest
+		source_rect.x, source_rect.y, source_rect.width, source_rect.height, // src
+		backbuffer->memory.const_data(),
+		&g_window_info.bmi,
+		DIB_RGB_COLORS,
+		SRCCOPY
+	);
+
+	//ReleaseDC(0, hdc);
+	ReleaseDC(g_hwnd, hdc);
+}
+
+void c_window_thread::resize(int width, int height)
+{
+	zero_object(g_window_info);
+
+	g_window_info.width = width;
+	g_window_info.height = height;
+
+	g_window_info.bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+	g_window_info.bmi.bmiHeader.biWidth = width;
+	g_window_info.bmi.bmiHeader.biHeight = -height; // top-down
+	g_window_info.bmi.bmiHeader.biPlanes = 1;
+	g_window_info.bmi.bmiHeader.biBitCount = 32;
+	g_window_info.bmi.bmiHeader.biCompression = BI_RGB;
 }
 
 LRESULT CALLBACK process_message_callback(HWND hwnd, UINT msg, WPARAM param, LPARAM lParam)
 {
 	LONG_PTR user_data = GetWindowLongPtr(hwnd, GWLP_USERDATA);
-	c_window* window = reinterpret_cast<c_window*>(user_data);
+	c_window_thread* window = reinterpret_cast<c_window_thread*>(user_data);
 	
 	if (window != nullptr)
 	{
-
 		if (msg == WM_CLOSE || msg == WM_DESTROY || msg == WM_QUIT)
 		{
 			s_window_event_close event;
 			window->send_window_event(event);
-
+			//window->term();
 			PostQuitMessage(0);
 			return 0;
 		}
@@ -204,7 +181,7 @@ LRESULT CALLBACK process_message_callback(HWND hwnd, UINT msg, WPARAM param, LPA
 			GetClientRect(hwnd, &rect);
 			int32 height = rect.bottom - rect.top;
 			int32 width = rect.right - rect.left;
-			resize_backbuffer(hwnd, width, height);
+			window->resize(width, height);
 
 			s_window_event_resize event;
 			event.height = height;
@@ -220,6 +197,14 @@ LRESULT CALLBACK process_message_callback(HWND hwnd, UINT msg, WPARAM param, LPA
 			event.is_in_focus = msg == WM_SETFOCUS;
 			window->send_window_event(event);
 
+			return 0;
+		}
+
+		if (msg == WM_SETCURSOR)
+		{
+			// make our own??
+			SetCursor(0);
+			
 			return 0;
 		}
 
@@ -245,63 +230,66 @@ LRESULT CALLBACK process_message_callback(HWND hwnd, UINT msg, WPARAM param, LPA
 
 		if (msg >= WM_MOUSEFIRST && msg <= WM_MOUSELAST)
 		{
-			s_input_key_event event;
-			event.data.key = input_key_invalid;
-			event.data.repeat_count = 0; // ?
-
-			switch (msg)
+			if (msg == WM_MOUSEMOVE)
 			{
-			case WM_LBUTTONDOWN:
-				event.data.key = input_mouse_left;
-				event.data.down = true;
-				break;
-			case WM_LBUTTONUP:
-				event.data.key = input_mouse_left;
-				event.data.down = false;
-				break;
-			case WM_MBUTTONDOWN:
-				event.data.key = input_mouse_middle;
-				event.data.down = true;
-				break;
-			case WM_MBUTTONUP:
-				event.data.key = input_mouse_middle;
-				event.data.down = false;
-				break;
-			case WM_RBUTTONDOWN:
-				event.data.key = input_mouse_right;
-				event.data.down = true;
-				break;
-			case WM_RBUTTONUP:
-				event.data.key = input_mouse_right;
-				event.data.down = false;
-				break;
-			default:
-				// handle repeats here??
-				NOP();
-				break;
-			}
-
-			if (event.data.key != input_key_invalid)
-			{
+				s_input_mouse_event event;
+				event.data.x = GET_X_LPARAM(lParam);
+				event.data.y = GET_Y_LPARAM(lParam);
 				window->send_window_event(event);
 			}
+			else
+			{
+				s_input_key_event event;
+				event.data.key = input_key_invalid;
+				event.data.repeat_count = 0; // ?
+
+				switch (msg)
+				{
+				case WM_LBUTTONDOWN:
+					event.data.key = input_mouse_left;
+					event.data.down = true;
+					break;
+				case WM_LBUTTONUP:
+					event.data.key = input_mouse_left;
+					event.data.down = false;
+					break;
+				case WM_MBUTTONDOWN:
+					event.data.key = input_mouse_middle;
+					event.data.down = true;
+					break;
+				case WM_MBUTTONUP:
+					event.data.key = input_mouse_middle;
+					event.data.down = false;
+					break;
+				case WM_RBUTTONDOWN:
+					event.data.key = input_mouse_right;
+					event.data.down = true;
+					break;
+				case WM_RBUTTONUP:
+					event.data.key = input_mouse_right;
+					event.data.down = false;
+					break;
+				default:
+					// handle repeats here??
+					NOP();
+					break;
+				}
+
+				if (event.data.key != input_key_invalid)
+				{
+					window->send_window_event(event);
+				}
+			}
+
+			return 0;
 		}
 
-		if (msg == WM_MOUSEMOVE)
-		{
-			s_input_mouse_event event;
-			event.data.x = GET_X_LPARAM(lParam);
-			event.data.y = GET_Y_LPARAM(lParam);
-			window->send_window_event(event);
-		}
-	
 		if (msg == WM_PAINT)
 		{
 			ValidateRect(hwnd, nullptr);
 			return 0;
 		}
 	}
-
 
 	return DefWindowProc(hwnd, msg, param, lParam);
 }

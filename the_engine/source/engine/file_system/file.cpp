@@ -1,17 +1,18 @@
 #include "file.h"
+#include <debug/logging.h>
 #include "platform/platform.h"
+#include <platform/platform_handle.h>
+#include <platform/platform_handle_windows.h>
 
 IGNORE_WINDOWS_WARNINGS_PUSH
 #include "windows.h"
 #include <minwinbase.h>
-#include <platform/platform_handle_windows.h>
-#include <debug/logging.h>
-
-const bool k_file_debug_logging = false;
+IGNORE_WINDOWS_WARNINGS_POP
 
 // move into windows impl
 const uint64 k_file_size_max_word = MAXWORD;
-IGNORE_WINDOWS_WARNINGS_POP
+
+const bool k_file_debug_logging = false;
 
 template<class t_type>
 int32 read_file_internal(

@@ -15,7 +15,7 @@ public:
 	void handle_window_event(s_event& event);
 	void handle_escape_key(bool down);
 private:
-	c_window m_window;
+	c_window_thread m_window;
 	bool m_running;
 	//c_engine m_engine;
 

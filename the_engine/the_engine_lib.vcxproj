@@ -119,10 +119,11 @@
     <ClCompile Include="source\memory\memory.cpp" />
     <ClCompile Include="source\platform\platform_handle_windows.cpp" />
     <ClCompile Include="source\platform\platform_windows.cpp" />
+    <ClCompile Include="source\rendering\render_system.cpp" />
     <ClCompile Include="source\structures\string\string.cpp" />
     <ClCompile Include="source\threads\threads.cpp" />
     <ClCompile Include="source\time\time.cpp" />
-    <ClCompile Include="source\threads\atomic.cpp" />
+    <ClCompile Include="source\threads\atomic_windows.cpp" />
     <ClCompile Include="source\application\window_windows.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -149,7 +150,7 @@
     <ClInclude Include="source\platform\platform.h" />
     <ClInclude Include="source\platform\platform_handle.h" />
     <ClInclude Include="source\platform\platform_handle_windows.h" />
-    <ClInclude Include="source\rendering\software_renderer.h" />
+    <ClInclude Include="source\rendering\render_system.h" />
     <ClInclude Include="source\structures\array.h" />
     <ClInclude Include="source\structures\string\string.h" />
     <ClInclude Include="source\structures\string\string_format.h" />

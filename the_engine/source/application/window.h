@@ -5,6 +5,7 @@
 #include "events/delegates.h"
 #include "types/types.h"	
 #include <events/events.h>
+#include <threads/threads.h>
 
 using t_event_callback = void(s_event&);
 
@@ -32,16 +33,30 @@ struct s_window_event_focus : s_window_event
 	bool is_in_focus;
 };
 
-class c_window
+//class c_window_thread : c_thread
+//{
+//public:
+//	void init();
+//	void term();
+//
+//private:
+//	static_function void window_thread_entry_point(c_window_thread const_ptr thread);
+//
+//	bool m_running;
+//};
+
+class c_window_thread : c_thread
 {
 public:
 	void init();
 	void term();
+
 	void set_event_handler(c_delegate<t_event_callback> callback)
 	{
 		m_event_callback = callback;
 	}
 
+	// make private
 	void send_window_event(s_event& event)
 	{
 		if (m_event_callback.is_valid())
@@ -50,8 +65,16 @@ public:
 		}
 	}
 
-private:
-	c_delegate<t_event_callback> m_event_callback;
-};
+	void resize(int width, int height);
 
+private:
+	static_function void window_thread_entry_point(c_window_thread const_ptr thread);
+	
+	bool setup_window();
+	void message_pump();
+	void render();
+
+	c_delegate<t_event_callback> m_event_callback;
+	bool m_running;
+};
 #endif //__WINDOW_H__

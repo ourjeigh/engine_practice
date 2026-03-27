@@ -16,7 +16,7 @@ class c_audio_mixer
 {
 public:
 	// assumes interleaved.
-	static void mix_a_into_b_interleaved(real32* in_buffer, real32* out_buffer, int32 num_samples, int32 num_channels)
+	static_function void mix_a_into_b_interleaved(real32* in_buffer, real32* out_buffer, int32 num_samples, int32 num_channels)
 	{
 		while (num_samples)
 		{
@@ -31,7 +31,7 @@ public:
 		}
 	}
 
-	static void interleave(const real32** in_buffers, real32* out_buffer, int32 num_samples, int32 num_channels)
+	static_function void interleave(const real32** in_buffers, real32* out_buffer, int32 num_samples, int32 num_channels)
 	{
 		while (num_samples)
 		{
@@ -68,7 +68,7 @@ public:
 	void term();
 
 private:
-	static void audio_engine_thread_entry_point(c_audio_engine_thread* thread);
+	static_function void audio_engine_thread_entry_point(c_audio_engine_thread* thread);
 	void process_audio();
 
 	bool m_is_running;
@@ -94,7 +94,7 @@ public:
 	void term();
 
 private:
-	static void audio_render_thread_entry_point(c_audio_render_thread* thread);
+	static_function void audio_render_thread_entry_point(c_audio_render_thread* thread);
 	void render_audio();
 	bool setup_audio_sink();
 	void shutdown_audio_sink();

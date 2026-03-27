@@ -357,7 +357,7 @@ public:
 
 	void clear()
 	{
-		zero_object(m_data);
+		//zero_object(*this);
 	}
 
 	void set(uint32 index, bool value)

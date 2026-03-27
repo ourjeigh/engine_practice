@@ -40,7 +40,6 @@ private:
 	uint64 m_top;
 	uint64 m_base;
 	uint64 m_end;
-
 };
 
 template<uint64 k_size>
