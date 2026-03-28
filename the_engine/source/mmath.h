@@ -46,6 +46,34 @@ constexpr t_type math_abs(t_type in)
 	return in > 0 ? in : -in;
 }
 
+constexpr real64 math_sqrt(real64 in)
+{
+	/* make sure x is not negative .. no math crimes allowed! */
+	ASSERT(in>= 0);
+	if (in == 0) return 0;
+
+	/* the sqrt must be between xhi and xlo */
+	double xhi = in;
+	double xlo = 0;
+	double guess = in / 2;
+
+	/* We stop when guess*guess-x is very small */
+	while (math_abs((guess * guess - in) / guess) > 0.00001)
+	{
+		if (guess * guess > in) {
+			xhi = guess;
+		}
+
+		else {
+			xlo = guess;
+		}
+
+		guess = (xhi + xlo) / 2;
+	}
+
+	return guess;
+}
+
 template<typename t_type>
 constexpr t_type math_pow(t_type base, int32 exp)
 {
@@ -83,6 +111,16 @@ template<typename t_type>
 t_type math_ceil(t_type x)
 {
 	return math_floor(x) + static_cast<t_type>(1);
+}
+
+constexpr int32 math_round_real32_to_int32(real32 in)
+{
+	return real32_to_int32(in + 0.5f);
+}
+
+constexpr uint32 math_round_real32_to_uint32(real32 in)
+{
+	return real32_to_uint32(in + 0.5f);
 }
 
 constexpr int64 math_fact(int64 in)

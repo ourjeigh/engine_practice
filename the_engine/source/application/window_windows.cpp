@@ -127,8 +127,8 @@ void c_window_thread::render()
 
 	HDC hdc = GetDC(g_hwnd);
 
-	s_rect source_rect(0, 0, backbuffer->width, backbuffer->height);
-	s_rect dest_rect(0, 0, g_window_info.width, g_window_info.height);
+	s_render_shape_rect source_rect(0, 0, backbuffer->width, backbuffer->height);
+	s_render_shape_rect dest_rect(0, 0, g_window_info.width, g_window_info.height);
 
 	StretchDIBits(
 		hdc,
@@ -188,6 +188,8 @@ LRESULT CALLBACK process_message_callback(HWND hwnd, UINT msg, WPARAM param, LPA
 			event.width = width;
 			window->send_window_event(event);
 
+			// this is maybe not great. it gets called very early, before c_render_system::init has been called
+			c_render_system::get().resize(width, height);
 			return 0;
 		}
 
