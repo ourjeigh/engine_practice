@@ -22,6 +22,7 @@ public:
 	real64 get_duration_microseconds() const;
 	real64 get_duration_milliseconds() const;
 	real64 get_duration_seconds() const;
+	uint64 get_delta_raw() const;
 
 private:
 	t_timestamp m_start;
@@ -37,8 +38,14 @@ public:
 	const c_time_span* get_time_span() { stop(); return &m_span; }
 	void reset() { m_span.clear(); }
 
-private:
+protected:
 	c_time_span m_span;
+};
+
+class c_loop_timer : public c_timer
+{
+public:
+	c_time_span get_loop_time_span_and_continue();
 };
 
 class c_session_time

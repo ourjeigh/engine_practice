@@ -10,6 +10,7 @@
 
 const real32 k_max_fps = 60.0f;
 const real32 k_max_frame_interval_seconds = 1 / k_max_fps;
+const real32 k_max_frame_interval_ms = 1000 / k_max_fps;
 
 const uint32 k_global_memory_bytes = k_byte_mb;
 
@@ -20,6 +21,7 @@ void c_application::init()
 {
 	m_running = false;
 
+	// TODO: Move window init to after engine init so that we don't try to start drawing anything before we're setup
 	m_window.init();
 
 	// TODO: get the MAKE_DELEGATE macro working for this pointers
@@ -31,6 +33,7 @@ void c_application::init()
 	input_system_add_key_combo_callback(
 		c_delegate<t_key_combo_callback>::bind<c_application, &c_application::handle_escape_key>(this),
 		input_key_special_esc);
+
 }
 
 void c_application::term()
@@ -43,29 +46,33 @@ void c_application::run()
 {
 	m_running = true;
 	
+	c_loop_timer loop_timer;
+	loop_timer.start();
+
 	while (m_running)
 	{
 		c_timer timer;
 		timer.start();
 			
 		engine_systems_update();
-		//m_window.update(); todo
 
 		timer.stop();
 
-		// clean this up, don't use both
-		real64 span_millis = timer.get_time_span()->get_duration_milliseconds();
-		real64 span_seconds = timer.get_time_span()->get_duration_seconds();
+		real64 frame_work_time_ms = timer.get_time_span()->get_duration_milliseconds();
 
-		real32 sleep_time = (k_max_frame_interval_seconds - static_cast<real32>(span_seconds));
-		if (sleep_time > 0.0f)
+		real32 sleep_time_ms = (k_max_frame_interval_ms - frame_work_time_ms);
+
+		if (sleep_time_ms > 0.0f)
 		{
-			sleep_for_seconds(sleep_time);
+			sleep_for_milliseconds(sleep_time_ms);
 		}
 		else
 		{
-			log_message(warning, "Long Frame Time: {f.2} milliseconds", span_millis);
+			log_message(warning, "Long Frame Time: {f.2} milliseconds", frame_work_time_ms);
 		}
+
+		// TODO: track loop time somewhere
+		c_time_span span = loop_timer.get_loop_time_span_and_continue();
 	}
 }
 
