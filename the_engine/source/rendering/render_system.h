@@ -87,7 +87,7 @@ public:
 	void fill_screen(const uint32 color);
 	void draw_rect(const s_render_shape_rect rect, const uint32 color);
 	void draw_line(const s_render_shape_point start, const s_render_shape_point end, const uint32 color);
-	void draw_circle(const s_render_shape_circle circle, uint32 color);
+	void draw_circle(const s_render_shape_circle circle, uint32 color, bool fill);
 	const s_backbuffer* get_backbuffer();
 
 	// BUG: this gets called too early, before c_render_system's global initializes, which resets it back to 0 :(
