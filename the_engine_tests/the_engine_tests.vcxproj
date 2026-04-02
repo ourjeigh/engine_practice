@@ -86,6 +86,7 @@
     <ClCompile Include="callback_tests.cpp" />
     <ClCompile Include="delegate_tests.cpp" />
     <ClCompile Include="file_tests.cpp" />
+    <ClCompile Include="hash_set_tests.cpp" />
     <ClCompile Include="math_tests.cpp" />
     <ClCompile Include="memory_tests.cpp" />
     <ClCompile Include="pch.cpp">

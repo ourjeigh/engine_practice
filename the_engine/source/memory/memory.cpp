@@ -23,16 +23,21 @@
 
 void memory_zero(void* obj, size_t size)
 {
-	memory_set(obj, 0, size);
-}
-
-void memory_set(void* dest, int value, size_t size)
-{
-	char* dst_ptr = static_cast<char*>(dest);
-
-	for (size_t i = 0; i < size; i++)
+	if (size % 8 == 0)
 	{
-		dst_ptr[i] = static_cast<char>(value);
+		memory_set(obj, k_int64_zero, size);
+	}
+	else if (size % 4 == 0)
+	{
+		memory_set(obj, k_int32_zero, size);
+	}
+	else if (size % 2 == 0)
+	{
+		memory_set(obj, k_int16_zero, size);
+	}
+	else
+	{
+		memory_set(obj, k_int8_zero, size);
 	}
 }
 

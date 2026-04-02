@@ -2,9 +2,13 @@
 #include "audio/audio_system.h"
 #include "input/input_system.h"
 #include <debug/logging.h>
+#include <perf/perf_system.h>
 #include <rendering/render_system.h>
 
+// TODO: make dev only
 static_global c_logging_system g_logging_system;
+static_global c_perf_system g_perf_system;
+
 static_global c_input_system g_input_system;
 static_global c_render_system g_render_system;
 static_global c_audio_system g_audio_system;
@@ -18,7 +22,8 @@ void engine_systems_init()
 
 	// init logging first so it's available for all other systems to use
 	g_logging_system.init(log_settings);
-	
+	g_perf_system.init();
+
 	g_input_system.init();
 	g_render_system.init();
 	g_audio_system.init();
@@ -32,6 +37,8 @@ void engine_systems_term()
 	g_input_system.term();
 	log_message(verbose, "Engine System Term Complete");
 	
+	g_perf_system.term();
+
 	// term logging last so it's available for all other systems to use
 	g_logging_system.term();
 }
@@ -40,8 +47,9 @@ void engine_systems_update()
 {
 	// update all engine systems here
 	g_input_system.update();
-	g_render_system.update();
 	g_audio_system.update();
+	g_render_system.update();
 	
+	g_perf_system.update();
 	g_logging_system.update();
 }

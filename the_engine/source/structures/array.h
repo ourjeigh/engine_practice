@@ -103,7 +103,7 @@ public:
 	
 	t_type* get_item(int32 index)
 	{
-		ASSERT(in_range(0, capacity(), index));
+		ASSERT(in_range(k_int32_zero, capacity(), index));
 		return &data()[index];
 	}
 

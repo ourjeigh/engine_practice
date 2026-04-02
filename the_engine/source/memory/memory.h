@@ -64,7 +64,20 @@ inline void memory_swap(t_type* left, t_type* right)
 
 void memory_zero(void* obj, size_t size);
 
-void memory_set(void* dest, int value, size_t size);
+template<typename t_type>
+void memory_set(void* dest, t_type val, size_t size)
+{
+	COMPILE_ASSERT(sizeof(t_type) <= 8);
+	ASSERT(size % sizeof(t_type) == 0);
+
+	const size_t count = size / sizeof(t_type);
+	t_type* dest_ptr = static_cast<t_type*>(dest);
+
+	for (int i = 0; i < count; i++)
+	{
+		dest_ptr[i] = val;
+	}
+}
 
 // non-overlapping
 void memory_copy(void* dest, void const* src, size_t size);

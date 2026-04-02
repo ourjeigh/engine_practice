@@ -3,6 +3,7 @@
 #pragma once
 
 #include "config.h"
+#include "string.h"
 #include <algorithms/algorithms.h>
 #include "types/types.h"
 
@@ -12,6 +13,8 @@
 class c_string_id
 {
 public:
+	c_string_id() : m_hash(k_invalid) DEBUG_ONLY_PARAM_LEFT_COMMA(d_debug_string(nullptr)) {}
+	
 	constexpr c_string_id(const char* string) :
 		m_hash(fnv1a_string_hash_64(string, string_length(string)))
 		DEBUG_ONLY_PARAM_LEFT_COMMA(d_debug_string(string)) {}
@@ -19,6 +22,20 @@ public:
 	constexpr c_string_id(uint64 hash DEBUG_ONLY_PARAM_LEFT_COMMA(const char* string)) :
 		m_hash(hash)
 		DEBUG_ONLY_PARAM_LEFT_COMMA(d_debug_string(string)) {}
+
+	c_string_id(const c_string_id& other) :
+		m_hash(other.m_hash)
+		DEBUG_ONLY_PARAM_LEFT_COMMA(d_debug_string(other.d_debug_string)) {}
+
+	void copy_from(const c_string_id& other)
+	{
+		memory_copy(this, &other, sizeof(c_string_id));
+	}
+
+	bool is_valid() const
+	{
+		return m_hash != k_invalid;
+	}
 
 	constexpr bool operator==(const c_string_id& other) const
 	{
@@ -50,13 +67,12 @@ public:
 #endif //CONFIG_DEBUG
 
 private:
-	c_string_id() = delete;
 
 	// may want these some day, but for now keep it simple
-	c_string_id(const c_string_id& other) = delete;
 	c_string_id(c_string_id&& other) = delete;
 	c_string_id& operator=(const char* string) = delete;
-	c_string_id& operator=(c_string_id&& other) = delete;
+	c_string_id& operator=(const c_string_id& other) = delete;
+	c_string_id& operator=(const c_string_id&& other) = delete;
 
 	const uint64 m_hash;
 

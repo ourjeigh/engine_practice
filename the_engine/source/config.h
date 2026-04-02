@@ -7,6 +7,7 @@
 #define CONFIG_DEBUG
 
 #define FEATURE_LOGGING
+#define FEATURE_PERF_MEASUREMENT
 #endif //_DEBUG
 
 #ifdef _WIN64

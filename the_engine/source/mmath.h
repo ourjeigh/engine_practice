@@ -102,13 +102,13 @@ constexpr t_type math_pow(t_type base, int32 exp)
 }
 
 template<typename t_type>
-t_type math_floor(t_type x)
+constexpr t_type math_floor(t_type x)
 {
 	return static_cast<t_type>(static_cast<int64>(x));
 }
 
 template<typename t_type>
-t_type math_ceil(t_type x)
+constexpr t_type math_ceil(t_type x)
 {
 	return math_floor(x) + static_cast<t_type>(1);
 }
