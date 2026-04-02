@@ -60,11 +60,11 @@ void c_application::run()
 
 		real64 frame_work_time_ms = timer.get_time_span()->get_duration_milliseconds();
 
-		real32 sleep_time_ms = (k_max_frame_interval_ms - frame_work_time_ms);
+		real64 sleep_time_ms = (k_max_frame_interval_ms - frame_work_time_ms);
 
 		if (sleep_time_ms > 0.0f)
 		{
-			sleep_for_milliseconds(sleep_time_ms);
+			sleep_for_milliseconds(real64_to_uint32(sleep_time_ms));
 		}
 		else
 		{
