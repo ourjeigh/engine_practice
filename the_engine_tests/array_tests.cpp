@@ -304,6 +304,12 @@ TEST(C_BIT_ARRAY, TEST_ALL)
 	flags.set(test_enum_val_4, true);
 
 	EXPECT_TRUE(flags.all());
+
+	flags.set_all(false);
+	EXPECT_TRUE(flags.none());
+
+	flags.set_all(true);
+	EXPECT_TRUE(flags.all());
 }
 
 TEST(ARRAY, ARRAY_HAS_NON_ZERO_VALUES)

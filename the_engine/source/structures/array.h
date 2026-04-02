@@ -348,7 +348,6 @@ private:
 	t_type m_data[k_max_size];
 };
 
-
 template <size_t k_size>
 class c_bit_array
 {
@@ -357,10 +356,10 @@ public:
 
 	void clear()
 	{
-		//zero_object(*this);
+		set_all(false);
 	}
 
-	void set(uint32 index, bool value)
+	void set(int32 index, bool value)
 	{
 		if (value)
 		{
@@ -372,7 +371,16 @@ public:
 		}
 	}
 
-	void flip(uint32 index)
+	void set_all(bool value)
+	{
+		for (int32 i = 0; i < m_data.capacity(); i++)
+		{
+			char val = value ? k_char_max : 0;
+			m_data[i] = val;
+		}
+	}
+
+	void flip(int32 index)
 	{
 		m_data[get_data_index(index)] ^= get_index_mask(index);
 	}
@@ -384,7 +392,7 @@ public:
 
 	bool any()
 	{
-		for (uint32 i = 0; i < num_chars; i++)
+		for (int32 i = 0; i < m_data.capacity(); i++)
 		{
 			if (m_data[i] != 0)
 			{
@@ -397,7 +405,7 @@ public:
 
 	bool all()
 	{
-		for (uint32 i = 0; i < num_chars - 1; i++)
+		for (int32 i = 0; i < m_data.capacity() - 1; i++)
 		{
 			if (m_data[i] != k_char_max)
 			{
@@ -406,8 +414,8 @@ public:
 		}
 
 		// this could be faster
-		uint32 last_set = k_size % 8;
-		for (uint32 i = k_size - last_set; i < k_size; i++)
+		int32 last_set = k_size % 8;
+		for (int32 i = k_size - last_set; i < k_size; i++)
 		{
 			if (!test(i))
 			{
@@ -423,11 +431,11 @@ public:
 		return !any();
 	}
 
-	uint32 count()
+	int32 count()
 	{
 		int out_count = 0;
 
-		for (uint32 i = 0; i < num_chars; i++)
+		for (int32 i = 0; i < m_data.capacity(); i++)
 		{
 			// shift left to compare with storage bit
 			// then shift back right since the comparison
@@ -445,36 +453,17 @@ public:
 		return out_count;
 	}
 
-	void print()
-	{
-		//t_string_128 temp_string;
-		//for (int i = 0; i < num_chars; i++)
-		//{
-		//	// shift left to compare with storage bit
-		//	// then shift back right since the comparison
-		//	// will only be the tested bit, either 1 or 0.
-		//	temp_string.append("%i %i %i %i %i %i %i %i",
-		//		((m_data[i] & (1 << 0)) >> 0),
-		//		((m_data[i] & (1 << 1)) >> 1),
-		//		((m_data[i] & (1 << 2)) >> 2),
-		//		((m_data[i] & (1 << 3)) >> 3),
-		//		((m_data[i] & (1 << 4)) >> 4),
-		//		((m_data[i] & (1 << 5)) >> 5),
-		//		((m_data[i] & (1 << 6)) >> 6),
-		//		((m_data[i] & (1 << 7)) >> 7));
-		//}
-	}
 private:
 	// size of 8 needs 1 char, size of 9 needs 2
-	static const uint32 num_chars = (k_size / 9) + 1;
+	static const int32 num_chars = (k_size / 9) + 1;
 
 	// we use a char because that causes the least wasted
 	// storage for cases where the size is not perfectly
 	// divisible (eg size=9 would waste 6 bytes if m_data were an int)
-	char m_data[num_chars];
+	c_static_array<char, num_chars> m_data;
 
 	char get_index_mask(int index) { return 1 << (index % 8); }
-	uint32 get_data_index(int index) { return index / 8; }
+	int32 get_data_index(int index) { return index / 8; }
 };
 
 template<size_t k_size>
