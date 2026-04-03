@@ -52,7 +52,7 @@ const uint32 k_byte_tib = math_pow(k_byte_kib, 4);
 
 
 // using memory_zero will wipe out template constants (eg c_static_array::k_max_size)
-#define zero_object(obj)  obj = {}
+#define zero_object(obj) obj = {}
 
 template<typename t_type>
 inline void memory_swap(t_type* left, t_type* right)
@@ -85,6 +85,20 @@ void memory_copy(void* dest, void const* src, size_t size);
 // overlapping allowed
 void memory_move(void* dest, void const* src, size_t size);
 
+// returns 0 if equal
 int32 memory_compare(const void* left, const void* right, size_t size);
+
+template<typename t_type>
+bool memory_has_nonzero_padding_bytes(const t_type const_ptr obj)
+{
+	t_type temp;
+	memory_set(&temp, k_int8_zero, sizeof(temp));
+
+	// this doesn't seem to be guaranteed to only copy members, it seems to 
+	// copy padding if an assignment operator is not defined. at least with msvc
+	temp = *obj;
+
+	return memory_compare(obj, &temp, sizeof(t_type)) != 0;
+}
 
 #endif//__MEMORY_H__

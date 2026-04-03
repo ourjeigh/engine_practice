@@ -4,6 +4,9 @@
 
 #include "types/types.h"
 
+// note that if passing in an object to be hashed, the caller is
+// responsible for ensuring there are no garbage bytes in the padding
+// as they could results in two equal objects not having equal hashes.
 constexpr uint32 fnv1_hash_32(const void* input, uint64 size);
 constexpr uint32 fnv1a_hash_32(const void* input, uint64 size);
 constexpr uint64 fnv1_hash_64(const void* input, uint64 size);

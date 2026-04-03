@@ -32,6 +32,7 @@ struct s_default_hasher
 {
 	uint32 operator()(const t_type& value)
 	{
+		ASSERT(!memory_has_nonzero_padding_bytes(&value));
 		return fnv1a_hash_32(&value, sizeof(value));
 	}
 };

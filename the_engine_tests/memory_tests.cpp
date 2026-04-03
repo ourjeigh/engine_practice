@@ -103,6 +103,40 @@ TEST(MEMORY, MEMORY_COMPARE)
 	const char* data_string = "data";
 
 	EXPECT_EQ(memory_compare(data_array, data_string, sizeof(data_array)), 0);
+
+	const char* data_neq = "dota";
+	EXPECT_NE(memory_compare(data_string, data_neq, 4), 0);
+}
+
+TEST(MEMORY, MEMORY_HAS_PADDED_BYTES)
+{
+	struct s_test
+	{
+		bool a;
+		//bool d;
+		//bool e;
+		//bool f;
+		//int32 test;
+		int64 b;
+
+		s_test& operator=(const s_test& other)
+		{
+			a = other.a;
+			b = other.b;
+			return *this;
+		}
+	};
+
+	s_test t1;
+	memory_set(&t1, k_int8_max, sizeof(s_test));
+
+	EXPECT_TRUE(memory_has_nonzero_padding_bytes(&t1));
+
+	memory_zero(&t1, sizeof(s_test));
+	t1.a = true;
+	t1.b = 7;
+
+	EXPECT_FALSE(memory_has_nonzero_padding_bytes(&t1));
 }
 
 TEST(ALLOCATOR, STACK_ALLOCATOR_ALLOC)

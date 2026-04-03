@@ -69,6 +69,8 @@ void c_perf_system::update()
 			if (duration > 0)
 			{
 				s_perf_measurement_set::s_unique_id id;
+				zero_object(id);
+
 				id.measurement_id.copy_from(it->id);
 				id.thread_id = it->thread_id;
 				

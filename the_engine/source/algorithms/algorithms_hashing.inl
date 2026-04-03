@@ -72,6 +72,8 @@ constexpr uint64 fnv1a_string_hash_64(const char* input, uint64 size)
 template<typename t_type>
 constexpr t_type fnv1_hash_internal(const void* input, uint64 size, t_type offset, t_type prime)
 {
+	ASSERT(input != nullptr);
+
 	const byte* input_bytes = static_cast<const byte*>(input);
 	t_type out = offset;
 
@@ -87,6 +89,8 @@ constexpr t_type fnv1_hash_internal(const void* input, uint64 size, t_type offse
 template<typename t_type>
 constexpr t_type fnv1a_hash_internal(const void* input, uint64 size, t_type offset, t_type prime)
 {
+	ASSERT(input != nullptr);
+
 	const byte* input_bytes = static_cast<const byte*>(input);
 	t_type out = offset;
 
@@ -102,12 +106,14 @@ constexpr t_type fnv1a_hash_internal(const void* input, uint64 size, t_type offs
 template<typename t_type>
 constexpr t_type fnv1_string_hash_internal(const char* input, uint64 size, t_type offset, t_type prime)
 {
+	ASSERT(input != nullptr);
+
 	t_type out = offset;
 
 	for (uint64 i = 0; i < size; i++)
 	{
 		out *= prime;
-		out ^= input[i];
+		out ^= static_cast<byte>(input[i]);
 	}
 
 	return out;
@@ -116,11 +122,13 @@ constexpr t_type fnv1_string_hash_internal(const char* input, uint64 size, t_typ
 template<typename t_type>
 constexpr t_type fnv1a_string_hash_internal(const char* input, uint64 size, t_type offset, t_type prime)
 {
+	ASSERT(input != nullptr);
+
 	t_type out = offset;
 
 	for (uint64 i = 0; i < size; i++)
 	{
-		out ^= input[i];
+		out ^= static_cast<byte>(input[i]);
 		out *= prime;
 	}
 
