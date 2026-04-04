@@ -32,7 +32,6 @@ struct s_default_hasher
 {
 	uint32 operator()(const t_type& value)
 	{
-		ASSERT(!memory_has_nonzero_padding_bytes(&value));
 		return fnv1a_hash_32(&value, sizeof(value));
 	}
 };
@@ -260,6 +259,22 @@ private:
 		set_key(m_data[index].data, key);
 		m_data[index].state = cell_state_occupied;
 		m_used++;
+
+#ifdef CONFIG_DEBUG
+		for (int32 i1 = 0; i1 < m_data.capacity(); i1++)
+		{
+			if (m_data[i1].state == cell_state_occupied)
+			{
+				for (int32 i2 = i1 + 1; i2 < m_data.capacity(); i2++)
+				{
+					if (i1 != i2 && m_data[i1].state == cell_state_occupied)
+					{
+						ASSERT(!f_comparator{}(f_get_key{}(m_data[i1].data), f_get_key{}(m_data[i2].data)));
+					}
+				}
+			}
+		}
+#endif // CONFIG_DEBUG
 	}
 
 	static const int32 k_array_size_actual = real32_to_int32(0.5f + (k_max_size * 1 / k_load_factor_threshold));

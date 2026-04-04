@@ -14,6 +14,9 @@ const real32 k_max_frame_interval_ms = 1000 / k_max_fps;
 
 const uint32 k_global_memory_bytes = k_byte_mb;
 
+const int32 k_default_window_width = 1440;
+const int32 k_default_window_height = 720;
+
 bool g_interrupt_signalled = false;
 c_static_stack_allocator<k_global_memory_bytes> g_global_stack_allocator;
 
@@ -21,14 +24,14 @@ void c_application::init()
 {
 	m_running = false;
 
+	engine_systems_init();
+
 	// TODO: Move window init to after engine init so that we don't try to start drawing anything before we're setup
-	m_window.init();
+	m_window.init(k_default_window_width, k_default_window_height);
 
 	// TODO: get the MAKE_DELEGATE macro working for this pointers
 	m_window.set_event_handler(
 		c_delegate<t_event_callback>::bind<c_application, &c_application::handle_window_event>(this));
-
-	engine_systems_init();
 
 	input_system_add_key_combo_callback(
 		c_delegate<t_key_combo_callback>::bind<c_application, &c_application::handle_escape_key>(this),

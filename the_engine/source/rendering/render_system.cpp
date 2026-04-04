@@ -85,6 +85,10 @@ static_global c_static_array<c_static_stack<s_render_message, 128>, k_render_lay
 
 void c_render_system::init()
 {
+	m_buffers[0].width = 1440;
+	m_buffers[1].width = 1440;
+	m_buffers[0].height = 720;
+	m_buffers[1].height = 720;
 }
 
 void c_render_system::term()
@@ -270,7 +274,6 @@ s_render_shape_point c_render_system::get_screen_center() const
 {
 	return s_render_shape_point(m_buffers[0].width / 2, m_buffers[0].height / 2);
 }
-
 
 void process_fill_screen_message_internal(const s_render_message_data_fill_screen const_ptr message, s_backbuffer const_ptr buffer)
 {

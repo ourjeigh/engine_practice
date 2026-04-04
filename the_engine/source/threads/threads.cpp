@@ -35,9 +35,6 @@ bool c_thread::create(void* function, void* param, const wchar* name)
 	m_thread_properties.function = function;
 	m_thread_properties.param = param;
 
-	//m_function = function;
-	//m_param = param;
-	//m_thread_name = name;
 	return true;
 }
 

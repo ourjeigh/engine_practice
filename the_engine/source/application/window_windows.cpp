@@ -32,8 +32,10 @@ static_global s_window_info g_window_info = {};
 
 LRESULT CALLBACK process_message_callback(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-void c_window_thread::init()
+void c_window_thread::init(int32 width, int32 height)
 {
+	g_window_info.width = width;
+	g_window_info.height = height;
 	create(THREAD_FUNCTION(c_window_thread::window_thread_entry_point), THREAD_ARGS(this), WIDE("Window Thread"));
 	start();
 }
@@ -77,6 +79,9 @@ bool c_window_thread::setup_window()
 
 	RegisterClass(&window_class);
 
+	ASSERT(g_window_info.width > 0);
+	ASSERT(g_window_info.height > 0);
+
 	// Create the window.
 	g_hwnd = CreateWindowEx(
 		0,								// Optional window styles.
@@ -84,7 +89,7 @@ bool c_window_thread::setup_window()
 		k_application_name,				// Window text
 		WS_OVERLAPPEDWINDOW,			// Window style
 		CW_USEDEFAULT, CW_USEDEFAULT,	// Position (X Y)
-		CW_USEDEFAULT, CW_USEDEFAULT,	// Size (Width Height)
+		g_window_info.width, g_window_info.height,
 		NULL,							// Parent window
 		NULL,							// Menu
 		instance,						// Instance handle

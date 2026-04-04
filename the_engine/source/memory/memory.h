@@ -14,45 +14,9 @@ const uint32 k_byte_mib = math_pow(k_byte_kib, 2);
 const uint32 k_byte_gib = math_pow(k_byte_kib, 3);
 const uint32 k_byte_tib = math_pow(k_byte_kib, 4);
 
-// move
-//class c_handle
-//{
-//public:
-//	c_handle() { invalidate(); }
-//	~c_handle() { invalidate(); }
-//
-//	c_handle(c_handle&& other);
-//	c_handle& operator=(c_handle&& other);
-//
-//	bool operator==(const c_handle& other) { return m_pointer == other.m_pointer; }
-//	bool operator!=(const c_handle& other) { return !(*this == other); }
-//
-//	bool is_valid() { return  m_pointer != k_invalid; }
-//	void invalidate() { m_pointer = k_invalid; };
-//
-//	void* get_pointer();
-//	const void* get_pointer_const();
-//
-//private:
-//	// no copying
-//	c_handle(const c_handle& other) = delete;
-//	c_handle& operator=(const c_handle& other) = delete;
-//
-//	uint64 m_pointer;
-//};
 
-//template<typename t_type>
-//class c_typed_handle : public c_handle
-//{
-//public:
-//	t_type* get_pointer();
-//	const t_type* get_pointer_const();
-//};
-
-
-
-// using memory_zero will wipe out template constants (eg c_static_array::k_max_size)
-#define zero_object(obj) obj = {}
+// using zero_object will wipe out template constants (eg c_static_array::k_max_size)
+#define zero_object(obj) memory_zero(&obj, sizeof(obj))
 
 template<typename t_type>
 inline void memory_swap(t_type* left, t_type* right)
@@ -87,18 +51,4 @@ void memory_move(void* dest, void const* src, size_t size);
 
 // returns 0 if equal
 int32 memory_compare(const void* left, const void* right, size_t size);
-
-template<typename t_type>
-bool memory_has_nonzero_padding_bytes(const t_type const_ptr obj)
-{
-	t_type temp;
-	memory_set(&temp, k_int8_zero, sizeof(temp));
-
-	// this doesn't seem to be guaranteed to only copy members, it seems to 
-	// copy padding if an assignment operator is not defined. at least with msvc
-	temp = *obj;
-
-	return memory_compare(obj, &temp, sizeof(t_type)) != 0;
-}
-
 #endif//__MEMORY_H__
