@@ -1,4 +1,4 @@
-add_executable(Launcher main.cpp)
+add_executable(Launcher WIN32 main.cpp)
 
 # Launcher ALWAYS needs the Engine
 target_link_libraries(Launcher PRIVATE Engine)
