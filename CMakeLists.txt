@@ -21,6 +21,9 @@ add_subdirectory(source/engine)
 add_subdirectory(source/game)
 add_subdirectory(source/launcher)
 
+enable_testing()
+add_subdirectory(source/engine_tests)
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
