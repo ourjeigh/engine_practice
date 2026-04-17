@@ -81,17 +81,4 @@ static_global const real32 k_real32_min = 1.175494351e-38F;
 static_global const real32 k_real32_max = 3.402823466e+38f;
 static_global const real64 k_real64_min = 2.2250738585072014e-308;
 static_global const real64 k_real64_max = 1.7976931348623158e+308;
-
-
-// this feels like it belongs somewhere else
-template<typename t_type>
-inline constexpr bool in_range(t_type min, t_type max, t_type value)
-{
-	return min <= value && value <= max;
-}
-
-inline constexpr bool in_range_int32(int32 min, int32 max, int32 value)
-{
-	return in_range(min, max, value);
-}
 #endif //__TYPES_H__

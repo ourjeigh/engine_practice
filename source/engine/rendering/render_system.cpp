@@ -113,7 +113,7 @@ void c_render_system::update()
 		int32 mouse_x = mouse_state->position.x;
 		int32 mouse_y = mouse_state->position.y;
 
-		const bool mouse_down = input_system_get_key_state(input_mouse_left)->is_down();
+		const bool mouse_down = input_system_get_key_state(input_mouse_left).is_down;
 		const uint32 color = mouse_down ?
 			k_color_red_uint32 :
 			k_color_blue_uint32;

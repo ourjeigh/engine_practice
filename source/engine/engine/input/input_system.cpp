@@ -22,9 +22,52 @@ struct s_input_queued_event
 	};
 };
 
+class c_key_state_internal
+{
+public:
+	c_key_state_internal() :
+		m_is_down(false),
+		m_last_changed_timestamp(0)
+	{
+	}
+
+	s_key_state to_key_state()
+	{
+		s_key_state out;
+		out.is_down = is_down();
+		out.last_change_timestamp = get_last_changed_timestamp();
+		return out;
+	}
+
+	bool is_down() const
+	{
+		if (m_is_down) return true;
+
+		auto span = get_time_since(m_last_changed_timestamp);
+		real64 duration_seconds = span.get_duration_seconds();
+
+		return (duration_seconds < k_input_keydown_allowance_seconds);
+	}
+
+	t_timestamp get_last_changed_timestamp() const { return m_last_changed_timestamp; }
+
+	void set(bool is_down, t_timestamp timestamp)
+	{
+		if (is_down != m_is_down)
+		{
+			m_is_down = is_down;
+			m_last_changed_timestamp = timestamp;
+		}
+	}
+
+private:
+	bool m_is_down;
+	t_timestamp m_last_changed_timestamp;
+};
+
 struct s_input_state
 {
-	c_static_array<c_key_state, k_input_key_count> key_states;
+	c_static_array<c_key_state_internal, k_input_key_count> key_states;
 	c_mouse_state mouse_state;
 
 	void clear()
@@ -62,9 +105,6 @@ void c_input_system::update()
 {
 	process_input_event_queue_internal();
 
-	// todo, let external systems subscribe to a callback for certain key combos (even if that's a single key)
-	// eg, call engine.handle_terminate_request when 'esc' is pressed.
-
 	for (auto& combo : m_key_combo_callbacks)
 	{
 		bool down = true;
@@ -83,9 +123,9 @@ void c_input_system::update()
 	}
 }
 
-const c_key_state* input_system_get_key_state(e_input_keycode key)
+s_key_state input_system_get_key_state(e_input_keycode key)
 {
-	return &g_input_state.key_states[key];
+	return g_input_state.key_states[key].to_key_state();
 }
 
 const c_mouse_state* input_system_get_mouse_state()
@@ -142,7 +182,7 @@ void process_input_event_queue_internal()
 		case event_type_input_key:
 		{
 			s_input_event_key_data& data = event.key_data;
-			g_input_state.key_states[data.key].set_key_state(data.down, event.timestamp);
+			g_input_state.key_states[data.key].set(data.down, event.timestamp);
 			log_message(verbose, "input system: key:{i} {s} repeat:{i}",
 				data.key, 
 				data.down ? "down" : "up", 

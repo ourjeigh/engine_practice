@@ -4,6 +4,17 @@
 
 #include <debug/asserts.h>
 
+template<typename t_type>
+inline constexpr bool in_range(t_type min, t_type max, t_type value)
+{
+	return min <= value && value <= max;
+}
+
+inline constexpr bool in_range_int32(int32 min, int32 max, int32 value)
+{
+	return in_range(min, max, value);
+}
+
 inline constexpr uint8 int32_to_uint8(int32 in)
 {
 	ASSERT(in >= 0);

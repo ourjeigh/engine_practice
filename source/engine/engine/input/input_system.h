@@ -3,7 +3,8 @@
 #pragma once
 
 #include "engine/engine_system.h"
-#include <types/types.h>
+#include "types/types.h"
+#include "types/input_types.h"
 #include <time/time.h>
 #include "input_map.h"
 #include "events/events.h"
@@ -77,41 +78,6 @@ enum e_input_event_key_special : byte
 	input_event_key_special_esc,
 };
 
-class c_key_state
-{
-public:
-	c_key_state() :
-		m_is_down(false),
-		m_last_changed_timestamp(0)
-	{
-	}
-
-	bool is_down() const 
-	{ 
-		if (m_is_down) return true;
-
-		auto span = get_time_since(m_last_changed_timestamp);
-		real64 duration_seconds = span.get_duration_seconds();
-
-		return (duration_seconds < k_input_keydown_allowance_seconds);
-	}
-	
-	t_timestamp get_last_changed_timestamp() const { return m_last_changed_timestamp; }
-
-	void set_key_state(bool is_down, t_timestamp timestamp)
-	{
-		if (is_down != m_is_down)
-		{
-			m_is_down = is_down;
-			m_last_changed_timestamp = timestamp;
-		}
-	}
-
-private:
-	bool m_is_down;
-	t_timestamp m_last_changed_timestamp;
-};
-
 struct s_mouse_position_state
 {
 	int32 x;
@@ -137,6 +103,7 @@ public:
 
 struct s_key_combo
 {
+	// todo, make this a t_key_code_flags
 	c_static_stack<e_input_keycode, 8> keys;
 };
 
@@ -181,7 +148,7 @@ private:
 
 void input_system_handle_event(s_event& event);
 
-const c_key_state* input_system_get_key_state(e_input_keycode key);
+s_key_state input_system_get_key_state(e_input_keycode key);
 const c_mouse_state* input_system_get_mouse_state();
 
 template<typename... e_input_keycode>
