@@ -3,6 +3,7 @@
 #pragma once
 
 #include <types/types.h>
+#include "debug/asserts.h"
 
 inline extern const char k_null_char;
 const char k_string_format_char_begin = '{';

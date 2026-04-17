@@ -5,11 +5,12 @@
 #include "window.h"
 #include "engine/engine.h"
 #include <events/events.h>
+#include <game_api.h>
 
 class c_application
 {
 public:
-	void init();
+	void init(c_game_base* game);
 	void term();
 	void run();
 	void handle_window_event(s_event& event);
@@ -17,7 +18,6 @@ public:
 private:
 	c_window_thread m_window;
 	bool m_running;
-	//c_engine m_engine;
 
 	void handle_window_close();
 	void handle_window_focus(bool is_in_focus);

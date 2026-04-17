@@ -1,6 +1,8 @@
-#include "asserts.h"
-#include <debug/logging.h>
 #include "platform/platform.h"
+#include "platform_assert.h"
+
+#ifdef PLATFORM_WINDOWS
+#include <debug/logging.h>
 
 IGNORE_WINDOWS_WARNINGS_PUSH
 #include <windows.h>
@@ -33,3 +35,5 @@ void halt_internal(const char* message, const char* file, const long line)
 		abort();
 	}
 }
+
+#endif // PLATFORM_WINDOWS

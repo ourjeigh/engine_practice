@@ -1,8 +1,8 @@
 #include "audio_system.h"
 #include <debug/logging.h>
+#include <debug/asserts.h>
 #include <threads/threads.h>
 #include <time/time.h>
-#include <asserts.h>
 #include <platform/platform.h>
 
 const int32 k_audio_engine_buffer_size = 512;

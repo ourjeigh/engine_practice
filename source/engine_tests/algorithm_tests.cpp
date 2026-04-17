@@ -2,7 +2,7 @@
 
 #include "algorithms/algorithms.h"
 #include <types/types.h>
-#include <asserts.h>
+#include <debug/asserts.h>
 
 TEST(ALGORITHMS, FNV1_32)
 {

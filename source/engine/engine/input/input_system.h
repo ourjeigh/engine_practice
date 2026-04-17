@@ -26,7 +26,6 @@ struct s_input_event_mouse_data
 struct s_input_event_key_data
 {
 	e_input_keycode key;
-	//t_param param;
 	uint16 repeat_count;
 	bool down;
 };

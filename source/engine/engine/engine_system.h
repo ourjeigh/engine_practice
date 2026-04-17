@@ -2,10 +2,12 @@
 #define __ENGINE_SYSTEM_H__
 #pragma once
 
-#include "asserts.h"
 #include "types/types.h"
+#include "engine_api.h"
+#include "debug/asserts.h"
 
-// implement this to make an engine
+
+
 template<typename t_system>
 class c_engine_system
 {
@@ -49,6 +51,7 @@ private:
 
 void engine_systems_init();
 void engine_systems_term();
-void engine_systems_update();
+void engine_systems_pregame_update();
+void engine_systems_postgame_update();
 
 #endif //__ENGINE_SYSTEM_H__

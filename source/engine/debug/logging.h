@@ -58,8 +58,7 @@ private:
 };
 
 #ifdef FEATURE_LOGGING
-//#define log_message(level, text) if (c_logging_system::is_valid()) c_logging_system::get().log(level, text)
-#define log_message(level, text, ...) if (c_logging_system::is_valid()) c_logging_system::get().log(level, text, /*__VA_OPT__(,)*/ __VA_ARGS__)
+#define log_message(level, text, ...) if (c_logging_system::is_valid()) c_logging_system::get().log(level, text, __VA_ARGS__)
 #else
 #define log_message(leve, text, ...)
 #endif

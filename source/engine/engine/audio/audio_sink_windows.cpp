@@ -3,7 +3,7 @@
 
 #include "audio_sink.h"
 #include "debug/logging.h"
-#include <asserts.h>
+#include <debug/asserts.h>
 #include "platform/platform.h"
 
 IGNORE_WINDOWS_WARNINGS_PUSH

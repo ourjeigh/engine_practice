@@ -4,6 +4,7 @@
 #ifdef PLATFORM_WINDOWS
 
 #include "platform/platform.h"
+#include "debug/asserts.h"
 
 IGNORE_WINDOWS_WARNINGS_PUSH
 #include <windows.h>

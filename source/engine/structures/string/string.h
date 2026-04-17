@@ -2,6 +2,7 @@
 #define __STRING_H__
 #pragma once
 
+#include "debug/asserts.h"
 #include "structures/array.h"
 #include <types/types.h>
 #include "structures/string/string_format.h"

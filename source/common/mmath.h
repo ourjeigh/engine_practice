@@ -5,6 +5,8 @@
 #pragma once
 
 #include <types/types.h>
+#include "types/type_conversions.h"
+#include "debug/asserts.h"
 
 const real32 k_math_real32_pi = 3.14159265358979323846f;
 const real32 k_math_real32_sixth_pi = k_math_real32_pi / 6.0f;

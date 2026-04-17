@@ -101,6 +101,7 @@ void c_render_system::update()
 	s_backbuffer& current_backbuffer = m_buffers[write_index];
 	
 	// HACK TEMP
+	if (false)
 	{
 		g_render_commands_allocator.clear();
 

@@ -2,9 +2,6 @@
 #include "types/types.h"
 #include <structures/string/string.h>
 #include <structures/string/string_id.h>
-#include <asserts.h>
-//#include <structures/string/string_format.h>
-
 
 const char* k_int64_max_string =   "9223372036854775807";
 const char* k_int64_min_string =  "-9223372036854775808";

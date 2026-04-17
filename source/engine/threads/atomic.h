@@ -3,6 +3,7 @@
 #pragma once
 
 #include "types/types.h"
+#include "debug/asserts.h"
 
 #ifdef USING_STD_ATOMIC
 #include <atomic>

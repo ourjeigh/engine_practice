@@ -4,7 +4,7 @@
 
 #include "engine/engine_system.h"
 #include <threads/threads.h>
-#include <asserts.h>
+#include <debug/asserts.h>
 #include <mmath.h>
 #include "audio_buffer.h"
 #include "config.h"

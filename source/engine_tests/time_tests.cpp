@@ -2,7 +2,6 @@
 
 // need to figure out why this isn't getting linked properly
 #include "time/time.h"
-#include <asserts.h>
 #include <platform/platform.h>
 
 // tbd if it's a good idea to be testing these low level operations, just need a sanity check

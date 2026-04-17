@@ -2,7 +2,6 @@
 
 #include <types/types.h>
 #include <structures/string/string.h>
-#include "asserts.h"
 #include <time/time.h>
 #include "threads/threads.h"
 #include "platform/platform.h"

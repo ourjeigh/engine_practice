@@ -1,7 +1,7 @@
 #include "input_system.h"
 #include <debug/logging.h>
 #include "input_map.h"
-#include <asserts.h>
+#include <debug/asserts.h>
 #include <time/time.h>
 #include <structures/array.h>
 #include "memory/memory.h"

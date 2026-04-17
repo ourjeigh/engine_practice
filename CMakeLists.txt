@@ -13,10 +13,11 @@ set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE ON)
 option(HOT_RELOAD "Build game as DLL for hot reloading" ON)
 
 if(HOT_RELOAD)
-    add_definitions(-DBUILD_HOT_RELOAD)
+	add_definitions(-DBUILD_HOT_RELOAD)
 endif()
 
 # 3. Add Subdirectories
+add_subdirectory(source/common)
 add_subdirectory(source/engine)
 add_subdirectory(source/game)
 add_subdirectory(source/launcher)

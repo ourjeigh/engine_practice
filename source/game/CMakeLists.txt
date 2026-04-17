@@ -5,11 +5,16 @@ if(HOT_RELOAD)
     add_library(Game SHARED ${GAME_SOURCES})
     target_compile_definitions(Game PRIVATE GAME_EXPORT)
 else()
-    # Build as Static Lib for release
-    add_library(Game STATIC ${GAME_SOURCES})
+	# Build as Static Lib for release
+	add_library(Game STATIC ${GAME_SOURCES})
 endif()
 
 # The Game needs the Common headers, but DOES NOT link against the Engine lib
 target_include_directories(Game PRIVATE 
-    ${CMAKE_SOURCE_DIR}/src/common
+	${CMAKE_SOURCE_DIR}/src/common
 )
+
+target_link_libraries(Game PRIVATE Common)
+
+target_compile_definitions(Game PRIVATE GAME_SOURCE)
+# target_compile_definitions(Game PRIVATE -DENGINE_SOURCE)

@@ -2,28 +2,20 @@
 #define __ENGINE_H__
 #pragma once
 
-#include <memory/memory.h>
-#include <memory/allocator.h>
+#include <engine_api.h>
 
+class c_engine : public i_engine
+{
+public:
+	void log();
+	void cassert(const char* condition, const char* file, const long line);
+	void halt(const char* message, const char* file, const long line);
 
-//class c_engine
-//{
-//public:
-//	void init();
-//	void term();
-//	void update();
-//};
-
-//void engine_init();
-//void engine_term();
-
-// TBD if this is the best place for it...
-// Note: once you get memory, you can try to give it back, but it probably won't work.
-//c_stack_allocator* get_global_allocator();
-
-// TODO: some kind of macro ALLOCATE_GLOBAL_MEMORY that takes in the object being created, and captures the file/function allocating it
-// will require some additional debug args in the allocator, plust tracking of course.
-// eg:
-//#define ALLOCATE_GLOBAL_MEMORY(x, area) get_global_allocator()->allocate(sizeof(x), alignof(x), area, __func__, __FILE__)
+	void render_fill_screen(const uint32 color);
+	void render_draw_rect(const s_render_shape_rect rect, const uint32 color);
+	void render_draw_line(const s_render_shape_point start, const s_render_shape_point end, const uint32 color);
+	void render_draw_circle(const s_render_shape_circle circle, uint32 color, bool fill);
+	s_render_shape_point get_screen_center();
+};
 
 #endif //__ENGINE_H__
