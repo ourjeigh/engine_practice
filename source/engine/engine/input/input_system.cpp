@@ -68,7 +68,7 @@ private:
 struct s_input_state
 {
 	c_static_array<c_key_state_internal, k_input_key_count> key_states;
-	c_mouse_state mouse_state;
+	s_mouse_state mouse_state;
 
 	void clear()
 	{
@@ -128,7 +128,7 @@ s_key_state input_system_get_key_state(e_input_keycode key)
 	return g_input_state.key_states[key].to_key_state();
 }
 
-const c_mouse_state* input_system_get_mouse_state()
+const s_mouse_state* input_system_get_mouse_state()
 {
 	return &g_input_state.mouse_state;
 }

@@ -32,10 +32,6 @@ enum e_render_message_type
 	k_render_message_type_count
 };
 
-struct s_render_message_data
-{
-};
-
 struct s_render_message_data_fill_screen
 {
 	uint32 color;
@@ -97,98 +93,60 @@ void c_render_system::term()
 
 void c_render_system::update()
 {
+	PERF_MEASURE_SECTION("c_render_system::update");
+	
 	const int32 write_index = m_write_buffer_index.load();
 	s_backbuffer& current_backbuffer = m_buffers[write_index];
-	
-	// HACK TEMP
-	if (false)
+
+	// process the messages starting from the bottom layer so that we draw higher layers on top of lower
+	for (int32 layer_index = 0; layer_index < g_render_messages.capacity(); layer_index++)
 	{
-		g_render_commands_allocator.clear();
+		c_stack<s_render_message>& layer_messages = g_render_messages[layer_index];
 
-		// test code that would ultimately done by real code outside this loop
-
-		fill_screen(0xFF202020);
-
-		const c_mouse_state* mouse_state = input_system_get_mouse_state();
-		int32 mouse_x = mouse_state->position.x;
-		int32 mouse_y = mouse_state->position.y;
-
-		const bool mouse_down = input_system_get_key_state(input_mouse_left).is_down;
-		const uint32 color = mouse_down ?
-			k_color_red_uint32 :
-			k_color_blue_uint32;
-
-		s_render_shape_rect mouse_box(mouse_x - 25, mouse_y - 25, 50, 50);
-		draw_line(get_screen_center(), s_render_shape_point(mouse_x, mouse_y), k_color_green_uint32);
-
-		s_render_shape_circle circle;
-		circle.center = s_render_shape_point(mouse_x, mouse_y);
-		circle.radius = 38;
-		
-		if (mouse_down)
+		while (!layer_messages.empty())
 		{
-			draw_rect(mouse_box, color);
-			draw_circle(circle, color, false);
-		}
-		else
-		{
-			draw_circle(circle, color, true);
-		}
-	}
+			const s_render_message& message = layer_messages.top();
+			layer_messages.pop();
 
-	{
-		PERF_MEASURE_SECTION("c_render_system::update");
-
-		// process the messages starting from the bottom layer so that we draw higher layers on top of lower
-		for (int32 layer_index = 0; layer_index < g_render_messages.capacity(); layer_index++)
-		{
-			c_stack<s_render_message>& layer_messages = g_render_messages[layer_index];
-
-			while (!layer_messages.empty())
+			switch (message.type)
 			{
-				const s_render_message& message = layer_messages.top();
-				layer_messages.pop();
-
-				switch (message.type)
+			case render_message_type_fill_screen:
+			{
+				const s_render_message_data_fill_screen* message_data = static_cast<s_render_message_data_fill_screen*>(message.data);
+				ASSERT(message_data != nullptr);
+				process_fill_screen_message_internal(message_data, &current_backbuffer);
+				break;
+			}
+			case render_message_type_draw_rect:
+			{
+				const s_render_message_data_draw_rect* message_data = static_cast<s_render_message_data_draw_rect*>(message.data);
+				ASSERT(message_data != nullptr);
+				process_draw_rect_message_internal(message_data, &current_backbuffer);
+				break;
+			}
+			case render_message_type_draw_line:
+			{
+				const s_render_message_data_draw_line* message_data = static_cast<s_render_message_data_draw_line*>(message.data);
+				ASSERT(message_data != nullptr);
+				process_draw_line_message_internal(message_data, &current_backbuffer);
+				break;
+			}
+			case render_message_type_draw_circle:
+			{
+				const s_render_message_data_draw_circle* message_data = static_cast<s_render_message_data_draw_circle*>(message.data);
+				ASSERT(message_data != nullptr);
+				if (message_data->fill)
 				{
-				case render_message_type_fill_screen:
+					process_draw_circle_message_internal(message_data, &current_backbuffer);
+				}
+				else
 				{
-					const s_render_message_data_fill_screen* message_data = static_cast<s_render_message_data_fill_screen*>(message.data);
-					ASSERT(message_data != nullptr);
-					process_fill_screen_message_internal(message_data, &current_backbuffer);
-					break;
+					process_draw_circle_outline_message_internal(message_data, &current_backbuffer);
 				}
-				case render_message_type_draw_rect:
-				{
-					const s_render_message_data_draw_rect* message_data = static_cast<s_render_message_data_draw_rect*>(message.data);
-					ASSERT(message_data != nullptr);
-					process_draw_rect_message_internal(message_data, &current_backbuffer);
-					break;
-				}
-				case render_message_type_draw_line:
-				{
-					const s_render_message_data_draw_line* message_data = static_cast<s_render_message_data_draw_line*>(message.data);
-					ASSERT(message_data != nullptr);
-					process_draw_line_message_internal(message_data, &current_backbuffer);
-					break;
-				}
-				case render_message_type_draw_circle:
-				{
-					const s_render_message_data_draw_circle* message_data = static_cast<s_render_message_data_draw_circle*>(message.data);
-					ASSERT(message_data != nullptr);
-					if (message_data->fill)
-					{
-						process_draw_circle_message_internal(message_data, &current_backbuffer);
-					}
-					else
-					{
-						process_draw_circle_outline_message_internal(message_data, &current_backbuffer);
-					}
-					break;
-				}
-				default:
-					NOP();
-				}
+				break;
+			}
+			default:
+				NOP();
 			}
 		}
 	}
@@ -406,19 +364,17 @@ void process_draw_circle_outline_message_internal(const s_render_message_data_dr
 {
 	const real32 degree_delta = 0.005f;
 	const real32 radius = message->circle.radius;
-	real32 degree = 0;
-
-	do 
+	
+	for (real32 degree = 0; degree <= k_math_real64_two_pi; degree += degree_delta)
 	{
 		int32 x = math_round_real32_to_int32(radius * math_cos(degree)) + message->circle.center.x;
 		int32 y = math_round_real32_to_int32(radius * math_sin(degree)) + message->circle.center.y;
-		degree += degree_delta;
 		
 		if (in_range(k_int32_zero, buffer->width, x) && in_range(k_int32_zero, buffer->height, y))
 		{
 			draw_pixel_to_buffer_internal(x, y, message->color, buffer);
 		}
-	} while (degree <= k_math_real64_two_pi);
+	}
 }
 
 void process_draw_circle_message_internal(const s_render_message_data_draw_circle const_ptr message, s_backbuffer const_ptr buffer)

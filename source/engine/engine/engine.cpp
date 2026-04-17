@@ -24,6 +24,11 @@ s_key_state c_engine::input_get_key_state(e_input_keycode key)
 	return input_system_get_key_state(key);
 }
 
+const s_mouse_state* c_engine::input_get_mouse_state()
+{
+	return input_system_get_mouse_state();
+}
+
 void c_engine::render_fill_screen(const uint32 color)
 {
 	render_system_fill_screen(color);

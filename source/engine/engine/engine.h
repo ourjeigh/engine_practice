@@ -12,6 +12,7 @@ public:
 	void halt(const char* message, const char* file, const long line);
 
 	s_key_state input_get_key_state(e_input_keycode key);
+	const s_mouse_state* input_get_mouse_state();
 
 	void render_fill_screen(const uint32 color);
 	void render_draw_rect(const s_render_shape_rect rect, const uint32 color);

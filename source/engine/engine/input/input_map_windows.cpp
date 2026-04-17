@@ -123,7 +123,6 @@ const uint16 k_input_id_gamepad_r_thumb_left = VK_GAMEPAD_RIGHT_THUMBSTICK_LEFT;
 
 e_input_keycode get_key_code_from_platform_key(uint64 platform_key)
 {
-	// make platform agnostic
 	switch (platform_key)
 	{
 	case k_input_id_kbd_0: return input_key_num_0;

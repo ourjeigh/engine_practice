@@ -78,29 +78,6 @@ enum e_input_event_key_special : byte
 	input_event_key_special_esc,
 };
 
-struct s_mouse_position_state
-{
-	int32 x;
-	int32 y;
-	t_timestamp last_changedtimestamp;
-};
-
-struct s_mouse_scroll_state
-{
-	int32 position;
-	t_timestamp last_changedtimestamp;
-};
-
-// button state is in key state
-class c_mouse_state
-{
-public:
-	// todo make setters
-	s_mouse_position_state position;
-	s_mouse_scroll_state horizontal_scroll;
-	s_mouse_scroll_state vertical_scroll;
-};
-
 struct s_key_combo
 {
 	// todo, make this a t_key_code_flags
@@ -149,7 +126,7 @@ private:
 void input_system_handle_event(s_event& event);
 
 s_key_state input_system_get_key_state(e_input_keycode key);
-const c_mouse_state* input_system_get_mouse_state();
+const s_mouse_state* input_system_get_mouse_state();
 
 template<typename... e_input_keycode>
 static void input_system_add_key_combo_callback(c_delegate<t_key_combo_callback> callback, e_input_keycode... keys)

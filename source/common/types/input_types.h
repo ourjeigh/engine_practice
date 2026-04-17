@@ -96,4 +96,25 @@ struct s_key_state
 	t_timestamp last_change_timestamp;
 };
 
+struct s_mouse_position_state
+{
+	int32 x;
+	int32 y;
+	t_timestamp last_changedtimestamp;
+};
+
+struct s_mouse_scroll_state
+{
+	int32 position;
+	t_timestamp last_changedtimestamp;
+};
+
+// button state is in key state
+struct s_mouse_state
+{
+	s_mouse_position_state position;
+	s_mouse_scroll_state horizontal_scroll;
+	s_mouse_scroll_state vertical_scroll;
+};
+
 #endif // !__INPUT_TYPES_H__
