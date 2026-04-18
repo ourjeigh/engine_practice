@@ -16,12 +16,13 @@ public:
 	void handle_window_event(s_event& event);
 	void handle_escape_key(bool down);
 private:
-	c_window_thread m_window;
-	bool m_running;
-
 	void handle_window_close();
 	void handle_window_focus(bool is_in_focus);
 	void handle_window_resize(int32 height, int32 width);
+	
+	c_window_thread m_window;
+	bool m_running;
+	c_game_base* m_game_instance;
 };
 
 #endif //__APPLICATION_H__

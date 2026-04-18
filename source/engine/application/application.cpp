@@ -6,6 +6,7 @@
 #include <debug/logging.h>
 #include <engine/input/input_system.h>
 #include "memory/allocator.h"
+#include "platform/platform_assert.h"
 
 const real32 k_max_fps = 60.0f;
 const real32 k_max_frame_interval_seconds = 1 / k_max_fps;
@@ -19,16 +20,16 @@ const int32 k_default_window_height = 720;
 bool g_interrupt_signalled = false;
 c_static_stack_allocator<k_global_memory_bytes> g_global_stack_allocator;
 
-c_game_base* g_game_HACK;
-
 void c_application::init(c_game_base* game)
 {
+	// not sure if there's a better spot for this but we want it set very early so anything can assert safely
+	g_assert_handler = assert_internal;
+
 	m_running = false;
-	g_game_HACK = game;
+	m_game_instance = game;
 
 	engine_systems_init();
 
-	// TODO: Move window init to after engine init so that we don't try to start drawing anything before we're setup
 	m_window.init(k_default_window_width, k_default_window_height);
 
 	// TODO: get the MAKE_DELEGATE macro working for this pointers
@@ -39,12 +40,12 @@ void c_application::init(c_game_base* game)
 		c_delegate<t_key_combo_callback>::bind<c_application, &c_application::handle_escape_key>(this),
 		input_key_special_esc);
 
-	g_game_HACK->init();
+	m_game_instance->init();
 }
 
 void c_application::term()
 {
-	g_game_HACK->term();
+	m_game_instance->term();
 
 	engine_systems_term();
 	m_window.term();
@@ -63,7 +64,7 @@ void c_application::run()
 		timer.start();
 			
 		engine_systems_pregame_update();
-		g_game_HACK->update();
+		m_game_instance->update();
 		engine_systems_postgame_update();
 
 		timer.stop();

@@ -96,6 +96,7 @@ void c_file_path::get_file_name_no_ext(t_string_256& out_file_name) const
 	split_path(directory_name_index, file_name_index, ext_index);
 
 	out_file_name.copy_from_range(m_data, file_name_index, ext_index - 1);
+	out_file_name.terminate();
 }
 
 void c_file_path::get_directory_path(t_string_256& out_directory_path) const
@@ -108,6 +109,7 @@ void c_file_path::get_directory_path(t_string_256& out_directory_path) const
 	split_path(directory_name_index, file_name_index, ext_index);
 
 	out_directory_path.copy_from_range(m_data, 0, file_name_index - 1);
+	out_directory_path.terminate();
 }
 
 void c_file_path::get_directory_name(t_string_256& out_directory_name) const
@@ -120,6 +122,7 @@ void c_file_path::get_directory_name(t_string_256& out_directory_name) const
 	split_path(directory_name_index, file_name_index, ext_index);
 
 	out_directory_name.copy_from_range(m_data, directory_name_index, file_name_index - 1);
+	out_directory_name.terminate();
 }
 
 void c_file_path::split_path(uint8& out_directory_name_index, uint8& out_filename_index, uint8& out_ext_index) const

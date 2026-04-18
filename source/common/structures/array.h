@@ -2,8 +2,8 @@
 #define __ARRAY_H__
 #pragma once
 
-#include "types/types.h"
 #include "debug/asserts.h"
+#include "types/types.h"
 #include "memory/memory.h"
 
 template<class t_type>

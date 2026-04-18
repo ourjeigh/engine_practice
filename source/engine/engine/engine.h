@@ -7,7 +7,10 @@
 class c_engine : public i_engine
 {
 public:
-	void log();
+	void log_verbose(c_string message);
+	void log_warning(c_string message);
+	void log_error(c_string message);
+	void log_critical(c_string message);
 	void cassert(const char* condition, const char* file, const long line);
 	void halt(const char* message, const char* file, const long line);
 

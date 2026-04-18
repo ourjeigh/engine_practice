@@ -6,6 +6,8 @@
 #include "string.h"
 #include <algorithms/algorithms.h>
 #include "types/types.h"
+#include "structures/string/string.h"
+#include "memory/memory.h"
 
 #define DECLARE_STRING_ID(variable, string) constexpr c_string_id variable = c_string_id(string)
 //#define DECLARE_STRING_ID(variable, string) constexpr c_string_id variable = c_string_id(fnv1a_string_hash_64(string, string_length(string)), string)

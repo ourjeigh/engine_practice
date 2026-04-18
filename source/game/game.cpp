@@ -7,7 +7,7 @@ class c_game_test : public c_game_base
 public:
 	void init()
 	{
-		engine_log();
+		engine_log_verbose("Hello Game World! {i}", 7);
 	}
 
 	void term() {}
@@ -41,6 +41,5 @@ public:
 		{
 			engine_render_draw_circle(circle, color, true);
 		}
-
 	}
 };

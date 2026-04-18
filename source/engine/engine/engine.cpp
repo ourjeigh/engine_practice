@@ -3,10 +3,26 @@
 #include "platform/platform_assert.h"
 #include "input/input_system.h"
 #include "rendering/render_system.h"
+#include "structures/string/string.h"
 
-void c_engine::log()
+void c_engine::log_verbose(c_string message)
 {
-	log_message(verbose, "c_engine::log");
+	c_logging_system::get().log(verbose, message);
+}
+
+void c_engine::log_warning(c_string message)
+{
+	c_logging_system::get().log(warning, message);
+}
+
+void c_engine::log_error(c_string message)
+{
+	c_logging_system::get().log(error, message);
+}
+
+void c_engine::log_critical(c_string message)
+{
+	c_logging_system::get().log(critical, message);
 }
 
 void c_engine::cassert(const char* condition, const char* file, const long line)

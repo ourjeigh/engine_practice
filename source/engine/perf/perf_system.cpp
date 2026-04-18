@@ -1,5 +1,6 @@
 #include "perf_system.h"
 #include "structures/hash_set.h"
+#include "platform/platform.h"
 
 struct s_perf_measurement_set
 {

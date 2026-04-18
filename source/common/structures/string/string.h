@@ -4,31 +4,10 @@
 
 #include "debug/asserts.h"
 #include "structures/array.h"
-#include <types/types.h>
 #include "structures/string/string_format.h"
-#include "platform/platform.h"
-
-IGNORE_WINDOWS_WARNINGS_PUSH
-// TODO: remove
-//#include <stdio.h>
-//#include <cstdarg>
-IGNORE_WINDOWS_WARNINGS_POP
+#include "types/types.h"
 
 const char k_null_char = '\0';
-
-//inline int32 expand_args_string(char* buffer, int32 size, const char* format, va_list args)
-//{
-//	 //doesn't count terminating '\0' even tho it will write one
-//	int32 length = _vscprintf(format, args) + 1;
-//	ASSERT(length <= size);
-//
-//	//vsprintf_s(buffer, size, format, args);
-//	vsprintf_s(buffer, length, format, args);
-//
-//	return length;
-//}
-template<int32 k_max_size>
-class c_static_string;
 
 class c_string : public c_stack<char>
 {
@@ -37,15 +16,9 @@ public:
 
 	explicit c_string(char* data, int32 size) : c_stack<char>(data, size)
 	{ 
+		// todo: remove, we shouldn't need this if we're properly terminating everywhere
 		memory_set(this->data(), k_null_char, this->capacity());
 	}
-
-	//void print_va(const char* format, va_list args)
-	//{
-	//	int length = expand_args_string(this->data(), this->capacity(), format, args);
-	//	this->m_top = length - 1;
-	//	terminate();
-	//}
 
 	void print(const char* string)
 	{

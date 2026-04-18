@@ -5,12 +5,14 @@
 #include "types/types.h"
 #include "types/input_types.h"
 #include "types/render_types.h"
+#include "structures/string/string.h"
 
 struct i_engine
 {
-	virtual void log() = 0;
-	virtual void cassert(const char* condition, const char* file, const long line) = 0;
-	virtual void halt(const char* message, const char* file, const long line) = 0;
+	virtual void log_verbose(c_string message) = 0;
+	virtual void log_warning(c_string message) = 0;
+	virtual void log_error(c_string message) = 0;
+	virtual void log_critical(c_string message) = 0;
 
 	virtual s_key_state input_get_key_state(e_input_keycode key) = 0;
 	virtual const s_mouse_state* input_get_mouse_state() = 0;
@@ -24,9 +26,37 @@ struct i_engine
 
 inline extern i_engine* g_engine_ptr = nullptr;
 
-inline void engine_log() { g_engine_ptr->log(); }
-inline void engine_assert(const char* condition, const char* file, const long line) { g_engine_ptr->cassert(condition, file, line); }
-inline void engine_halt(const char* message, const char* file, const long line) { g_engine_ptr->halt(message, file, line); }
+template<typename... t_args>
+inline void engine_log_verbose(const char* message, t_args... args) 
+{
+	t_string_512 log_msg;
+	log_msg.printf(message, args...);
+	g_engine_ptr->log_verbose(log_msg);
+}
+
+template<typename... t_args>
+inline void engine_log_warning(const char* message, t_args... args)
+{
+	t_string_512 log_msg;
+	log_msg.printf(message, args...);
+	g_engine_ptr->log_warning(log_msg);
+}
+
+template<typename... t_args>
+inline void engine_log_error(const char* message, t_args... args)
+{
+	t_string_512 log_msg;
+	log_msg.printf(message, args...);
+	g_engine_ptr->log_error(log_msg);
+}
+
+template<typename... t_args>
+inline void engine_log_critical(const char* message, t_args... args)
+{
+	t_string_512 log_msg;
+	log_msg.printf(message, args...);
+	g_engine_ptr->log_critical(log_msg);
+}
 
 inline s_key_state engine_input_get_key_state(e_input_keycode key) { return g_engine_ptr->input_get_key_state(key); }
 inline const s_mouse_state* engine_input_get_mouse_state() { return g_engine_ptr->input_get_mouse_state(); }

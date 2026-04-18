@@ -2,14 +2,15 @@
 #define __STRING_FORMAT_H__
 #pragma once
 
-#include <types/types.h>
 #include "debug/asserts.h"
+#include "mmath.h"
+#include "types/types.h"
 
 inline extern const char k_null_char;
 const char k_string_format_char_begin = '{';
 const char k_string_format_char_end = '}';
 
-typedef c_static_stack<char, 32> t_arg_format_buffer;
+typedef c_static_stack<char, 16> t_arg_format_buffer;
 typedef c_stack<char> t_char_stack;
 
 constexpr int32 k_upper_to_lowercase_distance = math_abs('A' - 'a');

@@ -2,7 +2,8 @@
 #define __TYPE_CONVERSIONS_H__
 #pragma once
 
-#include <debug/asserts.h>
+#include "debug/asserts.h"
+#include "types/types.h"
 
 template<typename t_type>
 inline constexpr bool in_range(t_type min, t_type max, t_type value)

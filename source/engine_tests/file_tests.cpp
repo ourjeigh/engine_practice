@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "engine/file_system/file.h"
 #include "test_file_text.h"
+#include "platform/platform.h"
 
 const char* k_test_file_path_real = k_test_file_text_path;
 const char* k_test_file_path_fake = "c:\\this_path\\definitely\\shouldnt.exist";
