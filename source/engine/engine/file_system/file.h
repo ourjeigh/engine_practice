@@ -5,6 +5,7 @@
 #include "structures/string/string.h"
 #include "structures/array.h"
 #include <platform/platform_handle.h>
+#include "file/file_path.h"
 
 const uint32 k_file_path_max = 256;
 
@@ -14,31 +15,6 @@ struct s_file_info
 	uint64 size_bytes;
 	uint64 creation_time;
 	uint64 write_time;
-};
-
-class c_file_path
-{
-public:
-	c_file_path() { m_data.clear(); }
-	c_file_path(const char* path);
-	c_file_path(const t_string_256& path);
-	c_file_path(const c_file_path& other);
-	c_file_path& operator=(const c_file_path& other);
-
-	~c_file_path() {}
-
-	bool exists() const;
-	uint64 get_file_size_bytes() const;
-	const char* get_full_path() const { return m_data.get_const_char(); }
-	void get_file_name(t_string_256& out_file_name) const;
-	void get_file_ext(t_string_256& out_file_ext) const;
-	void get_file_name_no_ext(t_string_256& out_file_name) const;
-	void get_directory_path(t_string_256& out_directory_path) const;
-	void get_directory_name(t_string_256& out_directory_name) const;
-private:
-	void split_path(uint8& out_parent_directory_index, uint8& out_filename_index, uint8& out_ext_index) const;
-
-	t_string_256 m_data;
 };
 
 enum e_file_open_mode
@@ -149,8 +125,8 @@ private:
 	c_static_array<byte, k_size> m_storage;
 };
 
-char get_path_separator();
-char get_ext_separator();
 s_file_info get_file_info(const c_file_path& file_path);
-bool file_copy(const c_file_path& source, const c_file_path& dest);
+bool file_exists(const c_file_path& file_path);
+
+bool file_copy(const c_file_path& source, const c_file_path& dest, bool overwrite);
 #endif // __FILE_H__

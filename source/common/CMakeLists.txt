@@ -5,10 +5,9 @@
 
 # 1. Collect all headers and source files recursively
 file(GLOB_RECURSE COMMON_FILES 
-	"*.h" 
-	"*.hpp" 
-	"*.cpp" 
-	"*.inl"
+	*.h 
+	*.cpp 
+	*.inl
 )
 
 # If we start including cpp files in common, this will need to become STATIC

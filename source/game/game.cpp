@@ -10,8 +10,6 @@ extern "C"
 		g_assert_handler = game_state.assert_hook;
 
 		engine_log_verbose("Hello Game World! {i}", 7);
-
-		ASSERT(false);
 	}
 
 	GAME_API void game_update()

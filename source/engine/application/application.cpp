@@ -180,9 +180,9 @@ const c_file_path runtime_dll_path("game_" CONFIG_NAME "_" PLATFORM_NAME "_temp.
 
 void load_game()
 {
-	ASSERT(built_dll_path.exists());
-	ASSERT(file_copy(built_dll_path, runtime_dll_path));
-	ASSERT(runtime_dll_path.exists());
+	ASSERT(file_exists(built_dll_path));
+	ASSERT(file_copy(built_dll_path, runtime_dll_path, true));
+	ASSERT(file_exists(runtime_dll_path));
 
 	HMODULE game_dll = nullptr;
 	game_dll = LoadLibraryA(runtime_dll_path.get_full_path());

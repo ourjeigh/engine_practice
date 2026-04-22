@@ -10,7 +10,7 @@ TEST(FILE_INFO, FILE_EXISTS_TRUE)
 	t_string_256 file_path_string(k_test_file_path_real);
 	c_file_path file_path(file_path_string);
 
-	EXPECT_TRUE(file_path.exists());
+	EXPECT_TRUE(file_exists(file_path));
 }
 
 TEST(FILE_INFO, FILE_EXISTS_FALSE)
@@ -18,7 +18,7 @@ TEST(FILE_INFO, FILE_EXISTS_FALSE)
 	t_string_256 file_path_string(k_test_file_path_fake);
 	c_file_path file_path(file_path_string);
 
-	EXPECT_FALSE(file_path.exists());
+	EXPECT_FALSE(file_exists(file_path));
 }
 
 TEST(FILE_INFO, GET_FILE_NAME)
