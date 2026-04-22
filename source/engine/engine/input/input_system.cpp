@@ -196,7 +196,7 @@ void process_input_event_queue_internal()
 			g_input_state.mouse_state.position.x =  event.mouse_data.x;
 			g_input_state.mouse_state.position.y = event.mouse_data.y;
 			g_input_state.mouse_state.position.last_changedtimestamp = event.timestamp;
-			log_message(verbose, "input system: mouse position x:{i} y:{i}", data.x, data.y);
+			//log_message(verbose, "input system: mouse position x:{i} y:{i}", data.x, data.y);
 			break;
 		}
 		case event_type_input_controller:

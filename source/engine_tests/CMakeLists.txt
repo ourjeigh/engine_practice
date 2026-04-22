@@ -1,3 +1,7 @@
+####################
+### ENGINE TESTS ###
+####################
+
 include(FetchContent)
 
 # 1. Download Google Test
@@ -13,23 +17,24 @@ FetchContent_MakeAvailable(googletest)
 
 # 2. Define the Test Executable
 file(GLOB_RECURSE TEST_SOURCES *.cpp *.h)
-add_executable(EngineTests ${TEST_SOURCES})
+add_executable(engine_tests ${TEST_SOURCES})
 
 # 3. Linking and Includes
 # We link against our Engine and the GTest libraries
-target_link_libraries(EngineTests 
+target_link_libraries(engine_tests 
 	PRIVATE 
-		Common
-		Engine 
+		common
+		engine 
 		GTest::gtest_main
 )
 
 # 4. Standard C++ testing setup
 include(GoogleTest)
-gtest_discover_tests(EngineTests)
+gtest_discover_tests(engine_tests)
 
-target_include_directories(EngineTests PRIVATE 
-	${CMAKE_SOURCE_DIR}/source/engine
+target_include_directories(engine_tests 
+	PRIVATE 
+		${CMAKE_SOURCE_DIR}/source/engine
 )
 
 set_target_properties(gtest gtest_main gmock gmock_main PROPERTIES FOLDER "CMake")

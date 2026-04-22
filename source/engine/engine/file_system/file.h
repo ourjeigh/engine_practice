@@ -12,6 +12,8 @@ struct s_file_info
 {
 	bool exists;
 	uint64 size_bytes;
+	uint64 creation_time;
+	uint64 write_time;
 };
 
 class c_file_path
@@ -150,4 +152,5 @@ private:
 char get_path_separator();
 char get_ext_separator();
 s_file_info get_file_info(const c_file_path& file_path);
+bool file_copy(const c_file_path& source, const c_file_path& dest);
 #endif // __FILE_H__

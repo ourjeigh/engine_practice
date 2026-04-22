@@ -387,12 +387,18 @@ s_file_info get_file_info(const c_file_path& file_path)
 		const uint64 high_shift = k_file_size_max_word + 1;
 		out_info.size_bytes = (file_data.nFileSizeHigh * (high_shift)) + file_data.nFileSizeLow;
 
-		// parse datetime info once we have our own internal datetime structs
+		out_info.creation_time = (file_data.ftCreationTime.dwHighDateTime * high_shift) + file_data.ftCreationTime.dwLowDateTime;
+		out_info.write_time = (file_data.ftLastWriteTime.dwHighDateTime * high_shift) + file_data.ftLastWriteTime.dwLowDateTime;
 
 		FindClose(find_handle);
 	}
 
 	return out_info;
+}
+
+bool file_copy(const c_file_path& source, const c_file_path& dest)
+{
+	return CopyFileA(source.get_full_path(), dest.get_full_path(), false);
 }
 
 // private

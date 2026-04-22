@@ -2,17 +2,19 @@
 #include "engine_api.h"
 #include "types/render_types.h"
 
-class c_game_test : public c_game_base
+extern "C"
 {
-public:
-	void init()
+	GAME_API void game_init(c_game_state& game_state)
 	{
+		g_engine_ptr = game_state.engine;
+		g_assert_handler = game_state.assert_hook;
+
 		engine_log_verbose("Hello Game World! {i}", 7);
+
+		ASSERT(false);
 	}
 
-	void term() {}
-
-	void update() 
+	GAME_API void game_update()
 	{
 		engine_render_fill_screen(0xFF202020);
 
@@ -42,4 +44,4 @@ public:
 			engine_render_draw_circle(circle, color, true);
 		}
 	}
-};
+}

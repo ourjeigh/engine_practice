@@ -4,6 +4,7 @@
 
 // internal defines for common ones
 #ifdef _DEBUG
+#define CONFIG_NAME "debug"
 #define CONFIG_DEBUG
 
 #define FEATURE_LOGGING
@@ -11,6 +12,7 @@
 #endif //_DEBUG
 
 #ifdef _WIN64
+#define PLATFORM_NAME "win64"
 #define PLATFORM_WINDOWS
 #endif // _WIN64
 

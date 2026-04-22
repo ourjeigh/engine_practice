@@ -10,7 +10,7 @@
 class c_application
 {
 public:
-	void init(c_game_base* game);
+	void init();
 	void term();
 	void run();
 	void handle_window_event(s_event& event);
@@ -22,7 +22,6 @@ private:
 	
 	c_window_thread m_window;
 	bool m_running;
-	c_game_base* m_game_instance;
 };
 
 #endif //__APPLICATION_H__

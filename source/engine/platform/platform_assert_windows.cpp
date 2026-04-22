@@ -10,7 +10,6 @@ IGNORE_WINDOWS_WARNINGS_POP
 void assert_internal(const char* condition, const char* file, const long line)
 {
 	log_message(critical, "{s} [{s}:{i}]", condition, file, line);
-	//log_message(critical, "Assertion Failed: {s} [{s}:{i}]", condition, file, line);
 
 	if (IsDebuggerPresent())
 	{
