@@ -38,6 +38,8 @@ bool HACK_check_dll();
 void load_game();
 void unload_game();
 
+static void handle_game_reload(bool down);
+
 void c_application::init()
 {
 	// not sure if there's a better spot for this but we want it set very early so anything can assert safely
@@ -56,6 +58,10 @@ void c_application::init()
 	input_system_add_key_combo_callback(
 		c_delegate<t_key_combo_callback>::bind<c_application, &c_application::handle_escape_key>(this),
 		input_key_special_esc);
+
+	input_system_add_key_combo_callback(
+		MAKE_DELEGATE_STATIC(t_key_combo_callback, handle_game_reload),
+		input_key_special_control, input_key_special_shift, input_key_char_r);
 
 	zero_object(HACK_g_game_info);
 	load_game();
@@ -172,42 +178,86 @@ void c_application::handle_window_resize(int32 height, int32 width)
 	NOP();
 }
 
-
-
 // todo: should we have the game dll expose a function to get it's dll name instead of hardcoding "game" ?
 const c_file_path built_dll_path("game_" CONFIG_NAME "_" PLATFORM_NAME ".dll");
-const c_file_path runtime_dll_path("game_" CONFIG_NAME "_" PLATFORM_NAME "_temp.dll");
+c_file_path g_runtime_dll_path("game_" CONFIG_NAME "_" PLATFORM_NAME "_temp.dll");
+
+const char* runtime_dll_name_base = "game_" CONFIG_NAME "_" PLATFORM_NAME "_temp_";
+
+int32 g_dll_count = 0;
 
 void load_game()
 {
-	ASSERT(file_exists(built_dll_path));
-	ASSERT(file_copy(built_dll_path, runtime_dll_path, true));
-	ASSERT(file_exists(runtime_dll_path));
+	bool success = false;
+	for (int32 retries = 10; !success && retries >= 0; retries--)
+	{
+		if (file_exists(built_dll_path))
+		{
+			t_string_128 dll_name = runtime_dll_name_base;
+			dll_name.appendf("{i}.dll", g_dll_count);
 
-	HMODULE game_dll = nullptr;
-	game_dll = LoadLibraryA(runtime_dll_path.get_full_path());
-	ASSERT(game_dll != nullptr);
+			g_runtime_dll_path = c_file_path(dll_name.get_const_char());
+			if (file_copy(built_dll_path, g_runtime_dll_path, true))
+			{
+				if (file_exists(g_runtime_dll_path))
+				{
+					HMODULE game_dll = LoadLibraryA(g_runtime_dll_path.get_full_path());
+					ASSERT(game_dll != nullptr);
 
-	HACK_g_game_info.library = game_dll;
-	HACK_g_game_info.init = reinterpret_cast<f_game_init>(GetProcAddress(game_dll, "game_init"));
-	HACK_g_game_info.update = reinterpret_cast<f_game_update>(GetProcAddress(game_dll, "game_update"));
-	HACK_g_game_info.HACK_dll_write_time = get_file_info(built_dll_path).write_time;
+					HACK_g_game_info.library = game_dll;
+					HACK_g_game_info.init = reinterpret_cast<f_game_init>(GetProcAddress(game_dll, "game_init"));
+					HACK_g_game_info.update = reinterpret_cast<f_game_update>(GetProcAddress(game_dll, "game_update"));
+					HACK_g_game_info.HACK_dll_write_time = get_file_info(built_dll_path).write_time;
+					
+					success = true;
+					g_dll_count++;
+					
+					log_message(verbose, "Game Dll Loaded: {s}", g_runtime_dll_path.get_full_path());
+				}
+				else
+				{
+					log_message(warning, "Couldn't find runtime dll: {s}", g_runtime_dll_path.get_full_path());
+				}
+			}
+			else
+			{
+				// remove once we're more confident in copy
+				DWORD error = GetLastError();
+				LPSTR messageBuffer = nullptr;;
+
+				size_t size = FormatMessageA(
+					FORMAT_MESSAGE_ALLOCATE_BUFFER | // Let the system allocate memory
+					FORMAT_MESSAGE_FROM_SYSTEM |    // Search system message tables
+					FORMAT_MESSAGE_IGNORE_INSERTS,  // Ignore placeholder inserts
+					NULL,
+					error,
+					MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Use default language
+					(LPSTR)&messageBuffer,
+					0,
+					NULL
+				);
+
+				log_message(critical, "Copy Error: {s}", messageBuffer);
+				log_message(warning, "Failed to copy dll src: {s} dest: {s}", built_dll_path.get_full_path(), g_runtime_dll_path.get_full_path());
+			}
+		}
+		else
+		{
+			log_message(warning, "Couldn't find built dll: {s}", built_dll_path.get_full_path());
+		}
+	}
+
+	ASSERT(success);
 }
 
 void unload_game()
 {
-	log_message(verbose, "detected dll change!");
-
-	HMODULE game_dll = GetModuleHandleA(built_dll_path.get_full_path());
-
-	if (game_dll == nullptr)
-	{
-		game_dll = GetModuleHandleA(runtime_dll_path.get_full_path());
-	}
+	HMODULE game_dll = GetModuleHandleA(g_runtime_dll_path.get_full_path());
 
 	if (game_dll != nullptr)
 	{
 		ASSERT(FreeLibrary(game_dll));
+		HACK_g_game_info.library = nullptr;
 	}
 }
 
@@ -216,14 +266,83 @@ bool HACK_check_dll()
 	bool reloaded = false;
 
 	s_file_info info = get_file_info(built_dll_path);
-	ASSERT(info.exists);
-
-	if (info.write_time > HACK_g_game_info.HACK_dll_write_time)
+	
+	if (info.exists) 
 	{
-		unload_game();
-		load_game();
-		reloaded = true;
+		if (info.write_time > HACK_g_game_info.HACK_dll_write_time)
+		{
+			log_message(verbose, "detected dll change!");
+
+			// replace this with a wait until the file becomes readable
+			sleep_for_milliseconds(100);
+			unload_game();
+			load_game();
+			reloaded = true;
+		}
+	}
+	else
+	{
+		log_message(critical, "Couldn't find built dll! {s}", built_dll_path.get_full_path());
 	}
 
 	return reloaded;
+}
+
+bool reload_handled = false;
+
+static void handle_game_reload(bool down)
+{
+	if (down && !reload_handled)
+	{
+		log_message(verbose, "Handling Reload Command");
+
+		STARTUPINFO startup_info = { sizeof(startup_info) };
+		PROCESS_INFORMATION proc_info = { 0 };
+
+		char cmd[] = "/c cmake --build ../project --target game --config Debug";
+		LPCSTR                lpApplicationName = "C:\\Windows\\System32\\cmd.exe";
+		LPSTR                 lpCommandLine = &cmd[0];
+		LPSECURITY_ATTRIBUTES lpProcessAttributes = {};
+		LPSECURITY_ATTRIBUTES lpThreadAttributes = {};
+		BOOL                  bInheritHandles = false;
+		DWORD                 dwCreationFlags = CREATE_NEW_CONSOLE;
+		LPVOID                lpEnvironment = nullptr;
+		LPCSTR                lpCurrentDirectory = nullptr;
+		LPSTARTUPINFOA        lpStartupInfo = &startup_info;
+		LPPROCESS_INFORMATION lpProcessInformation = &proc_info;
+
+		if (CreateProcessA(
+			lpApplicationName,
+			lpCommandLine,
+			lpProcessAttributes,
+			lpThreadAttributes,
+			bInheritHandles,
+			dwCreationFlags,
+			lpEnvironment,
+			lpCurrentDirectory,
+			lpStartupInfo,
+			lpProcessInformation))
+		{
+			// Wait until child process exits.
+			WaitForSingleObject(proc_info.hProcess, INFINITE);
+
+			// Close process and thread handles. 
+			CloseHandle(proc_info.hProcess);
+			CloseHandle(proc_info.hThread);
+			
+			reload_handled = true;
+
+			log_message(verbose, "Reload build succeeded, triggering DLL update");
+		}
+		else
+		{
+			DWORD error = GetLastError();
+			NOP();
+		}
+	}
+	
+	if (!down)
+	{
+		reload_handled = false;
+	}
 }

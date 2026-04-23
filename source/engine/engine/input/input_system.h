@@ -88,6 +88,7 @@ using t_key_combo_callback = void(bool);
 
 struct s_key_combo_delegate
 {
+	bool down;
 	s_key_combo combo;
 	c_delegate<t_key_combo_callback> callback;
 };
@@ -114,6 +115,7 @@ public:
 
 		s_key_combo_delegate& new_combo = get().m_key_combo_callbacks.push();
 		new_combo.callback = callback;
+		new_combo.down = false;
 		new_combo.combo.keys.clear();
 
 		(new_combo.combo.keys.push(keys), ...);

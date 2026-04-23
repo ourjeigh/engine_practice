@@ -107,18 +107,19 @@ void c_input_system::update()
 
 	for (auto& combo : m_key_combo_callbacks)
 	{
-		bool down = true;
+		bool new_down = true;
 
 		// todo: we should generate a bitmask of keystate above, each combo could actually just store it's own
 		// mask and we just compare them instead of iterating each key in the combo
 		for (auto& key : combo.combo.keys)
 		{
-			down &= g_input_state.key_states[key].is_down();
+			new_down &= g_input_state.key_states[key].is_down();
 		}
 
-		if (down)
+		if (new_down != combo.down)
 		{
-			combo.callback(down);
+			combo.callback(new_down);
+			combo.down = new_down;
 		}
 	}
 }

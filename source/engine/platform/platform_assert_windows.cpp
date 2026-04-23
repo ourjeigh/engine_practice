@@ -10,7 +10,10 @@ IGNORE_WINDOWS_WARNINGS_POP
 void assert_internal(const char* condition, const char* file, const long line)
 {
 	log_message(critical, "{s} [{s}:{i}]", condition, file, line);
-
+	
+	// todo: make this a "flush"
+	c_logging_system::get().update();
+	
 	if (IsDebuggerPresent())
 	{
 		DebugBreak();
