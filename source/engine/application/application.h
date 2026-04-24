@@ -20,6 +20,8 @@ private:
 	void handle_window_focus(bool is_in_focus);
 	void handle_window_resize(int32 height, int32 width);
 	
+	// make this something like an i_graphics_endpoint so that we can
+	// swap it out with a screen recorder instead of a window
 	c_window_thread m_window;
 	bool m_running;
 };

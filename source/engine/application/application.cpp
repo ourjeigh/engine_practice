@@ -7,6 +7,7 @@
 #include <engine/input/input_system.h>
 #include "memory/allocator.h"
 #include "platform/platform_assert.h"
+#include "platform/platform_process.h"
 
 const real32 k_max_fps = 60.0f;
 const real32 k_max_frame_interval_seconds = 1 / k_max_fps;
@@ -28,7 +29,8 @@ struct s_game_info
 	f_game_init init;
 	f_game_update update;
 	uint64 HACK_dll_write_time = 0;
-	HMODULE library;
+	HMODULE DELETE_library;
+	c_platform_handle library;
 };
 
 // todo: create a unit test that greps c++ files and fails on "HACK" :P
@@ -75,6 +77,7 @@ void c_application::term()
 {
 	engine_systems_term();
 	m_window.term();
+	HACK_g_game_info.library.~c_platform_handle();
 }
 
 void c_application::run()
@@ -201,12 +204,28 @@ void load_game()
 			{
 				if (file_exists(g_runtime_dll_path))
 				{
-					HMODULE game_dll = LoadLibraryA(g_runtime_dll_path.get_full_path());
+					HACK_g_game_info.library = platform_process_load_library(g_runtime_dll_path);
+					ASSERT(HACK_g_game_info.library.is_valid());
+
+					t_string_128 game_init_function_name("game_init");
+					t_string_128 game_update_function_name("game_update");
+
+					HACK_g_game_info.init = reinterpret_cast<f_game_init>(platform_process_get_library_function_address(
+						HACK_g_game_info.library,
+						game_init_function_name));
+
+					HACK_g_game_info.update = reinterpret_cast<f_game_update>(platform_process_get_library_function_address(
+						HACK_g_game_info.library,
+						game_update_function_name));
+
+					ASSERT(HACK_g_game_info.init != nullptr);
+					ASSERT(HACK_g_game_info.update != nullptr);
+					/*HMODULE game_dll = LoadLibraryA(g_runtime_dll_path.get_full_path());
 					ASSERT(game_dll != nullptr);
 
-					HACK_g_game_info.library = game_dll;
+					HACK_g_game_info.DELETE_library = game_dll;
 					HACK_g_game_info.init = reinterpret_cast<f_game_init>(GetProcAddress(game_dll, "game_init"));
-					HACK_g_game_info.update = reinterpret_cast<f_game_update>(GetProcAddress(game_dll, "game_update"));
+					HACK_g_game_info.update = reinterpret_cast<f_game_update>(GetProcAddress(game_dll, "game_update"));*/
 					HACK_g_game_info.HACK_dll_write_time = get_file_info(built_dll_path).write_time;
 					
 					success = true;
@@ -252,12 +271,10 @@ void load_game()
 
 void unload_game()
 {
-	HMODULE game_dll = GetModuleHandleA(g_runtime_dll_path.get_full_path());
-
-	if (game_dll != nullptr)
+	if (HACK_g_game_info.DELETE_library != nullptr)
 	{
-		ASSERT(FreeLibrary(game_dll));
-		HACK_g_game_info.library = nullptr;
+		ASSERT(FreeLibrary(HACK_g_game_info.DELETE_library));
+		HACK_g_game_info.DELETE_library = nullptr;
 	}
 }
 
@@ -296,48 +313,18 @@ static void handle_game_reload(bool down)
 	{
 		log_message(verbose, "Handling Reload Command");
 
-		STARTUPINFO startup_info = { sizeof(startup_info) };
-		PROCESS_INFORMATION proc_info = { 0 };
+		c_file_path cmd_path("C:\\Windows\\System32\\cmd.exe");
+		t_string_128 command("/c cmake --build ../project --target game --config Debug");
 
-		char cmd[] = "/c cmake --build ../project --target game --config Debug";
-		LPCSTR                lpApplicationName = "C:\\Windows\\System32\\cmd.exe";
-		LPSTR                 lpCommandLine = &cmd[0];
-		LPSECURITY_ATTRIBUTES lpProcessAttributes = {};
-		LPSECURITY_ATTRIBUTES lpThreadAttributes = {};
-		BOOL                  bInheritHandles = false;
-		DWORD                 dwCreationFlags = CREATE_NEW_CONSOLE;
-		LPVOID                lpEnvironment = nullptr;
-		LPCSTR                lpCurrentDirectory = nullptr;
-		LPSTARTUPINFOA        lpStartupInfo = &startup_info;
-		LPPROCESS_INFORMATION lpProcessInformation = &proc_info;
-
-		if (CreateProcessA(
-			lpApplicationName,
-			lpCommandLine,
-			lpProcessAttributes,
-			lpThreadAttributes,
-			bInheritHandles,
-			dwCreationFlags,
-			lpEnvironment,
-			lpCurrentDirectory,
-			lpStartupInfo,
-			lpProcessInformation))
+		if (platform_process_start_process_and_wait(cmd_path, command))
 		{
-			// Wait until child process exits.
-			WaitForSingleObject(proc_info.hProcess, INFINITE);
-
-			// Close process and thread handles. 
-			CloseHandle(proc_info.hProcess);
-			CloseHandle(proc_info.hThread);
-			
 			reload_handled = true;
 
 			log_message(verbose, "Reload build succeeded, triggering DLL update");
 		}
 		else
 		{
-			DWORD error = GetLastError();
-			NOP();
+			log_message(error, "Failed to launch build command");
 		}
 	}
 	
