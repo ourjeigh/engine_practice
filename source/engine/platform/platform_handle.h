@@ -10,12 +10,11 @@ class c_platform_handle
 {
 public:
 	c_platform_handle() { invalidate(); }
-	~c_platform_handle();
+	~c_platform_handle() { }
 
 	c_platform_handle(c_platform_handle&& other)
 	{
 		m_handle = other.m_handle;
-		m_cookie = other.m_cookie;
 		other.invalidate();
 	}
 
@@ -24,7 +23,6 @@ public:
 		if (this != &other)
 		{
 			m_handle = other.m_handle;
-			m_cookie = other.m_cookie;
 			other.invalidate();
 		}
 
@@ -37,14 +35,13 @@ public:
 private:
 	friend class c_platform_handle_factory;
 
-	c_platform_handle(void* handle, uint64 cookie) : m_handle(reinterpret_cast<uint64>(handle)), m_cookie(cookie) {}
+	c_platform_handle(void* handle) : m_handle(reinterpret_cast<uint64>(handle)) {}
 
 	// no copying
 	c_platform_handle(const c_platform_handle&) = delete;
 	c_platform_handle& operator=(const c_platform_handle&) = delete;
 
 	uint64 m_handle;
-	uint64 m_cookie;
 };
 
 #endif //__PLATFORM_HANDLE_H__

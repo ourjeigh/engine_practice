@@ -76,7 +76,7 @@ c_platform_handle platform_file_open(const c_file_path& file_path, t_file_open_m
 
 void platform_file_close(c_platform_handle& handle)
 {
-	CloseHandle(c_platform_handle_factory::get_native_handle_from_platform_handle<HANDLE>(handle));
+	CloseHandle(c_platform_handle_factory::get_native_handle_from_platform_handle(handle));
 }
 
 int32 platform_file_read_bytes(
@@ -171,7 +171,7 @@ int32 read_file_internal(
 	overlapped.Offset = start;
 
 	bool result = ReadFile(
-		c_platform_handle_factory::get_native_handle_from_platform_handle<HANDLE>(file_handle),
+		c_platform_handle_factory::get_native_handle_from_platform_handle(file_handle),
 		out_buffer.data(),
 		length,
 		&bytes_read,
@@ -200,7 +200,7 @@ int32 write_file_internal(
 	}
 
 	bool result = WriteFile(
-		c_platform_handle_factory::get_native_handle_from_platform_handle<HANDLE>(file_handle),
+		c_platform_handle_factory::get_native_handle_from_platform_handle(file_handle),
 		buffer.data(),
 		buffer.capacity(),
 		&bytes_written,
