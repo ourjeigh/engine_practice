@@ -13,12 +13,14 @@ IGNORE_WINDOWS_WARNINGS_POP
 class c_platform_handle_factory
 {
 public:
-	inline static HANDLE get_native_handle_from_platform_handle(c_platform_handle& handle)
+	template<typename t_type>
+	inline static t_type get_native_handle_from_platform_handle(c_platform_handle& handle)
 	{
-		return reinterpret_cast<HANDLE>(handle.m_handle);
+		return reinterpret_cast<t_type>(handle.m_handle);
 	}
 
-	inline static c_platform_handle get_platform_handle_from_native_handle(HANDLE handle)
+	template<typename t_type>
+	inline static c_platform_handle get_platform_handle_from_native_handle(t_type handle)
 	{
 		return c_platform_handle(handle);
 	}

@@ -16,13 +16,19 @@ c_platform_handle platform_process_load_library(c_file_path& library_path)
 {
 	ASSERT(file_exists(library_path));
 	HMODULE library_handle = LoadLibraryA(library_path.get_full_path());
-	return c_platform_handle_factory::get_platform_handle_from_native_handle(library_handle);
+	return c_platform_handle_factory::get_platform_handle_from_native_handle<HMODULE>(library_handle);
+}
+
+bool platform_process_unload_library(c_platform_handle& library)
+{
+	HMODULE library_handle = c_platform_handle_factory::get_native_handle_from_platform_handle<HMODULE>(library);
+	return FreeLibrary(library_handle) != 0;
 }
 
 void* platform_process_get_library_function_address(c_platform_handle& library, c_string& function)
 {
-	HANDLE library_handle = c_platform_handle_factory::get_native_handle_from_platform_handle(library);
-	return GetProcAddress(reinterpret_cast<HMODULE>(library_handle), function.get_const_char());
+	HMODULE library_handle = c_platform_handle_factory::get_native_handle_from_platform_handle<HMODULE>(library);
+	return GetProcAddress(library_handle, function.get_const_char());
 }
 
 bool platform_process_start_process_and_wait(c_file_path& process_path, c_string& command)

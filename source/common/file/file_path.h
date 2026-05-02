@@ -16,6 +16,13 @@ public:
 
 	~c_file_path() {}
 
+	static c_file_path invalid()
+	{
+		return c_file_path();
+	}
+
+	bool is_valid() const { return !m_data.empty(); }
+
 	const char* get_full_path() const { return m_data.get_const_char(); }
 	void get_file_name(t_string_256& out_file_name) const;
 	void get_file_ext(t_string_256& out_file_ext) const;

@@ -3,9 +3,6 @@
 #pragma once
 
 #include "window.h"
-#include "engine/engine.h"
-#include <events/events.h>
-#include <game_api.h>
 
 class c_application
 {
