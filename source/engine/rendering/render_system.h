@@ -31,7 +31,6 @@ public:
 	void draw_circle(const s_render_shape_circle circle, uint32 color, bool fill);
 	const s_backbuffer* get_backbuffer();
 
-	// BUG: this gets called too early, before c_render_system's global initializes, which resets it back to 0 :(
 	void resize(int32 width, int32 height);
 
 	s_render_shape_point get_screen_center() const;

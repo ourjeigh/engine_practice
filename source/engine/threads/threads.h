@@ -2,7 +2,7 @@
 #define __THREADS_H__
 #pragma once
 
-#include <types/types.h>
+#include "types/types.h"
 
 #define THREAD_ARGS(x) reinterpret_cast<void*>(x)
 #define THREAD_FUNCTION(x) reinterpret_cast<void*>(x)

@@ -1,10 +1,10 @@
 #include "platform_file.h"
 #include "platform.h"
-#include "platform_handle_windows.h"
+#include "platform/win64/platform_handle_win64.h"
 
 IGNORE_WINDOWS_WARNINGS_PUSH
 #include "windows.h"
-#include <minwinbase.h>
+#include "minwinbase.h"
 IGNORE_WINDOWS_WARNINGS_POP
 
 const uint64 k_file_size_max_word = MAXWORD;

@@ -2,7 +2,7 @@
 #define __DELEGATES_H__
 #pragma once
 
-#include <platform/platform.h>
+#include "platform/platform.h"
 
 #define MAKE_DELEGATE(signature, object, method) \
 	c_delegate<signature>::bind<decltype(object), &decltype(object)::method>(&object)

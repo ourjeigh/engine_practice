@@ -1,9 +1,9 @@
 #include "pch.h"
 #include "memory/memory.h"
-#include <types/types.h>
-#include <memory/allocator.h>
-#include <structures/array.h>
-#include <platform/platform.h>
+#include "types/types.h"
+#include "memory/allocator.h"
+#include "structures/array.h"
+#include "platform/platform.h"
 
 TEST(MEMORY, MEM_SET)
 {

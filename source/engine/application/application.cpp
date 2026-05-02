@@ -8,7 +8,7 @@
 #include "platform/platform_assert.h"
 #include "platform/platform_process.h"
 #include "time/time.h"
-#include "window.h"
+#include "platform/platform_window.h"
 
 const real32 k_max_fps = 60.0f;
 const real32 k_max_frame_interval_seconds = 1 / k_max_fps;

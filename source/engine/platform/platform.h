@@ -3,6 +3,7 @@
 #pragma once
 
 #include "config.h"
+#include "structures/string/string.h"
 
 #ifdef PLATFORM_WINDOWS
 
@@ -14,8 +15,6 @@
 	_Pragma("warning(pop)")
 
 
-
-
 #else
 
 #endif //PLATFORM_WINDOWS
@@ -23,6 +22,6 @@
 #define NOP() platform_nop()
 
 void platform_nop();
-
+void platform_log_to_console(const c_string& message);
 
 #endif //__PLATFORM_H__

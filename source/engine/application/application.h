@@ -2,7 +2,7 @@
 #define __APPLICATION_H__
 #pragma once
 
-#include "window.h"
+#include "platform/platform_window.h"
 
 class c_application
 {

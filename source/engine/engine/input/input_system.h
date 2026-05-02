@@ -5,11 +5,11 @@
 #include "engine/engine_system.h"
 #include "types/types.h"
 #include "types/input_types.h"
-#include <time/time.h>
-#include "input_map.h"
+#include "time/time.h"
+#include "platform/platform_input.h"
 #include "events/events.h"
-#include <events/delegates.h>
-#include <structures/array.h>
+#include "events/delegates.h"
+#include "structures/array.h"
 
 typedef uint16 t_message_id;
 typedef uint64 t_param;

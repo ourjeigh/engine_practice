@@ -2,15 +2,15 @@
 #define __AUDIO_SYSTEM_H__
 #pragma once
 
-#include "engine/engine_system.h"
-#include <threads/threads.h>
-#include <debug/asserts.h>
-#include <mmath.h>
 #include "audio_buffer.h"
-#include "config.h"
-#include "audio_source.h"
-#include "audio_sink.h"
 #include "audio_types.h"
+#include "audio_source.h"
+#include "config.h"
+#include "debug/asserts.h"
+#include "engine/engine_system.h"
+#include "mmath.h"
+#include "platform/platform_audio_sink.h"
+#include "threads/threads.h"
 
 class c_audio_mixer
 {
@@ -101,7 +101,7 @@ private:
 
 	bool m_is_running;
 	
-	c_audio_sink m_sink;
+	c_platform_audio_sink m_sink;
 
 	uint32 m_device_period_ms;
 	uint32 m_buffer_size;

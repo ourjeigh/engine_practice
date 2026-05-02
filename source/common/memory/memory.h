@@ -2,8 +2,8 @@
 #define __MEMORY_H__
 #pragma once
 
-#include <types/types.h>
-#include <mmath.h>
+#include "types/types.h"
+#include "mmath.h"
 
 const uint32 k_byte_kb = 1000;
 const uint32 k_byte_mb = math_pow(k_byte_kb, 2);

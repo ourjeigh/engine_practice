@@ -2,14 +2,10 @@
 #define __AUDIO_BUFFER_H__
 #pragma once
 
-#include <types/types.h>
+#include "types/types.h"
 #include "structures/array.h"
 #include "platform/platform.h"
 #include "threads/atomic.h"
-
-IGNORE_WINDOWS_WARNINGS_PUSH
-//#include <atomic>
-IGNORE_WINDOWS_WARNINGS_POP
 
 template<typename t_type>
 class c_audio_buffer

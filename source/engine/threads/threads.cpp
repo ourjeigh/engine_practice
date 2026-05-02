@@ -1,11 +1,11 @@
 #include "threads.h"
-#include <debug/logging.h>
+#include "debug/logging.h"
 
 #include "platform/platform.h"
 
 IGNORE_WINDOWS_WARNINGS_PUSH
 #include "windows.h"
-#include <comdef.h>
+#include "comdef.h"
 IGNORE_WINDOWS_WARNINGS_POP
 
 int get_thread_priority(e_thread_priority priority)

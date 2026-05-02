@@ -1,53 +1,12 @@
 #include "time.h"
 
 #include "platform/platform.h"
+#include "platform/platform_time.h"
 
 const real64 k_milliseconds_in_second = 1000.0f;
 const real64 k_microseconds_in_second = 1000000.0f;
 
-// -----------------------
-// move to platform_time...
-IGNORE_WINDOWS_WARNINGS_PUSH
-#include <windows.h>
-#include <timeapi.h>
-#include <profileapi.h>
-IGNORE_WINDOWS_WARNINGS_PUSH
 
-int64 platform_time_get_performance_frequency()
-{
-	// A pointer to a variable that receives the current performance-counter frequency, in counts per second. 
-	// On systems that run Windows XP or later, the function will always succeed and will thus never return zero.
-	LARGE_INTEGER ticks_per_second;
-	QueryPerformanceFrequency(&ticks_per_second);
-	return ticks_per_second.QuadPart;
-}
-
-int64 platform_time_get_performance_counter()
-{
-	LARGE_INTEGER counter;
-	QueryPerformanceCounter(&counter);
-	return counter.QuadPart;
-}
-
-void platform_time_sleep_for_seconds(real32 seconds)
-{
-	// anything under 20ms needs 1ms precision
-	bool needs_precision = seconds < 0.02f;
-
-	if (needs_precision)
-	{
-		timeBeginPeriod(1);
-	}
-
-	Sleep(static_cast<uint32>(seconds * k_milliseconds_in_second));
-
-	if (needs_precision)
-	{
-		timeEndPeriod(1);
-	}
-}
-// ...move to platform_time
-// -----------------------
 
 static_global int64 g_time_performance_frequency = platform_time_get_performance_frequency();
 c_session_time g_session_time;
@@ -129,14 +88,12 @@ c_time_span get_time_since(t_timestamp since)
 
 void sleep_for_seconds(real32 seconds)
 {
-	platform_time_sleep_for_seconds(seconds);
+	platform_time_sleep_for_milliseconds(seconds * k_milliseconds_in_second);
 }
 
 void sleep_for_milliseconds(uint32 milliseconds)
 {
-	timeBeginPeriod(1);
-	Sleep(milliseconds);
-	timeEndPeriod(1);
+	platform_time_sleep_for_milliseconds(milliseconds);
 }
 
 const c_session_time* get_session_time()

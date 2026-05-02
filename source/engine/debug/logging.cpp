@@ -1,16 +1,12 @@
 #include "logging.h"
 
-#include <types/types.h>
-#include <structures/string/string.h>
-#include <time/time.h>
+#include "types/types.h"
+#include "structures/string/string.h"
+#include "time/time.h"
 #include "threads/threads.h"
 #include "platform/platform.h"
+#include "platform/platform_process.h"
 
-IGNORE_WINDOWS_WARNINGS_PUSH
-#include "windows.h"
-//#include <cstdarg>
-#include <debugapi.h>
-IGNORE_WINDOWS_WARNINGS_POP
 
 // characters in a log string
 
@@ -78,7 +74,7 @@ void c_logging_system::log_internal(
 
 	if (m_config.log_to_console)  
 	{  
-		OutputDebugString(output.get_const_char());  
+		platform_log_to_console(output);
 	}  
 
 	if (m_config.log_to_file)

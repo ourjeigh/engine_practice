@@ -4,7 +4,7 @@
 
 #include "config.h"
 #include "string.h"
-#include <algorithms/algorithms.h>
+#include "algorithms/algorithms.h"
 #include "types/types.h"
 #include "structures/string/string.h"
 #include "memory/memory.h"

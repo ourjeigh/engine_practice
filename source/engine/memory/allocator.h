@@ -4,7 +4,7 @@
 
 #include "config.h"
 #include "structures/array.h"
-#include <types/types.h>
+#include "types/types.h"
 
 #define ALLOCATE_NEW(type, allocator) static_cast<type*>(allocator.allocate(sizeof(type), alignof(type)))
 

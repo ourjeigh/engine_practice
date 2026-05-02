@@ -4,7 +4,7 @@
 #ifdef PLATFORM_WINDOWS
 
 IGNORE_WINDOWS_WARNINGS_PUSH
-#include <windows.h>
+#include "windows.h"
 IGNORE_WINDOWS_WARNINGS_POP
 
 

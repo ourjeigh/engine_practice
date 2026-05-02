@@ -5,9 +5,9 @@
 
 #ifdef FEATURE_PERF_MEASUREMENT
 
-#include <structures/string/string_id.h>
-#include <time/time.h>
-#include <threads/threads.h>
+#include "structures/string/string_id.h"
+#include "time/time.h"
+#include "threads/threads.h"
 
 #define PERF_MEASURE_FUNCTION() s_stack_perf_measurer measurer(c_string_id(__FUNCTION__))
 #define PERF_MEASURE_SECTION(name) s_stack_perf_measurer measurer(c_string_id(name))

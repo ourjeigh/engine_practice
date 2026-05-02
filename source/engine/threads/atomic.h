@@ -6,7 +6,7 @@
 #include "debug/asserts.h"
 
 #ifdef USING_STD_ATOMIC
-#include <atomic>
+#include "atomic"
 #endif
 
 // based off of https://en.cppreference.com/w/cpp/atomic/memory_order.html

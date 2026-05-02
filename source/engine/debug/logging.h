@@ -4,7 +4,7 @@
 
 #include "config.h"
 #include "engine/engine_system.h"
-#include <engine/file_system/file.h>
+#include "engine/file_system/file.h"
 
 const int32 k_log_file_buffer_size = 10 * k_byte_kib;
 const int32 k_max_log_string_length = 512;

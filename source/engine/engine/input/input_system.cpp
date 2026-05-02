@@ -1,12 +1,12 @@
 #include "input_system.h"
-#include <debug/logging.h>
-#include "input_map.h"
-#include <debug/asserts.h>
-#include <time/time.h>
-#include <structures/array.h>
+#include "debug/logging.h"
+#include "platform/platform_input.h"
+#include "debug/asserts.h"
+#include "time/time.h"
+#include "structures/array.h"
 #include "memory/memory.h"
-#include <memory/allocator.h>
-#include <platform/platform.h>
+#include "memory/allocator.h"
+#include "platform/platform.h"
 
 // definitions
 struct s_input_queued_event

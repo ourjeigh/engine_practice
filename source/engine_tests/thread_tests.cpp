@@ -1,10 +1,10 @@
 #include "pch.h"
-#include <time/time.h>
-#include <platform/platform.h>
+#include "time/time.h"
+#include "platform/platform.h"
 
-#include <thread>
-#include <threads/atomic.h>
-#include <threads/threads.h>
+#include "thread"
+#include "threads/atomic.h"
+#include "threads/threads.h"
 
 // enable this to test the std wrapped version of c_atomic
 //#define USING_STD_ATOMIC
