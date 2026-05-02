@@ -5,7 +5,7 @@
 #include "config.h"
 #include "structures/string/string.h"
 
-#ifdef PLATFORM_WINDOWS
+#ifdef PLATFORM_WIN64
 
 #define IGNORE_WINDOWS_WARNINGS_PUSH	\
 	_Pragma("warning(push)")			\

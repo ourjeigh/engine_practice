@@ -1,5 +1,5 @@
 #include "config.h"
-#ifdef PLATFORM_WINDOWS
+#ifdef PLATFORM_WIN64
 
 #include "platform/platform_window.h"
 

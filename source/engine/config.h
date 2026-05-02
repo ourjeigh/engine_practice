@@ -13,7 +13,7 @@
 
 #ifdef _WIN64
 #define PLATFORM_NAME "win64"
-#define PLATFORM_WINDOWS
+#define PLATFORM_WIN64
 #endif // _WIN64
 
 #if defined(CONFIG_DEBUG)
@@ -36,8 +36,4 @@
 #define DEBUG_ONLY_PARAM_RIGHT_COMMA(x)
 
 #endif
-
-
-
-
 #endif //__CONFIG_H__

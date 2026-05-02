@@ -1,7 +1,7 @@
 #include "config.h"
 #include "application/application.h"
 
-#ifdef PLATFORM_WINDOWS
+#ifdef PLATFORM_WIN64
 
 IGNORE_WINDOWS_WARNINGS_PUSH
 #include "windows.h"

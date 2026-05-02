@@ -1,4 +1,3 @@
-
 #ifdef USING_STD_ATOMIC
 
 COMPILE_ASSERT(static_cast<std::memory_order>(atomic_memory_order_relaxed) == std::memory_order_relaxed);
@@ -33,6 +32,7 @@ bool c_atomic<t_type>::compare_exchange(t_type& expected, t_type desired, e_atom
 }
 
 #else // USING_STD_ATOMIC
+#include "platform/platform_atomic.h"
 
 // based on std::atomic but doesn't respect memory order input. for now everything behaves as tho
 // the ordering is atomic_memory_order_sequential. maybe someday we can improve that.

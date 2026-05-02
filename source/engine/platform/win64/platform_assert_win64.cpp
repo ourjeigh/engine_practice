@@ -1,6 +1,6 @@
 #include "platform/platform.h"
 
-#ifdef PLATFORM_WINDOWS
+#ifdef PLATFORM_WIN64
 #include "debug/logging.h"
 
 IGNORE_WINDOWS_WARNINGS_PUSH

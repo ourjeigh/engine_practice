@@ -48,10 +48,5 @@ private:
 	COMPILE_ASSERT(sizeof(t_type) == 4 || sizeof(t_type) == 8);
 };
 
-int32 atomic_exchange_32(volatile int32* dest, int32 exchange);
-int64 atomic_exchange_64(volatile int64* dest, int64 exchange);
-int32 atomic_compare_exchange_32(volatile int32* dest, int32 exchange, int32 compare);
-int64 atomic_compare_exchange_64(volatile int64* dest, int64 exchange, int64 compare);
-
 #include "atomic.inl"
 #endif // __ATOMIC_H__

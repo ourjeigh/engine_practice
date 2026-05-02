@@ -1,7 +1,7 @@
 #include "platform/platform_input.h"
 
 #include "config.h"
-#ifdef PLATFORM_WINDOWS
+#ifdef PLATFORM_WIN64
 
 #include "platform/platform.h"
 #include "debug/asserts.h"
