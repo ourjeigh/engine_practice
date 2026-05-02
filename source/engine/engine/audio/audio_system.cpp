@@ -75,7 +75,7 @@ void c_audio_engine_thread::audio_engine_thread_entry_point(c_audio_engine_threa
 	{
 		thread->m_HACK_test_noise = c_audio_source_noise(g_audio_format.sample_rate);
 		thread->m_HACK_test_sine = c_audio_source_sine(g_audio_format.sample_rate, 440.0f);
-		thread->m_HACK_test_file.set_file(c_file_path("C:\\Users\\RJ\\Desktop\\pelican_mono.wav"));
+		//thread->m_HACK_test_file.set_file(c_file_path("C:\\Users\\RJ\\Desktop\\pelican_mono.wav"));
 	}
 
 	const real64 update_period_ms = static_cast<real32>(g_audio_format.buffer_size) / g_audio_format.sample_rate * 1000.0f;
@@ -110,7 +110,7 @@ void c_audio_engine_thread::process_audio()
 	
 	//m_HACK_test_sine.get_samples(mix_buffer);
 	//m_HACK_test_noise.get_samples(mix_buffer);
-	m_HACK_test_file.get_samples(mix_buffer);
+	//m_HACK_test_file.get_samples(mix_buffer);
 
 	// temp, make stereo
 	memory_copy(mix_buffer.get_channel(1), mix_buffer.get_channel(0), sizeof(real32) * mix_buffer.size());

@@ -14,7 +14,7 @@ extern "C"
 
 	GAME_API void game_update()
 	{
-		engine_render_fill_screen(0xFF2020FF);
+		engine_render_fill_screen(0xFF202020);
 
 		const s_mouse_state* mouse_state = engine_input_get_mouse_state();
 		int32 mouse_x = mouse_state->position.x;

@@ -21,7 +21,7 @@ c_platform_handle platform_process_load_library(c_file_path& library_path)
 
 void* platform_process_get_library_function_address(c_platform_handle& library, c_string& function)
 {
-	HANDLE library_handle = c_platform_handle_factory::get_native_handle_from_platform_handle(library);
+	HMODULE library_handle = c_platform_handle_factory::get_native_handle_from_platform_handle<HMODULE>(library);
 	return GetProcAddress(reinterpret_cast<HMODULE>(library_handle), function.get_const_char());
 }
 

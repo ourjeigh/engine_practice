@@ -77,7 +77,7 @@ void c_application::term()
 {
 	engine_systems_term();
 	m_window.term();
-	HACK_g_game_info.library.~c_platform_handle();
+	HACK_g_game_info.library.invalidate();
 }
 
 void c_application::run()
