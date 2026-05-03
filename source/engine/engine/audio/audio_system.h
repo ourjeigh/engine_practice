@@ -3,7 +3,7 @@
 #pragma once
 
 #include "audio_buffer.h"
-#include "audio_types.h"
+#include "types/audio_types.h"
 #include "audio_source.h"
 #include "config.h"
 #include "debug/asserts.h"
@@ -48,9 +48,11 @@ public:
 class c_audio_system : public c_engine_system<c_audio_system>
 {
 public:
-	virtual void init() override;
-	virtual void term() override;
-	virtual void update() override;
+	void init() override;
+	void term() override;
+	void update() override;
+
+	static_function t_sound_playback_id play_sound(s_sound_info& info);
 };
 
 class c_audio_engine_thread : public c_thread
@@ -109,7 +111,12 @@ private:
 	DEBUG_ONLY_MEMBER(bool d_read_initialized);
 };
 
-uint32 audio_get_sample_rate();
+uint32 audio_system_get_sample_rate();
 const s_audio_device_format& audio_get_format();
+
+inline t_sound_playback_id audio_system_play_sound(s_sound_info& info)
+{
+	return c_audio_system::get().play_sound(info);
+}
 
 #endif//__AUDIO_SYSTEM_H__

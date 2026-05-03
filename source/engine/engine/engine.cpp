@@ -1,4 +1,5 @@
 #include "engine.h"
+#include "audio/audio_system.h"
 #include "debug/logging.h"
 #include "platform/platform_assert.h"
 #include "input/input_system.h"
@@ -68,4 +69,9 @@ void c_engine::render_draw_circle(const s_render_shape_circle circle, uint32 col
 s_render_shape_point c_engine::get_screen_center()
 {
 	return render_system_get_screen_center();
+}
+
+t_sound_playback_id c_engine::play_sound(s_sound_info& info)
+{
+	return audio_system_play_sound(info);
 }

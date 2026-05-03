@@ -2,7 +2,7 @@
 #define __PLATFORM_AUDIO_SINK_H__
 #pragma once
 
-#include "engine/audio/audio_types.h"
+#include "types/audio_types.h"
 
 class c_platform_audio_sink
 {

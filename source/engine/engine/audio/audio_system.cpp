@@ -4,6 +4,7 @@
 #include "threads/threads.h"
 #include "time/time.h"
 #include "platform/platform.h"
+#include "memory/allocator.h"
 
 const int32 k_audio_engine_buffer_size = 512;
 const int32 k_audio_output_buffer_size = k_audio_engine_buffer_size * 16;
@@ -13,6 +14,19 @@ c_audio_render_thread g_audio_render_thread;
 s_audio_device_format g_audio_format;
 
 c_audio_threadsafe_ring_buffer<real32, 2, k_audio_output_buffer_size> g_audio_output_ring_buffer;
+
+c_static_stack_allocator<k_byte_mb> g_audio_source_allocator;
+t_sound_playback_id g_sound_id_top = 0;
+
+struct s_sound_playback
+{
+	s_sound_playback() : id(k_invalid), source(nullptr) {}
+
+	t_sound_playback_id id;
+	c_audio_source* source;
+};
+
+c_static_array<s_sound_playback, 64> g_audio_playbacks;
 
 // public methods
 void c_audio_system::init()
@@ -46,6 +60,27 @@ void c_audio_system::update()
 	// update audio sources and mix
 }
 
+t_sound_playback_id c_audio_system::play_sound(s_sound_info& info)
+{
+	c_audio_source_file_streamed* source =  ALLOCATE_NEW(c_audio_source_file_streamed, g_audio_source_allocator);
+	ASSERT(source != nullptr);
+	source->set_file(info.file_path);
+	
+	for (auto it = g_audio_playbacks.begin(); it != g_audio_playbacks.end(); ++it)
+	{
+		if (it->id == k_invalid)
+		{
+			it->id = g_sound_id_top++;
+			it->source = source;
+
+			return it->id;
+		}
+	}
+
+	log_message(warning, "audio_system: could not start playback, playbacks list is full! [file:{s}]", info.file_path.get_full_path());
+	return k_invalid;
+}
+
 void c_audio_engine_thread::init()
 {
 	// start render loop
@@ -73,8 +108,8 @@ void c_audio_engine_thread::audio_engine_thread_entry_point(c_audio_engine_threa
 
 	// TEMP
 	{
-		thread->m_HACK_test_noise = c_audio_source_noise(g_audio_format.sample_rate);
-		thread->m_HACK_test_sine = c_audio_source_sine(g_audio_format.sample_rate, 440.0f);
+		//thread->m_HACK_test_noise = c_audio_source_noise();
+		//thread->m_HACK_test_sine = c_audio_source_sine(g_audio_format.sample_rate, 440.0f);
 		//thread->m_HACK_test_file.set_file(c_file_path("C:\\Users\\RJ\\Desktop\\pelican_mono.wav"));
 	}
 
@@ -107,14 +142,48 @@ void c_audio_engine_thread::audio_engine_thread_entry_point(c_audio_engine_threa
 void c_audio_engine_thread::process_audio()
 {
 	c_static_audio_buffer<real32, 2, k_audio_engine_buffer_size> mix_buffer;
+	mix_buffer.zero();
 	
 	//m_HACK_test_sine.get_samples(mix_buffer);
 	//m_HACK_test_noise.get_samples(mix_buffer);
 	//m_HACK_test_file.get_samples(mix_buffer);
 
-	// temp, make stereo
-	memory_copy(mix_buffer.get_channel(1), mix_buffer.get_channel(0), sizeof(real32) * mix_buffer.size());
+	real32 playbacks_processed = 0.0f;
+	for (auto it = g_audio_playbacks.begin(); it != g_audio_playbacks.end(); ++it)
+	{
+		if (it->id != k_invalid)
+		{
+			playbacks_processed++;
+			c_static_audio_buffer<real32, 2, k_audio_engine_buffer_size> temp_buffer;
+			it->source->get_samples(temp_buffer);
 
+			// this should be turned into a helper add_a_into_b()
+			for (int32 channel_index = 0; channel_index < temp_buffer.channel_count(); channel_index++)
+			{
+				real32* mix_channel = mix_buffer.get_channel(channel_index);
+				real32* temp_channel = temp_buffer.get_channel(channel_index);
+
+				for (int32 sample_index = 0; sample_index < k_audio_engine_buffer_size; sample_index++)
+				{
+					mix_channel[sample_index] += temp_channel[sample_index];
+				}
+			}
+		}
+	}
+
+	for (int32 channel_index = 0; channel_index < mix_buffer.channel_count(); channel_index++)
+	{
+		real32* mix_channel = mix_buffer.get_channel(channel_index);
+
+		for (int32 sample_index = 0; sample_index < k_audio_engine_buffer_size; sample_index++)
+		{
+			mix_channel[sample_index] /= playbacks_processed;
+		}
+	}
+
+	// temp, make stereo
+	//memory_copy(mix_buffer.get_channel(1), mix_buffer.get_channel(0), sizeof(real32) * mix_buffer.size());
+	//memory_zero(mix_buffer.get_channel(1), sizeof(real32) * mix_buffer.size());
 	// we need to be able to write the full mix_buffer, so wait until there's room.
 	while (g_audio_output_ring_buffer.free_sample_count() < mix_buffer.size())
 	{
@@ -143,8 +212,6 @@ bool c_audio_render_thread::setup_audio_sink()
 
 	return result;
 }
-
-
 
 void c_audio_render_thread::init()
 {
@@ -211,7 +278,7 @@ void c_audio_render_thread::render_audio()
 	}
 }
 
-uint32 audio_get_sample_rate()
+uint32 audio_system_get_sample_rate()
 {
 	return g_audio_format.sample_rate;
 }

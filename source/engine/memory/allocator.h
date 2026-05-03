@@ -6,7 +6,10 @@
 #include "structures/array.h"
 #include "types/types.h"
 
-#define ALLOCATE_NEW(type, allocator) static_cast<type*>(allocator.allocate(sizeof(type), alignof(type)))
+#include <new>
+
+#define ALLOCATE_NEW(type, allocator, ...) \
+    new (allocator.allocate(sizeof(type), alignof(type))) type(__VA_ARGS__)
 
 #ifdef MEMORY_TRACKING_ENABLED
 struct s_memory_tracker

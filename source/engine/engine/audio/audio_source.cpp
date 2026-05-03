@@ -1,17 +1,52 @@
 #include "audio_source.h"
 #include "mmath.h"
-#include "audio_types.h"
+#include "types/audio_types.h"
 #include "audio_buffer.h"
+#include "audio_system.h"
+
+// these types correspond to the predefined wave file chunks.
+// they must be sized (and ordered) to spec so we can read them 
+// directly from files.
+// see: http://soundfile.sapp.org/doc/WaveFormat/
+struct s_audio_wav_header_riff
+{
+	char riff[4];
+	uint32 chunk_size;
+	char wave[4];
+};
+COMPILE_ASSERT(sizeof(s_audio_wav_header_riff) == 12);
+
+struct s_audio_wav_header_format
+{
+	char format[4];
+	uint32 chunk_size;
+	uint16 audio_format;
+	uint16 channel_count;
+	uint32 sample_rate;
+	uint32 bytes_per_second;
+	uint16 block_align;
+	uint16 bits_per_sample;
+};
+COMPILE_ASSERT(sizeof(s_audio_wav_header_format) == 24);
+
+struct s_audio_wav_header_chunk
+{
+	char name[4];
+	uint32 chunk_size;
+};
+COMPILE_ASSERT(sizeof(s_audio_wav_header_chunk) == 8);
 
 void c_audio_source_sine::get_samples(t_audio_buffer_real32& out_buffer)
 {
 	int32 sample_count = out_buffer.size();
 	real32* buffer = out_buffer.get_channel(0);
 	ASSERT(buffer != nullptr);
+	const real32 sample_rate = audio_system_get_sample_rate();
 
 	while (sample_count > 0)
 	{
-		*buffer++ = math_sin((k_math_real32_two_pi * m_frequency) * (m_sample_position++ / this->m_sample_rate));
+		real32 val = math_sin((k_math_real32_two_pi * m_frequency) * (static_cast<real32>(m_sample_position++) / sample_rate));
+		*buffer++ = val;
 		sample_count--;
 	}
 }
@@ -70,7 +105,7 @@ c_audio_source_file_streamed::c_audio_source_file_streamed() :
 	m_file(),
 	m_format(),
 	m_position(k_invalid),
-	m_looping(true), // temp
+	m_looping(false), // temp
 	c_audio_source() 
 {
 }
@@ -164,7 +199,7 @@ inline real32 convert_sample_to_real32(byte* in, e_audio_sample_type sample_type
 	{
 		const real32 divizor = 1 / (k_int16_max + 1);
 		out = (*reinterpret_cast<int16*>(in)) * divizor;
-		HALT_UNIMPLEMENTED(); // needs testing
+		//HALT_UNIMPLEMENTED(); // needs testing
 		break;
 	}
 	case audio_sample_type_int24:
@@ -258,7 +293,11 @@ void c_audio_source_file_streamed::get_samples(t_audio_buffer_real32& out_buffer
 		{
 			int32 begin = sample_count - sample_index;
 			int32 end = sample_count;
-			out_buffer.zero(begin, end);
+
+			if (begin != end)
+			{
+				out_buffer.zero(begin, end);
+			}
 		}
 	}
 }

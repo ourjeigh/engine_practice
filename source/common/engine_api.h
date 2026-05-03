@@ -3,6 +3,7 @@
 #pragma once
 
 #include "types/types.h"
+#include "types/audio_types.h"
 #include "types/input_types.h"
 #include "types/render_types.h"
 #include "structures/string/string.h"
@@ -22,6 +23,8 @@ struct i_engine
 	virtual void render_draw_line(const s_render_shape_point start, const s_render_shape_point end, const uint32 color) = 0;
 	virtual void render_draw_circle(const s_render_shape_circle circle, uint32 color, bool fill) = 0;
 	virtual s_render_shape_point get_screen_center() = 0;
+
+	virtual t_sound_playback_id play_sound(s_sound_info& info) = 0;
 };
 
 inline extern i_engine* g_engine_ptr = nullptr;
@@ -66,4 +69,6 @@ inline void engine_render_draw_rect(const s_render_shape_rect rect, const uint32
 inline void engine_render_draw_line(const s_render_shape_point start, const s_render_shape_point end, const uint32 color) { g_engine_ptr->render_draw_line(start, end, color); }
 inline void engine_render_draw_circle(const s_render_shape_circle circle, uint32 color, bool fill) { g_engine_ptr->render_draw_circle(circle, color, fill); }
 inline s_render_shape_point engine_get_screen_center() { return g_engine_ptr->get_screen_center(); }
+inline t_sound_playback_id engine_audio_play_sound(s_sound_info& info) { return g_engine_ptr->play_sound(info); }
+
 #endif // !__ENGINE_API_H__

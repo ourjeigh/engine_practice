@@ -22,6 +22,8 @@ public:
 	void render_draw_line(const s_render_shape_point start, const s_render_shape_point end, const uint32 color);
 	void render_draw_circle(const s_render_shape_circle circle, uint32 color, bool fill);
 	s_render_shape_point get_screen_center();
+
+	t_sound_playback_id play_sound(s_sound_info& info);
 };
 
 #endif //__ENGINE_H__

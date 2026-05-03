@@ -12,6 +12,7 @@ extern "C"
 		engine_log_verbose("Hello Game World! {i}", 7);
 	}
 
+	bool was_mouse_down = false;
 	GAME_API void game_update()
 	{
 		engine_render_fill_screen(0xFF202020);
@@ -41,5 +42,15 @@ extern "C"
 		{
 			engine_render_draw_circle(circle, color, true);
 		}
+
+		if (mouse_down && !was_mouse_down)
+		{
+			//"C:\Users\RJ\git\simm_engine\assets\click_16_44k.wav"
+			c_file_path path = "C:\\Users\\RJ\\git\\simm_engine\\assets\\click_24_44k.wav";
+			s_sound_info sound_info(path, sound_source_playback_type_streamed);
+			engine_audio_play_sound(sound_info);
+		}
+
+		was_mouse_down = mouse_down;
 	}
 }
