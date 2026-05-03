@@ -14,6 +14,10 @@ public:
 	~c_audio_source() {}
 
 	virtual void get_samples(t_audio_buffer_real32& out_buffer) = 0;
+
+	// this probably wants to be included in the result of get_samples since that's
+	// likely the only time we need that info.
+	virtual bool HACK_finished() const = 0;
 };
 
 class c_audio_source_sine : public c_audio_source
@@ -34,6 +38,7 @@ public:
 	~c_audio_source_sine() {}
 
 	void get_samples(t_audio_buffer_real32& out_buffer);
+	bool HACK_finished() const { return false; }
 
 private:
 	uint32 m_sample_position;
@@ -46,6 +51,7 @@ public:
 	c_audio_source_noise() : c_audio_source() {}
 
 	void get_samples(t_audio_buffer_real32& out_buffer);
+	bool HACK_finished() const { return false; }
 
 private:
 
@@ -63,12 +69,15 @@ public:
 	void set_file(c_file_path file_path);
 
 	void get_samples(t_audio_buffer_real32& out_buffer);
+	bool HACK_finished() const { return m_HACK_finished; }
+
 private:
 	// todo: either make this a templatized size or allow the buffer to be dynamically allocated
 	c_file_static_buffered<30 * k_byte_kb> m_file;
 	s_audio_file_format m_format;
 	uint32 m_position;
 	bool m_looping;
+	bool m_HACK_finished;
 };
 
 #endif // __AUDIO_SOURCE_H__

@@ -106,13 +106,6 @@ void c_audio_engine_thread::audio_engine_thread_entry_point(c_audio_engine_threa
 {
 	g_audio_format.buffer_size = k_audio_engine_buffer_size;
 
-	// TEMP
-	{
-		//thread->m_HACK_test_noise = c_audio_source_noise();
-		//thread->m_HACK_test_sine = c_audio_source_sine(g_audio_format.sample_rate, 440.0f);
-		//thread->m_HACK_test_file.set_file(c_file_path("C:\\Users\\RJ\\Desktop\\pelican_mono.wav"));
-	}
-
 	const real64 update_period_ms = static_cast<real32>(g_audio_format.buffer_size) / g_audio_format.sample_rate * 1000.0f;
 
 	while (thread->m_is_running)
@@ -144,10 +137,6 @@ void c_audio_engine_thread::process_audio()
 	c_static_audio_buffer<real32, 2, k_audio_engine_buffer_size> mix_buffer;
 	mix_buffer.zero();
 	
-	//m_HACK_test_sine.get_samples(mix_buffer);
-	//m_HACK_test_noise.get_samples(mix_buffer);
-	//m_HACK_test_file.get_samples(mix_buffer);
-
 	real32 playbacks_processed = 0.0f;
 	for (auto it = g_audio_playbacks.begin(); it != g_audio_playbacks.end(); ++it)
 	{
@@ -156,6 +145,12 @@ void c_audio_engine_thread::process_audio()
 			playbacks_processed++;
 			c_static_audio_buffer<real32, 2, k_audio_engine_buffer_size> temp_buffer;
 			it->source->get_samples(temp_buffer);
+			
+			if (it->source->HACK_finished())
+			{
+				it->source = nullptr;
+				it->id = k_invalid;
+			}
 
 			// this should be turned into a helper add_a_into_b()
 			for (int32 channel_index = 0; channel_index < temp_buffer.channel_count(); channel_index++)

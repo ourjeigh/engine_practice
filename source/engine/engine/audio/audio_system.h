@@ -60,8 +60,6 @@ class c_audio_engine_thread : public c_thread
 public:
 	c_audio_engine_thread() : 
 		m_is_running(false), 
-		m_HACK_test_noise(),
-		m_HACK_test_sine(),
 		c_thread() {}
 
 	~c_audio_engine_thread() {};
@@ -74,10 +72,6 @@ private:
 	void process_audio();
 
 	bool m_is_running;
-
-	c_audio_source_noise m_HACK_test_noise;
-	c_audio_source_sine m_HACK_test_sine;
-	c_audio_source_file_streamed m_HACK_test_file;
 };
 
 class c_audio_render_thread : public c_thread
@@ -119,4 +113,4 @@ inline t_sound_playback_id audio_system_play_sound(s_sound_info& info)
 	return c_audio_system::get().play_sound(info);
 }
 
-#endif//__AUDIO_SYSTEM_H__
+#endif //__AUDIO_SYSTEM_H__

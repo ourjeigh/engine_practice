@@ -105,7 +105,8 @@ c_audio_source_file_streamed::c_audio_source_file_streamed() :
 	m_file(),
 	m_format(),
 	m_position(k_invalid),
-	m_looping(false), // temp
+	m_looping(false),
+	m_HACK_finished(false),
 	c_audio_source() 
 {
 }
@@ -291,6 +292,7 @@ void c_audio_source_file_streamed::get_samples(t_audio_buffer_real32& out_buffer
 		}
 		else
 		{
+			m_HACK_finished = true;
 			int32 begin = sample_count - sample_index;
 			int32 end = sample_count;
 
