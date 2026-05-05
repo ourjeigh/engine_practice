@@ -1,4 +1,4 @@
-#include "config.h"
+#include "platform/platform.h"
 #ifdef PLATFORM_WIN64
 
 #include "platform/platform_audio_sink.h"
@@ -6,14 +6,7 @@
 #include "debug/logging.h"
 #include "debug/asserts.h"
 #include "platform/platform.h"
-
-IGNORE_WINDOWS_WARNINGS_PUSH
-#include "windows.h"
-#include "comdef.h"
-#include "combaseapi.h"
-#include "mmdeviceapi.h"
-#include "audioclient.h"
-IGNORE_WINDOWS_WARNINGS_POP
+#include "platform/win64/win64_includes.h"
 
 const CLSID CLSID_MMDeviceEnumerator = __uuidof(MMDeviceEnumerator);
 const IID IID_IMMDeviceEnumerator = __uuidof(IMMDeviceEnumerator);

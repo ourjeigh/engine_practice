@@ -3,11 +3,10 @@
 #pragma once
 
 #include "platform/platform.h"
-#include "platform/platform_handle.h"
+#ifdef PLATFORM_WIN64
 
-IGNORE_WINDOWS_WARNINGS_PUSH
-#include "windows.h" 
-IGNORE_WINDOWS_WARNINGS_POP
+#include "platform/platform_handle.h"
+#include "platform/win64/win64_includes.h"
 
 // make template type
 class c_platform_handle_factory
@@ -26,4 +25,5 @@ public:
 	}
 };
 
+#endif // PLATFORM_WIN64
 #endif //__PLATFORM_HANDLE_WINDOWS_H__

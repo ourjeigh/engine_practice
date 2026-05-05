@@ -1,11 +1,9 @@
 #include "platform/platform.h"
-
 #ifdef PLATFORM_WIN64
-#include "debug/logging.h"
 
-IGNORE_WINDOWS_WARNINGS_PUSH
-#include "windows.h"
-IGNORE_WINDOWS_WARNINGS_POP
+#include "debug/logging.h"
+#include "platform/win64/win64_includes.h"
+
 
 void assert_internal(const char* condition, const char* file, const long line)
 {

@@ -1,7 +1,11 @@
-#include "debug/asserts.h"
+#include "platform/platform.h"
+#ifdef PLATFORM_WIN64
+
 #include "platform/win64/platform_handle_win64.h"
+#include "debug/asserts.h"
 
 bool c_platform_handle::is_valid() const
 {
 	return m_handle != k_invalid && reinterpret_cast<HANDLE>(m_handle) != INVALID_HANDLE_VALUE;
 }
+#endif // PLATFORM_WIN64

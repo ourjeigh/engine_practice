@@ -19,6 +19,7 @@ enum e_thread_priority
 
 struct s_thread_properties
 {
+	// todo: this should be a t_string_128
 	const wchar* name;
 	e_thread_priority priority;
 	void* function;

@@ -2,6 +2,7 @@
 
 inline uint64 align_address(uint64 address, uint64 align)
 {
+	ASSERT(align != 0);
 	const uint64 mask = (align - 1);
 	ASSERT((align & mask) == 0);
 	return (address + mask) & ~mask;
@@ -14,7 +15,14 @@ inline void* align_pointer(void* pointer, uint64 align)
 	return reinterpret_cast<void*>(aligned);
 }
 
-c_stack_allocator::c_stack_allocator(void* memory, uint64 size)
+c_stack_allocator::c_stack_allocator() :
+	m_base(k_invalid),
+	m_top(k_invalid),
+	m_end(k_invalid)
+{
+}
+
+void c_stack_allocator::set_memory(void* memory, uint64 size)
 {
 	m_base = reinterpret_cast<uint64>(memory);
 	m_top = m_base;

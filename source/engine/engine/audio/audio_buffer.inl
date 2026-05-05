@@ -95,15 +95,14 @@ int32 c_audio_ring_buffer<t_type, k_channel_count, k_size>::read(c_audio_buffer<
 	return samples_to_read;
 }
 
-template<typename t_type, int32 k_channel_count, int32 k_size>
-int32 c_audio_threadsafe_ring_buffer<t_type, k_channel_count, k_size>::write(const c_audio_buffer<t_type>* in_buffer, int32 sample_count)
+template<typename t_type>
+int32 c_audio_threadsafe_ring_buffer<t_type>::write(const c_audio_buffer<t_type>* in_buffer, int32 sample_count)
 {
 	int32 read_position = m_read_position.load(atomic_memory_order_relaxed);
 	int32 write_position = m_write_position.load(atomic_memory_order_acquire);
-
-	int32 writable_samples = read_position == write_position ? k_size : (read_position - write_position - 1 + k_size) % k_size;
+	int32 writable_samples = read_position == write_position ? size() : (read_position - write_position - 1 + size()) % size();
 	int32 samples_to_write = math_min(sample_count, writable_samples);
-	int32 first_block = math_min(k_size - write_position, samples_to_write);
+	int32 first_block = math_min(size() - write_position, samples_to_write);
 
 	for (int32 channel_index = 0; channel_index < in_buffer->channel_count(); channel_index++)
 	{
@@ -120,20 +119,20 @@ int32 c_audio_threadsafe_ring_buffer<t_type, k_channel_count, k_size>::write(con
 		}
 	}
 
-	m_write_position.store((write_position + samples_to_write) % k_size, atomic_memory_order_release);
+	m_write_position.store((write_position + samples_to_write) % size(), atomic_memory_order_release);
 	return samples_to_write;
 }
 
 // returns actual samples read
-template<typename t_type, int32 k_channel_count, int32 k_size>
-int32 c_audio_threadsafe_ring_buffer<t_type, k_channel_count, k_size>::read(c_audio_buffer<t_type>* out_buffer, int32 sample_count)
+template<typename t_type>
+int32 c_audio_threadsafe_ring_buffer<t_type>::read(c_audio_buffer<t_type>* out_buffer, int32 sample_count)
 {
 	int32 read_position = m_read_position.load(atomic_memory_order_acquire);
 	int32 write_position = m_write_position.load(atomic_memory_order_relaxed);
 
-	int32 readable_samples = (write_position - read_position + k_size) % k_size;
+	int32 readable_samples = (write_position - read_position + size()) % size();
 	int32 samples_to_read = math_min(sample_count, readable_samples);
-	int32 first_block = math_min(k_size - read_position, samples_to_read);
+	int32 first_block = math_min(size() - read_position, samples_to_read);
 
 	for (int32 channel_index = 0; channel_index < out_buffer->channel_count(); channel_index++)
 	{
@@ -149,23 +148,24 @@ int32 c_audio_threadsafe_ring_buffer<t_type, k_channel_count, k_size>::read(c_au
 		}
 	}
 
-	m_read_position.store((read_position + samples_to_read) % k_size, atomic_memory_order_release);
+	m_read_position.store((read_position + samples_to_read) % size(), atomic_memory_order_release);
 	return samples_to_read;
 }
 
-template<typename t_type, int32 k_channel_count, int32 k_size>
-int32 c_audio_threadsafe_ring_buffer<t_type, k_channel_count, k_size>::read_interleaved(t_type* out_buffer, int32 sample_count)
+template<typename t_type>
+int32 c_audio_threadsafe_ring_buffer<t_type>::read_interleaved(t_type* out_buffer, int32 sample_count)
 {
 	int32 read_position = m_read_position.load(atomic_memory_order_acquire);
 	int32 write_position = m_write_position.load(atomic_memory_order_relaxed);
 
-	int32 readable_samples = (write_position - read_position + k_size) % k_size;
+	int32 readable_samples = (write_position - read_position + size()) % size();
 	int32 samples_to_read = math_min(sample_count, readable_samples);
-	int32 first_block = math_min(k_size - read_position, samples_to_read);
+	int32 first_block = math_min(size() - read_position, samples_to_read);
+	int32 channels = channel_count();
 
 	for (int32 sample_index = 0; sample_index < first_block; sample_index++)
 	{
-		for (int32 channel_index = 0; channel_index < k_channel_count; channel_index++)
+		for (int32 channel_index = 0; channel_index < channels; channel_index++)
 		{
 			*out_buffer++ = m_buffer.get_channel(channel_index)[read_position + sample_index];
 		}
@@ -176,24 +176,25 @@ int32 c_audio_threadsafe_ring_buffer<t_type, k_channel_count, k_size>::read_inte
 		int32 second_block = samples_to_read - first_block;
 		for (int32 sample_index = 0; sample_index < second_block; sample_index++)
 		{
-			for (int32 channel_index = 0; channel_index < k_channel_count; channel_index++)
+			for (int32 channel_index = 0; channel_index < channels; channel_index++)
 			{
 				*out_buffer++ = m_buffer.get_channel(channel_index)[sample_index];
 			}
 		}
 	}
 
-	m_read_position.store((read_position + samples_to_read) % k_size, atomic_memory_order_release);
+	m_read_position.store((read_position + samples_to_read) % size(), atomic_memory_order_release);
 	return samples_to_read;
 }
 
 
-template<typename t_type, int32 k_channel_count, int32 k_size>
-int32 c_audio_threadsafe_ring_buffer<t_type, k_channel_count, k_size>::free_sample_count()
+template<typename t_type>
+int32 c_audio_threadsafe_ring_buffer<t_type>::free_sample_count()
 {
 	int32 read_position = m_read_position.load(atomic_memory_order_relaxed);
 	int32 write_position = m_write_position.load(atomic_memory_order_relaxed);
 
-	int32 writable_samples = read_position == write_position ? k_size : (read_position - write_position - 1 + k_size) % k_size;
+	int32 sz = size();
+	int32 writable_samples = read_position == write_position ? sz : (read_position - write_position - 1 + sz) % sz;
 	return writable_samples;
 }

@@ -1,4 +1,4 @@
-#include "config.h"
+#include "platform/platform.h"
 #ifdef PLATFORM_WIN64
 
 #include "platform/platform_window.h"
@@ -10,15 +10,10 @@
 #include "threads/threads.h"
 #include "mmath.h"
 #include "rendering/render_system.h"
-
-IGNORE_WINDOWS_WARNINGS_PUSH
-#include "windows.h"
-#include "windowsx.h"
-IGNORE_WINDOWS_WARNINGS_POP
+#include "platform/win64/win64_includes.h"
 
 //remove
 const char* k_application_name = "SiMM Engine";
-
 
 struct s_window_info
 {

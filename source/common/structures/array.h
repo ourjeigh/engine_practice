@@ -29,6 +29,25 @@ public:
 		t_type* m_ptr;
 	};
 
+	struct const_iterator
+	{
+		const_iterator(const t_type* ptr) : m_ptr(ptr) {}
+		const t_type& operator*() const { return *m_ptr; }
+		const t_type* operator->() { return m_ptr; }
+		const_iterator& operator++() { ++m_ptr; return *this; }
+		const_iterator operator++(int) { const_iterator temp = *this; ++(*this); return temp; }
+		const_iterator& operator--() { --m_ptr; return *this; }
+		const_iterator operator--(int) { const_iterator temp = *this; --(*this); return temp; }
+
+		// todo: make const interators
+
+		bool operator== (const const_iterator& other) const { return m_ptr == other.m_ptr; }
+		bool operator!= (const const_iterator& other) const { return !(*this == other); }
+
+	private:
+		const t_type* m_ptr;
+	};
+
 	c_array()
 	{ 
 		invalidate();
@@ -91,11 +110,13 @@ public:
 
 	iterator begin() { return iterator(&data()[0]); }
 	iterator end() { return iterator(&data()[capacity()]); }
-	
-	// todo: make const interators
-
 	iterator begin_reverse() { return iterator(&data()[capacity() - 1]); }
 	iterator end_reverse() { return iterator(&data()[-1]); }
+	const_iterator begin_const() const { return const_iterator(data()); }
+	const_iterator end_const() const { return const_iterator(&data()[capacity()]); }
+	const_iterator begin_reverse_const() const { return const_iterator(&data()[capacity() - 1]); }
+	const_iterator end_reverse_const() const { return const_iterator(&data()[-1]); }
+	
 	int32 capacity() const
 	{
 		return m_size;
@@ -203,7 +224,7 @@ template<class t_type, int32 k_max_size>
 class c_static_array : public c_array<t_type>
 {
 public:
-	constexpr c_static_array<t_type, k_max_size>() : c_array<t_type>(&m_data[0], k_max_size) {/* zero_object(m_data);*/ }
+	constexpr c_static_array<t_type, k_max_size>() : c_array<t_type>(&m_data[0], k_max_size) {}
 	explicit c_static_array<t_type, k_max_size>(const c_static_array<t_type, k_max_size>& other) : c_array<t_type>(&m_data[0], k_max_size)
 	{
 		for (int32 i = 0; i < k_max_size; ++i)
@@ -218,11 +239,7 @@ public:
 		COMPILE_ASSERT(k_max_size == sizeof...(list));
 
 		int32 i = 0;
-		for (t_type item : {list...})
-		{
-			m_data[i] = item;
-			i++;
-		}
+		((m_data[i++] = list), ...);
 	}
 
 	~c_static_array<t_type, k_max_size>() {}

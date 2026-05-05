@@ -165,4 +165,26 @@ TEST(ALLOCATOR, STATIC_STACK_ALLOCATOR)
 }
 
 
+struct s_memory_test_struct
+{
+	s_memory_test_struct() : i(12) {}
+	int32 i;
+};
 
+TEST(ALLOCATOR, MACRO_CALLS_CONSTRUCTOR)
+{
+	c_static_stack_allocator<k_byte_kb> allocator;
+
+	s_memory_test_struct* test_struct = ALLOCATE_NEW(s_memory_test_struct, allocator);
+
+	EXPECT_EQ(test_struct->i, 12);
+}
+
+TEST(ALLOCATOR, MACRO_NO_CONSTRUCTOR)
+{
+	c_static_stack_allocator<k_byte_kb> allocator;
+
+	s_memory_test_struct* test_struct = ALLOCATE_NO_CONSTRUCTOR(s_memory_test_struct, allocator);
+
+	EXPECT_NE(test_struct->i, 12);
+}

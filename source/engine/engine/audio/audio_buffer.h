@@ -11,6 +11,13 @@ template<typename t_type>
 class c_audio_buffer
 {
 public:
+	c_audio_buffer() :
+		m_channel_count(k_invalid),
+		m_size(k_invalid),
+		m_data(nullptr) 
+	{
+	}
+	
 	c_audio_buffer(int32 channel_count, int32 size) : 
 		m_channel_count(channel_count),
 		m_size(size),
@@ -26,6 +33,14 @@ public:
 		ASSERT(size > 0);
 		ASSERT(data != nullptr);
 	}
+	
+	c_audio_buffer& operator=(const c_audio_buffer& other)
+	{
+		m_channel_count = other.m_channel_count;
+		m_size = other.m_size;
+		m_data = other.m_data;
+		return *this;
+	};
 
 	~c_audio_buffer() {}
 
@@ -64,7 +79,6 @@ protected:
 
 private:
 	c_audio_buffer(const c_audio_buffer& other) = delete;
-	c_audio_buffer& operator=(const c_audio_buffer& other) = delete;
 };
 
 typedef c_audio_buffer<real32> t_audio_buffer_real32;
@@ -90,6 +104,7 @@ public:
 		{
 			m_storage = other.m_storage;
 		}
+
 		return *this;
 	}
 
@@ -134,7 +149,7 @@ template<typename t_type, int32 k_channel_count, int32 k_size>
 class c_audio_ring_buffer
 {
 public:
-	c_audio_ring_buffer() : m_write_position(0), m_read_position(0) { m_buffer.zero(); }
+	c_audio_ring_buffer() : m_write_position(0), m_read_position(0) {}
 	~c_audio_ring_buffer() {}
 
 	// returns actual samples written
@@ -150,12 +165,17 @@ private:
 	c_static_audio_buffer<t_type,k_channel_count, k_size> m_buffer;
 };
 
-template<typename t_type, int32 k_channel_count, int32 k_size>
+template<typename t_type>
 class c_audio_threadsafe_ring_buffer
 {
 public:
-	c_audio_threadsafe_ring_buffer() : m_write_position(0), m_read_position(0) { m_buffer.zero(); }
+	c_audio_threadsafe_ring_buffer() : m_write_position(0), m_read_position(0) {}
 	~c_audio_threadsafe_ring_buffer() {}
+
+	void init(int32 channel_count, int32 size, t_type* data)
+	{
+		m_buffer = c_audio_buffer<t_type>(channel_count, size, data);
+	}
 
 	// returns actual samples written
 	int32 write(const c_audio_buffer<t_type>* in_buffer, int32 sample_count);
@@ -166,14 +186,28 @@ public:
 	int32 read_interleaved(t_type* out_buffer, int32 sample_count);
 
 	int32 free_sample_count();
-	int32 channel_count() const { return k_channel_count; }
+	int32 channel_count() const { return m_buffer.channel_count(); }
+	int32 size() const { return m_buffer.size(); }
 
-private:
+protected:
 	c_atomic<int32> m_write_position;
 	c_atomic<int32> m_read_position;
-	c_static_audio_buffer<t_type, k_channel_count, k_size> m_buffer;
+	c_audio_buffer<t_type> m_buffer;
 };
 
+template<typename t_type, int32 k_channel_count, int32 k_size>
+class c_audio_threadsafe_static_ring_buffer : public c_audio_threadsafe_ring_buffer<t_type>
+{
+public:
+	constexpr c_audio_threadsafe_static_ring_buffer() : 
+		c_audio_threadsafe_ring_buffer<t_type>()
+	{
+		this->m_buffer = m_data;
+	}
+
+private:
+	c_static_audio_buffer<t_type, k_channel_count, k_size> m_data;
+};
 
 template<int32 k_size>
 class c_audio_real32_mono_ring_buffer : public c_audio_ring_buffer<real32, 1, k_size>

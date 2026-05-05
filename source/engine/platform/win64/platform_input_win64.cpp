@@ -1,14 +1,9 @@
-#include "platform/platform_input.h"
-
-#include "config.h"
+#include "platform/platform.h"
 #ifdef PLATFORM_WIN64
 
-#include "platform/platform.h"
+#include "platform/platform_input.h"
 #include "debug/asserts.h"
-
-IGNORE_WINDOWS_WARNINGS_PUSH
-#include "windows.h"
-IGNORE_WINDOWS_WARNINGS_POP
+#include "platform/win64/win64_includes.h"
 
 const uint16 k_input_id_key_down = WM_KEYDOWN;
 const uint16 k_input_id_key_up = WM_KEYUP;

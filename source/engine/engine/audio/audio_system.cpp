@@ -5,17 +5,21 @@
 #include "time/time.h"
 #include "platform/platform.h"
 #include "memory/allocator.h"
+#include "memory/memory_system.h"
 
 const int32 k_audio_engine_buffer_size = 512;
 const int32 k_audio_output_buffer_size = k_audio_engine_buffer_size * 16;
 
 c_audio_engine_thread g_audio_engine_thread;
+
+// TODO: move this, maybe to application, that's what owns the graphics renderer
 c_audio_render_thread g_audio_render_thread;
 s_audio_device_format g_audio_format;
 
-c_audio_threadsafe_ring_buffer<real32, 2, k_audio_output_buffer_size> g_audio_output_ring_buffer;
+//c_audio_threadsafe_static_ring_buffer<real32, 2, k_audio_output_buffer_size> g_audio_output_ring_buffer;
+c_audio_threadsafe_ring_buffer<real32>* g_audio_output_ring_buffer;
 
-c_static_stack_allocator<k_byte_mb> g_audio_source_allocator;
+c_static_stack_allocator<k_byte_mb>* g_audio_source_allocator;
 t_sound_playback_id g_sound_id_top = 0;
 
 struct s_sound_playback
@@ -40,6 +44,16 @@ void c_audio_system::init()
 	{
 		sleep_for_milliseconds(10);
 	}
+	
+	{
+		uint64 size = sizeof(real32) * k_audio_output_buffer_size * g_audio_format.channel_count;
+		real32* buffer_data = reinterpret_cast<real32*>(c_memory_system::allocate(size, alignof(real32), memory_arena_system));
+		g_audio_output_ring_buffer = ALLOCATE_GLOBAL_NO_CONSTRUCTOR(c_audio_threadsafe_ring_buffer<real32>, memory_arena_system);
+
+		g_audio_output_ring_buffer->init(g_audio_format.channel_count, k_audio_output_buffer_size, buffer_data);
+	}
+
+	g_audio_source_allocator = ALLOCATE_NEW_GLOBAL(c_static_stack_allocator<k_byte_mb>, memory_arena_system);
 
 	g_audio_engine_thread.init();
 	log_message(verbose, "Audio System Initialized");
@@ -60,9 +74,12 @@ void c_audio_system::update()
 	// update audio sources and mix
 }
 
+// todo: this should take in a s_sound_properties, so we can start playback with correct gain, etc;
 t_sound_playback_id c_audio_system::play_sound(s_sound_info& info)
 {
-	c_audio_source_file_streamed* source =  ALLOCATE_NEW(c_audio_source_file_streamed, g_audio_source_allocator);
+	// todo: This either needs to go faster than iterating thru g_audio_playbacks, or (preferrably) it should just add
+	// the playrequest to a queue that we'll process in update()
+	c_audio_source_file_streamed* source =  ALLOCATE_NEW(c_audio_source_file_streamed, *g_audio_source_allocator);
 	ASSERT(source != nullptr);
 	source->set_file(info.file_path);
 	
@@ -73,12 +90,19 @@ t_sound_playback_id c_audio_system::play_sound(s_sound_info& info)
 			it->id = g_sound_id_top++;
 			it->source = source;
 
+			log_message(verbose, "audio_system: play_sound: [id:{u} name:{s}]", it->id, info.file_path.get_full_path());
+
 			return it->id;
 		}
 	}
 
 	log_message(warning, "audio_system: could not start playback, playbacks list is full! [file:{s}]", info.file_path.get_full_path());
 	return k_invalid;
+}
+
+void c_audio_system::update_sound(t_sound_playback_id playback_id, s_sound_properties& properties)
+{
+	// TODO
 }
 
 void c_audio_engine_thread::init()
@@ -142,6 +166,8 @@ void c_audio_engine_thread::process_audio()
 	{
 		if (it->id != k_invalid)
 		{
+			//log_message(verbose, "audio_system: processing sound: {u}", it->id);
+
 			playbacks_processed++;
 			c_static_audio_buffer<real32, 2, k_audio_engine_buffer_size> temp_buffer;
 			it->source->get_samples(temp_buffer);
@@ -166,13 +192,15 @@ void c_audio_engine_thread::process_audio()
 		}
 	}
 
+	const real32 inv_source_count = 1 / playbacks_processed;
+
 	for (int32 channel_index = 0; channel_index < mix_buffer.channel_count(); channel_index++)
 	{
 		real32* mix_channel = mix_buffer.get_channel(channel_index);
 
 		for (int32 sample_index = 0; sample_index < k_audio_engine_buffer_size; sample_index++)
 		{
-			mix_channel[sample_index] /= playbacks_processed;
+			mix_channel[sample_index] *= inv_source_count;
 		}
 	}
 
@@ -180,12 +208,12 @@ void c_audio_engine_thread::process_audio()
 	//memory_copy(mix_buffer.get_channel(1), mix_buffer.get_channel(0), sizeof(real32) * mix_buffer.size());
 	//memory_zero(mix_buffer.get_channel(1), sizeof(real32) * mix_buffer.size());
 	// we need to be able to write the full mix_buffer, so wait until there's room.
-	while (g_audio_output_ring_buffer.free_sample_count() < mix_buffer.size())
+	while (g_audio_output_ring_buffer->free_sample_count() < mix_buffer.size())
 	{
 		NOP();
 	}
 
-	int32 samples_written = g_audio_output_ring_buffer.write(&mix_buffer, mix_buffer.size());
+	int32 samples_written = g_audio_output_ring_buffer->write(&mix_buffer, mix_buffer.size());
 
 	ASSERT(samples_written == mix_buffer.size());
 }
@@ -244,14 +272,16 @@ void c_audio_render_thread::shutdown_audio_sink()
 
 void c_audio_render_thread::render_audio()
 {
+	if (g_audio_output_ring_buffer == nullptr) return;
+
 	real32* buffer = nullptr;
 	uint32 buffer_size;
 
 	if (m_sink.begin_render(buffer, buffer_size))
 	{
 		ASSERT(buffer != nullptr);
-		ASSERT(g_audio_output_ring_buffer.channel_count() == g_audio_format.channel_count);
-		IF_DEBUG(int32 read_samples = ) g_audio_output_ring_buffer.read_interleaved(buffer, buffer_size);
+		ASSERT(g_audio_output_ring_buffer->channel_count() == g_audio_format.channel_count);
+		IF_DEBUG(int32 read_samples = ) g_audio_output_ring_buffer->read_interleaved(buffer, buffer_size);
 
 #ifdef CONFIG_DEBUG
 		// once we have begun reading, we should always be able to read the full amount

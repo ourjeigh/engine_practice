@@ -14,7 +14,6 @@ const real32 k_max_fps = 60.0f;
 const real32 k_max_frame_interval_seconds = 1 / k_max_fps;
 const real32 k_max_frame_interval_ms = 1000 / k_max_fps;
 
-const uint32 k_global_memory_bytes = k_byte_mb;
 
 const int32 k_default_window_width = 1440;
 const int32 k_default_window_height = 720;
@@ -40,7 +39,6 @@ static void handle_game_reload(bool down);
 
 s_game_info_internal g_game_info;
 bool g_interrupt_signalled = false;
-c_static_stack_allocator<k_global_memory_bytes> g_global_stack_allocator;
 
 void c_application::init()
 {

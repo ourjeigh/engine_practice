@@ -9,7 +9,9 @@
 #include <new>
 
 #define ALLOCATE_NEW(type, allocator, ...) \
-    new (allocator.allocate(sizeof(type), alignof(type))) type(__VA_ARGS__)
+    new ((allocator).allocate(sizeof(type), alignof(type))) type(__VA_ARGS__)
+
+#define ALLOCATE_NO_CONSTRUCTOR(type, allocator) static_cast<type*>((allocator).allocate(sizeof(type), alignof(type)))
 
 #ifdef MEMORY_TRACKING_ENABLED
 struct s_memory_tracker
@@ -33,7 +35,10 @@ typedef uint64 t_stack_allocator_marker;
 class c_stack_allocator : i_allocator
 {
 public:
-	c_stack_allocator(void* memory, uint64 size);
+	c_stack_allocator();
+	c_stack_allocator(void* memory, uint64 size) { set_memory(memory, size); }
+	void set_memory(void* memory, uint64 size);
+	
 
 	void* allocate(uint64 size, uint64 align) override;
 	void* allocate(uint64 size, uint64 align, t_stack_allocator_marker& out_marker);

@@ -1,12 +1,8 @@
-#include "config.h"
-#include "application/application.h"
-
+#include "platform/platform.h"
 #ifdef PLATFORM_WIN64
 
-IGNORE_WINDOWS_WARNINGS_PUSH
-#include "windows.h"
-IGNORE_WINDOWS_WARNINGS_POP
-
+#include "application/application.h"
+#include "platform/win64/win64_includes.h"
 
 c_application g_application;
 

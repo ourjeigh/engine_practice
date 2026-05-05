@@ -4,9 +4,9 @@
 #include "memory/memory.h"
 #include "memory/allocator.h"
 #include "memory/memory.h"
+#include "memory/memory_system.h"
 #include "types/types.h"
 #include "perf/perf.h"
-
 
 enum e_render_layer
 {
@@ -73,11 +73,12 @@ void process_draw_circle_outline_message_internal(const s_render_message_data_dr
 inline void draw_pixel_to_buffer_internal(int32 x, int32 y, uint32 color, s_backbuffer const_ptr buffer);
 void draw_horizontal_line_internal(int32 start_x, int32 end_x, int32 y, uint32 color, s_backbuffer const_ptr buffer);
 
-static_global c_static_stack_allocator<k_byte_kib> g_render_commands_allocator;
+static_global c_static_stack_allocator<k_byte_kib>* g_render_commands_allocator;
 
 // if render system moves of the main thread it needs to be made safe
 // TBD if each layer needs the same number (thinking about _background)
-static_global c_static_array<c_static_stack<s_render_message, 128>, k_render_layer_count> g_render_messages;
+using t_render_message_stack = c_static_array<c_static_stack<s_render_message, 128>, k_render_layer_count>;
+static_global t_render_message_stack* g_render_messages;
 
 void c_render_system::init()
 {
@@ -85,6 +86,9 @@ void c_render_system::init()
 	m_buffers[1].width = 1440;
 	m_buffers[0].height = 720;
 	m_buffers[1].height = 720;
+
+	g_render_commands_allocator = ALLOCATE_NEW_GLOBAL(c_static_stack_allocator<k_byte_kib>, memory_arena_system);
+	g_render_messages = ALLOCATE_NEW_GLOBAL(t_render_message_stack, memory_arena_system);
 }
 
 void c_render_system::term()
@@ -99,9 +103,9 @@ void c_render_system::update()
 	s_backbuffer& current_backbuffer = m_buffers[write_index];
 
 	// process the messages starting from the bottom layer so that we draw higher layers on top of lower
-	for (int32 layer_index = 0; layer_index < g_render_messages.capacity(); layer_index++)
+	for (int32 layer_index = 0; layer_index < g_render_messages->capacity(); layer_index++)
 	{
-		c_stack<s_render_message>& layer_messages = g_render_messages[layer_index];
+		c_stack<s_render_message>& layer_messages = *g_render_messages->get_item(layer_index);
 
 		while (!layer_messages.empty())
 		{
@@ -152,18 +156,18 @@ void c_render_system::update()
 	}
 
 	m_write_buffer_index.store(!write_index);
-	g_render_commands_allocator.clear();
+	g_render_commands_allocator->clear();
 }
 
 void c_render_system::fill_screen(const uint32 color)
 {
-	s_render_message_data_fill_screen* message_data = ALLOCATE_NEW(s_render_message_data_fill_screen, g_render_commands_allocator);
+	s_render_message_data_fill_screen* message_data = ALLOCATE_NEW(s_render_message_data_fill_screen, *g_render_commands_allocator);
 
 	ASSERT(message_data != nullptr);
 
 	message_data->color = color;
 
-	s_render_message& new_message = g_render_messages[render_layer_background].push();
+	s_render_message& new_message = g_render_messages->get_item(render_layer_background)->push();
 
 	new_message.type = render_message_type_fill_screen;
 	new_message.data = message_data;
@@ -171,21 +175,21 @@ void c_render_system::fill_screen(const uint32 color)
 
 void c_render_system::draw_rect(const s_render_shape_rect rect, const uint32 color)
 {
-	s_render_message_data_draw_rect* message_data = ALLOCATE_NEW(s_render_message_data_draw_rect, g_render_commands_allocator);
+	s_render_message_data_draw_rect* message_data = ALLOCATE_NEW(s_render_message_data_draw_rect, *g_render_commands_allocator);
 
 	ASSERT(message_data != nullptr);
 
 	message_data->rect = rect;
 	message_data->fill_color = color;
 
-	s_render_message& new_message = g_render_messages[render_layer_main].push();
+	s_render_message& new_message = g_render_messages->get_item(render_layer_main)->push();
 	new_message.type = render_message_type_draw_rect;
 	new_message.data = message_data;
 }
 
 void c_render_system::draw_line(const s_render_shape_point start, const s_render_shape_point end, const uint32 color)
 {
-	s_render_message_data_draw_line* message_data = ALLOCATE_NEW(s_render_message_data_draw_line, g_render_commands_allocator);
+	s_render_message_data_draw_line* message_data = ALLOCATE_NEW(s_render_message_data_draw_line, *g_render_commands_allocator);
 	
 	ASSERT(message_data != nullptr);
 
@@ -193,14 +197,14 @@ void c_render_system::draw_line(const s_render_shape_point start, const s_render
 	message_data->end = end;
 	message_data->color = color;
 
-	s_render_message& new_message = g_render_messages[render_layer_main].push();
+	s_render_message& new_message = g_render_messages->get_item(render_layer_main)->push();
 	new_message.type = render_message_type_draw_line;
 	new_message.data = message_data;
 }
 
 void c_render_system::draw_circle(const s_render_shape_circle circle, uint32 color, bool fill)
 {
-	s_render_message_data_draw_circle* message_data = ALLOCATE_NEW(s_render_message_data_draw_circle, g_render_commands_allocator);
+	s_render_message_data_draw_circle* message_data = ALLOCATE_NEW(s_render_message_data_draw_circle, *g_render_commands_allocator);
 	ASSERT(message_data != nullptr);
 
 	message_data->circle = circle;
@@ -208,9 +212,9 @@ void c_render_system::draw_circle(const s_render_shape_circle circle, uint32 col
 	message_data->color = color;
 	message_data->fill = fill;
 
-	s_render_message& new_messge = g_render_messages[render_layer_main].push();
-	new_messge.type = render_message_type_draw_circle;
-	new_messge.data = message_data;
+	s_render_message& new_message = g_render_messages->get_item(render_layer_main)->push();
+	new_message.type = render_message_type_draw_circle;
+	new_message.data = message_data;
 }
 
 

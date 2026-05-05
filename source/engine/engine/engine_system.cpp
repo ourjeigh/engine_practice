@@ -5,9 +5,11 @@
 #include "perf/perf_system.h"
 #include "rendering/render_system.h"
 #include "engine.h"
+#include "memory/memory_system.h"
 
 // TODO: make dev only
 static_global c_logging_system g_logging_system;
+static_global c_memory_system g_memory_system;
 static_global c_perf_system g_perf_system;
 
 static_global c_input_system g_input_system;
@@ -25,6 +27,7 @@ void engine_systems_init()
 
 	// init logging first so it's available for all other systems to use
 	g_logging_system.init(log_settings);
+	g_memory_system.init();
 	g_perf_system.init();
 
 	g_input_system.init();
@@ -44,6 +47,7 @@ void engine_systems_term()
 	log_message(verbose, "Engine System Term Complete");
 	
 	g_perf_system.term();
+	g_memory_system.term();
 
 	// term logging last so it's available for all other systems to use
 	g_logging_system.term();
@@ -53,6 +57,7 @@ void engine_systems_pregame_update()
 {
 	// anything that will be needed for the game to update
 	g_input_system.update();
+	g_memory_system.update();
 }
 
 void engine_systems_postgame_update()

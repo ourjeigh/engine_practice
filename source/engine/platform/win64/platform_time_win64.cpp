@@ -1,11 +1,8 @@
 #include "platform/platform.h"
-#include "platform/platform_time.h"
+#ifdef PLATFORM_WIN64
 
-IGNORE_WINDOWS_WARNINGS_PUSH
-#include "windows.h"
-#include "timeapi.h"
-#include "profileapi.h"
-IGNORE_WINDOWS_WARNINGS_PUSH
+#include "platform/platform_time.h"
+#include "platform/win64/win64_includes.h"
 
 int64 platform_time_get_performance_frequency()
 {
@@ -40,3 +37,5 @@ void platform_time_sleep_for_milliseconds(uint32 milliseconds)
 		timeEndPeriod(1);
 	}
 }
+
+#endif //PLATFORM_WIN64

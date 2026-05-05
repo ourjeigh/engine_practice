@@ -1,16 +1,11 @@
 #include "platform/platform.h"
-
 #ifdef PLATFORM_WIN64
 
 #include "platform/platform_process.h"
 #include "debug/asserts.h"
 #include "engine/file_system/file.h"
 #include "platform/win64/platform_handle_win64.h"
-
-IGNORE_WINDOWS_WARNINGS_PUSH
-#include "windows.h"
-#include "libloaderapi.h"
-IGNORE_WINDOWS_WARNINGS_POP
+#include "platform/win64/win64_includes.h"
 
 c_platform_handle platform_process_load_library(c_file_path& library_path)
 {

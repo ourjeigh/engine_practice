@@ -5,19 +5,7 @@
 #include "config.h"
 #include "structures/string/string.h"
 
-#ifdef PLATFORM_WIN64
 
-#define IGNORE_WINDOWS_WARNINGS_PUSH	\
-	_Pragma("warning(push)")			\
-	_Pragma("warning(disable: 5105)")
-
-#define IGNORE_WINDOWS_WARNINGS_POP		\
-	_Pragma("warning(pop)")
-
-
-#else
-
-#endif //PLATFORM_WINDOWS
 
 #define NOP() platform_nop()
 
