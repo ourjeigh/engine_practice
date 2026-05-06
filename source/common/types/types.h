@@ -8,6 +8,9 @@
 #define static_function static
 #define static_local static
 
+// TODO: move to platform types
+#define pure_virtual_class class __declspec(novtable)
+
 #define WIDE(x) L##x
 
 typedef wchar_t wchar;

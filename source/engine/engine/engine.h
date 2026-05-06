@@ -11,7 +11,7 @@ public:
 	void log_warning(c_string message);
 	void log_error(c_string message);
 	void log_critical(c_string message);
-	void cassert(const char* condition, const char* file, const long line);
+	void assert(const char* condition, const char* file, const long line);
 	void halt(const char* message, const char* file, const long line);
 
 	s_key_state input_get_key_state(e_input_keycode key);

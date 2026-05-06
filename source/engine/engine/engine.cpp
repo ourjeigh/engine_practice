@@ -26,7 +26,7 @@ void c_engine::log_critical(c_string message)
 	c_logging_system::get().log(critical, message);
 }
 
-void c_engine::cassert(const char* condition, const char* file, const long line)
+void c_engine::assert(const char* condition, const char* file, const long line)
 {
 	assert_internal(condition, file, line);
 }

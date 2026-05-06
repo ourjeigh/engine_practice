@@ -6,10 +6,8 @@
 #include "engine_api.h"
 #include "debug/asserts.h"
 
-
-
 template<typename t_system>
-class c_engine_system
+pure_virtual_class c_engine_system
 {
 public:
 	virtual void init() = 0;

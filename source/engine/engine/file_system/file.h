@@ -4,7 +4,7 @@
 
 #include "structures/string/string.h"
 #include "structures/array.h"
-#include <platform/platform_handle.h>
+#include "platform/platform_handle.h"
 #include "file/file_path.h"
 
 const uint32 k_file_path_max = 256;
