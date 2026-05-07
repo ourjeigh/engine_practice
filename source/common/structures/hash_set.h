@@ -138,7 +138,7 @@ public:
 		return m_data[index].data;
 	}
 
-	bool try_find_or_insert(const t_key& key, t_type& out_value)
+	bool try_find_or_insert(const t_key& key, t_type* out_value)
 	{
 		bool found;
 		int32 index = find_index(key, found);
@@ -146,20 +146,21 @@ public:
 		if (found)
 		{
 			ASSERT(m_data[index].state == cell_state_occupied);
-			out_value = m_data[index].data;
+			out_value = &m_data[index].data;
 			return true;
 		}
 
 		// didn't find, try to insert
 		if (full())
 		{
+			out_value = nullptr;
 			return false;
 		}
 	
 		insert_at_index_unsafe(index, key);
-		out_value = m_data[index].data;
+		out_value = &m_data[index].data;
 
-		return true;
+		return false;
 	}
 
 	// returns true if removed
@@ -302,7 +303,7 @@ public:
 	{
 		int32 size = used();
 		t_type out;
-		m_table.try_find_or_insert(key, out);
+		m_table.try_find_or_insert(key, &out);
 		return used() > size;
 	}
 
@@ -380,13 +381,13 @@ public:
 		return m_table.find_or_insert(key).value;
 	}
 
-	bool try_find_or_insert(const t_key& key, t_value& out_value)
+	bool try_find_or_insert(const t_key& key, t_value* out_value)
 	{
 		t_kvp out_kvp;
-		bool result = m_table.try_find_or_insert(key, out_kvp);
+		bool result = m_table.try_find_or_insert(key, &out_kvp);
 		if (result)
 		{
-			out_value = out_kvp.value;
+			out_value = &out_kvp.value;
 		}
 
 		return result;

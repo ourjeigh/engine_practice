@@ -7,6 +7,7 @@
 #include "memory/memory_system.h"
 #include "types/types.h"
 #include "perf/perf.h"
+#include "platform/platform.h"
 
 enum e_render_layer
 {

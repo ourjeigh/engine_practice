@@ -5,6 +5,7 @@
 #include "events/delegates.h"
 #include "game_api.h"
 #include "memory/allocator.h"
+#include "platform/platform.h"
 #include "platform/platform_assert.h"
 #include "platform/platform_process.h"
 #include "time/time.h"

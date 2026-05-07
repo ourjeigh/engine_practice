@@ -6,6 +6,7 @@
 #include "platform/platform.h"
 #include "memory/allocator.h"
 #include "memory/memory_system.h"
+#include <assets/asset_system.h>
 
 const int32 k_audio_engine_buffer_size = 512;
 const int32 k_audio_output_buffer_size = k_audio_engine_buffer_size * 16;
@@ -32,6 +33,18 @@ struct s_sound_playback
 
 c_static_array<s_sound_playback, 64> g_audio_playbacks;
 
+// test code
+int32 hack_1 = 1;
+int32 hack_2 = 2;
+
+static void we_got_it(t_asset_handle handle, void* object)
+{
+	int32 cookie = *static_cast<int32*>(object);
+	// making sure this asserts
+	//auto mem = c_asset_system::get_asset_data(handle);
+	NOP();
+}
+
 // public methods
 void c_audio_system::init()
 {
@@ -56,6 +69,16 @@ void c_audio_system::init()
 	g_audio_source_allocator = ALLOCATE_NEW_GLOBAL(c_static_stack_allocator<k_byte_mb>, memory_arena_system);
 
 	g_audio_engine_thread.init();
+
+	// asset system test code:
+	{
+		c_file_path path = "C:\\Users\\RJ\\git\\simm_engine\\assets\\click_24_44k.wav";
+		bool success = c_asset_system::load_asset(path, static_cast<void*>(&hack_1), we_got_it);
+
+		success &= c_asset_system::load_asset(path, static_cast<void*>(&hack_2), we_got_it);
+		NOP();
+	}
+
 	log_message(verbose, "Audio System Initialized");
 }
 
@@ -257,8 +280,8 @@ void c_audio_render_thread::audio_render_thread_entry_point(c_audio_render_threa
 	{
 		while (thread->m_is_running)
 		{
-			thread->render_audio();
 			sleep_for_milliseconds(thread->m_device_period_ms);
+			thread->render_audio();
 		}
 	}
 	

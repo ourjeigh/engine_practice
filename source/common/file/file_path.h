@@ -29,6 +29,12 @@ public:
 	void get_file_name_no_ext(t_string_256& out_file_name) const;
 	void get_directory_path(t_string_256& out_directory_path) const;
 	void get_directory_name(t_string_256& out_directory_name) const;
+
+	void get_path_string(c_string& out_path) const
+	{
+		out_path.copy_from_range(m_data, 0, m_data.used());
+	}
+
 private:
 	void split_path(uint8& out_parent_directory_index, uint8& out_filename_index, uint8& out_ext_index) const;
 
