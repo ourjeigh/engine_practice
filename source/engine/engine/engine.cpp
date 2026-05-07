@@ -5,6 +5,7 @@
 #include "input/input_system.h"
 #include "rendering/render_system.h"
 #include "structures/string/string.h"
+#include "assets/asset_system.h"
 
 void c_engine::log_verbose(c_string message)
 {
@@ -45,6 +46,12 @@ const s_mouse_state* c_engine::input_get_mouse_state()
 {
 	return input_system_get_mouse_state();
 }
+
+bool c_engine::load_asset(const s_asset_definition* asset_def)
+{
+	return c_asset_system::get().load_asset(asset_def, nullptr, nullptr);
+}
+
 
 void c_engine::render_fill_screen(const uint32 color)
 {

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "types/types.h"
+#include "types/asset_types.h"
 #include "types/audio_types.h"
 #include "types/input_types.h"
 #include "types/render_types.h"
@@ -17,6 +18,8 @@ struct i_engine
 
 	virtual s_key_state input_get_key_state(e_input_keycode key) = 0;
 	virtual const s_mouse_state* input_get_mouse_state() = 0;
+
+	virtual bool load_asset(const s_asset_definition* asset_def);
 
 	virtual void render_fill_screen(const uint32 color) = 0;
 	virtual void render_draw_rect(const s_render_shape_rect rect, const uint32 color) = 0;
@@ -63,6 +66,9 @@ inline void engine_log_critical(const char* message, t_args... args)
 
 inline s_key_state engine_input_get_key_state(e_input_keycode key) { return g_engine_ptr->input_get_key_state(key); }
 inline const s_mouse_state* engine_input_get_mouse_state() { return g_engine_ptr->input_get_mouse_state(); }
+
+inline bool engine_load_asset(const s_asset_definition* asset_def) { return g_engine_ptr->load_asset(asset_def); }
+
 
 inline void engine_render_fill_screen(const uint32 color) { g_engine_ptr->render_fill_screen(color); }
 inline void engine_render_draw_rect(const s_render_shape_rect rect, const uint32 color) { g_engine_ptr->render_draw_rect(rect, color); }

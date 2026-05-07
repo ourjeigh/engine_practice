@@ -13,7 +13,7 @@ const int32 k_max_active_assets = 128;
 
 struct s_load_asset_request
 {
-	c_file_path file_path;
+	s_asset_definition asset_definition;
 	void* object;
 	f_asset_loaded_callback* callback;
 };
@@ -87,14 +87,14 @@ void c_asset_system::update()
 {
 }
 
-bool c_asset_system::load_asset(c_file_path& file_path, void* object, f_asset_loaded_callback* callback)
+bool c_asset_system::load_asset(const s_asset_definition* asset_def, void* object, f_asset_loaded_callback* callback)
 {
 	ASSERT(g_asset_load_requests != nullptr);
 	
 	bool success = false;
 
 	s_load_asset_request request;
-	request.file_path = file_path;
+	request.asset_definition = *asset_def;
 	request.object = object;
 	request.callback = callback;
 	
@@ -110,9 +110,9 @@ const c_array<byte>* c_asset_system::get_asset_data(t_asset_handle handle)
 {
 	ASSERT(get_current_thread_id() != g_asset_loader_thread.get_thread_id());
 
-	s_asset_internal asset;
+	s_asset_internal& asset = g_active_assets->find(handle);
 	
-	if (g_active_assets->try_find_or_insert(handle, &asset))
+	if (asset.memory.is_valid())
 	{
 		return &asset.memory;
 	}
@@ -165,18 +165,17 @@ void c_asset_loader_thread::process_asset_loads()
 		processed++;
 		// first check if we have the asset loaded already
 		t_string_256 file_path;
-		request.file_path.get_path_string(file_path);
-		t_asset_handle hash = fnv1a_hash_64(file_path.get_const_char(), sizeof(char) * file_path.used());
+		request.asset_definition.path.get_path_string(file_path);
+		t_asset_handle asset_id = request.asset_definition.id;
 
-		s_asset_internal asset;
+		s_asset_internal& asset = g_active_assets->find_or_insert(asset_id);
 
-
-		if (g_active_assets->try_find_or_insert(hash, &asset))
+		if (asset.memory.is_valid())
 		{
 			request.callback(asset.asset_handle, request.object);
 
 			log_message(verbose, "asset_system: existing asset already loaded[file: {s}, handle: {u}]",
-				request.file_path.get_full_path(),
+				request.asset_definition.path.get_full_path(),
 				asset.asset_handle);
 		}
 		else
@@ -188,7 +187,7 @@ void c_asset_loader_thread::process_asset_loads()
 				flags.set(file_open_mode_read, true);
 
 				c_file file;
-				if (file.open(request.file_path, flags))
+				if (file.open(request.asset_definition.path, flags))
 				{
 					// we may want a separate arena for assets, or just have asset system hold it's own allocator
 					void* data = c_memory_system::allocate(file_info.size_bytes, alignof(byte), memory_arena_system);
@@ -200,22 +199,27 @@ void c_asset_loader_thread::process_asset_loads()
 					file.close();
 
 					asset.ref_count = 1;
-					request.callback(asset.asset_handle, request.object);
+					asset.asset_handle = asset_id;
+
+					if (request.callback != nullptr)
+					{
+						request.callback(asset.asset_handle, request.object);
+					}
 					
 					log_message(verbose, "asset_system: loaded new asset [file: {s}, handle: {u}, size: {i}]",
-						request.file_path.get_full_path(),
+						request.asset_definition.path.get_full_path(),
 						asset.asset_handle,
 						bytes_read);
 				}
 				else
 				{
 					g_active_assets->remove(asset.asset_handle);
-					log_message(critical, "asset_system: failed to open asset file! [file:{s}]", request.file_path.get_full_path());
+					log_message(critical, "asset_system: failed to open asset file! [file:{s}]", request.asset_definition.path.get_full_path());
 				}
 			}
 			else
 			{
-				log_message(warning, "asset_system: file not found at: {s}", request.file_path.get_full_path());
+				log_message(warning, "asset_system: file not found at: {s}", request.asset_definition.path.get_full_path());
 			}
 		}
 	}

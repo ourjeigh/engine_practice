@@ -14,7 +14,7 @@ public:
 	void term();
 	void update();
 
-	static_function bool load_asset(c_file_path& file_path, void* object, f_asset_loaded_callback* callback);
+	static_function bool load_asset(const s_asset_definition* asset_def, void* object, f_asset_loaded_callback* callback);
 	static_function const c_array<byte>* get_asset_data(t_asset_handle handle);
 	static_function void unload_asset(t_asset_handle handle);
 };

@@ -381,13 +381,15 @@ public:
 		return m_table.find_or_insert(key).value;
 	}
 
-	bool try_find_or_insert(const t_key& key, t_value* out_value)
+	bool try_find_or_insert(const t_key& key, t_value& out_value)
 	{
+		// need to rethink this, this does not properly return the actual
+		// table object which means you can't modify the out_value
 		t_kvp out_kvp;
 		bool result = m_table.try_find_or_insert(key, &out_kvp);
 		if (result)
 		{
-			out_value = &out_kvp.value;
+			out_value = out_kvp.value;
 		}
 
 		return result;

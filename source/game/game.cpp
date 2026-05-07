@@ -1,6 +1,9 @@
 #include "game_api.h"
 #include "engine_api.h"
 #include "types/render_types.h"
+#include "types/asset_types.h"
+
+const s_asset_definition k_click_audio_asset_def = {12837838472974, asset_scope_global,  "C:\\Users\\RJ\\git\\simm_engine\\assets\\click_24_44k.wav" };
 
 extern "C"
 {
@@ -10,6 +13,8 @@ extern "C"
 		g_assert_handler = game_state.assert_hook;
 
 		engine_log_verbose("Hello Game World! {i}", 7);
+
+		engine_load_asset(&k_click_audio_asset_def);
 	}
 
 	bool was_mouse_down = false;
@@ -45,9 +50,7 @@ extern "C"
 
 		if (mouse_down && !was_mouse_down)
 		{
-			//"C:\Users\RJ\git\simm_engine\assets\click_16_44k.wav"
-			c_file_path path = "C:\\Users\\RJ\\git\\simm_engine\\assets\\click_24_44k.wav";
-			s_sound_info sound_info(path, sound_source_playback_type_streamed);
+			s_sound_info sound_info(k_click_audio_asset_def.id, sound_source_playback_type_streamed);
 			engine_audio_play_sound(sound_info);
 		}
 

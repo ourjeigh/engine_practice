@@ -17,6 +17,8 @@ public:
 	s_key_state input_get_key_state(e_input_keycode key);
 	const s_mouse_state* input_get_mouse_state();
 
+	bool load_asset(const s_asset_definition* asset_def);
+
 	void render_fill_screen(const uint32 color);
 	void render_draw_rect(const s_render_shape_rect rect, const uint32 color);
 	void render_draw_line(const s_render_shape_point start, const s_render_shape_point end, const uint32 color);

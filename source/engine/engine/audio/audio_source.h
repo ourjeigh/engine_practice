@@ -60,6 +60,25 @@ private:
 	int g_x2 = 0xefcdab89;
 };
 
+class c_audio_source_file : public c_audio_source
+{
+public:
+	c_audio_source_file();
+	~c_audio_source_file();
+
+	void set_memory(const c_array<byte>* memory);
+
+	void get_samples(t_audio_buffer_real32& out_buffer);
+	bool HACK_finished() const { return m_HACK_finished; }
+
+private:
+	c_array<byte> m_memory;
+	s_audio_file_format m_format;
+	uint32 m_position;
+	bool m_looping;
+	bool m_HACK_finished;
+};
+
 class c_audio_source_file_streamed : public c_audio_source
 {
 public:

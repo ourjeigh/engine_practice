@@ -19,11 +19,11 @@ enum e_sound_source_playback_type
 
 struct s_sound_info
 {
-	s_sound_info(c_file_path& file_path, e_sound_source_playback_type playback_type) :
-		file_path(file_path), 
-		playback_type(playback_type) {}
+	/*s_sound_info(uint64 asset_id, e_sound_source_playback_type playback_type) :
+		asset_id(asset_id),
+		playback_type(playback_type) {}*/
 
-	c_file_path file_path;
+	uint64 asset_id;
 	e_sound_source_playback_type playback_type;
 };
 

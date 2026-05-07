@@ -33,18 +33,6 @@ struct s_sound_playback
 
 c_static_array<s_sound_playback, 64> g_audio_playbacks;
 
-// test code
-int32 hack_1 = 1;
-int32 hack_2 = 2;
-
-static void we_got_it(t_asset_handle handle, void* object)
-{
-	int32 cookie = *static_cast<int32*>(object);
-	// making sure this asserts
-	//auto mem = c_asset_system::get_asset_data(handle);
-	NOP();
-}
-
 // public methods
 void c_audio_system::init()
 {
@@ -70,15 +58,6 @@ void c_audio_system::init()
 
 	g_audio_engine_thread.init();
 
-	// asset system test code:
-	{
-		c_file_path path = "C:\\Users\\RJ\\git\\simm_engine\\assets\\click_24_44k.wav";
-		bool success = c_asset_system::load_asset(path, static_cast<void*>(&hack_1), we_got_it);
-
-		success &= c_asset_system::load_asset(path, static_cast<void*>(&hack_2), we_got_it);
-		NOP();
-	}
-
 	log_message(verbose, "Audio System Initialized");
 }
 
@@ -102,9 +81,10 @@ t_sound_playback_id c_audio_system::play_sound(s_sound_info& info)
 {
 	// todo: This either needs to go faster than iterating thru g_audio_playbacks, or (preferrably) it should just add
 	// the playrequest to a queue that we'll process in update()
-	c_audio_source_file_streamed* source =  ALLOCATE_NEW(c_audio_source_file_streamed, *g_audio_source_allocator);
+	c_audio_source_file* source =  ALLOCATE_NEW(c_audio_source_file, *g_audio_source_allocator);
 	ASSERT(source != nullptr);
-	source->set_file(info.file_path);
+	const c_array<byte>* sound_data = c_asset_system::get_asset_data(info.asset_id);
+	source->set_memory(sound_data);
 	
 	for (auto it = g_audio_playbacks.begin(); it != g_audio_playbacks.end(); ++it)
 	{
@@ -113,13 +93,13 @@ t_sound_playback_id c_audio_system::play_sound(s_sound_info& info)
 			it->id = g_sound_id_top++;
 			it->source = source;
 
-			log_message(verbose, "audio_system: play_sound: [id:{u} name:{s}]", it->id, info.file_path.get_full_path());
+			log_message(verbose, "audio_system: play_sound: [id:{u} name:{u}]", it->id, info.asset_id); // make this the string when it's a string_id
 
 			return it->id;
 		}
 	}
 
-	log_message(warning, "audio_system: could not start playback, playbacks list is full! [file:{s}]", info.file_path.get_full_path());
+	log_message(warning, "audio_system: could not start playback, playbacks list is full! [file:{u}]", info.asset_id);
 	return k_invalid;
 }
 
