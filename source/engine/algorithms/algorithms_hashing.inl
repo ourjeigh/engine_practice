@@ -2,7 +2,6 @@
 #define __HASHING_INL__
 #pragma once
 
-#include "algorithms/algorithms.h"
 #include "debug/asserts.h"
 
 //https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function

@@ -82,24 +82,33 @@ t_sound_playback_id c_audio_system::play_sound(s_sound_info& info)
 	// todo: This either needs to go faster than iterating thru g_audio_playbacks, or (preferrably) it should just add
 	// the playrequest to a queue that we'll process in update()
 	c_audio_source_file* source =  ALLOCATE_NEW(c_audio_source_file, *g_audio_source_allocator);
-	ASSERT(source != nullptr);
-	const c_array<byte>* sound_data = c_asset_system::get_asset_data(info.asset_id);
-	source->set_memory(sound_data);
 	
-	for (auto it = g_audio_playbacks.begin(); it != g_audio_playbacks.end(); ++it)
+	const c_array<byte>* sound_data = c_asset_system::get_asset_data(info.asset_id);
+	
+	if (sound_data != nullptr && sound_data->is_valid())
 	{
-		if (it->id == k_invalid)
+		source->set_memory(sound_data);
+	
+		for (auto it = g_audio_playbacks.begin(); it != g_audio_playbacks.end(); ++it)
 		{
-			it->id = g_sound_id_top++;
-			it->source = source;
+			if (it->id == k_invalid)
+			{
+				it->id = g_sound_id_top++;
+				it->source = source;
 
-			log_message(verbose, "audio_system: play_sound: [id:{u} name:{u}]", it->id, info.asset_id); // make this the string when it's a string_id
+				log_message(verbose, "audio_system: play_sound: [id:{u} name:{s}]", it->id, info.asset_id.get_debug_string()); // make this the string when it's a string_id
 
-			return it->id;
+				return it->id;
+			}
 		}
 	}
+	else
+	{
+		log_message(warning, "audio_system: play_sound: could not get asset data for sound [id {u}], name: {s}", info.asset_id.get_id(), info.asset_id.get_debug_string()); // make this string
+		return k_invalid;
+	}
 
-	log_message(warning, "audio_system: could not start playback, playbacks list is full! [file:{u}]", info.asset_id);
+	log_message(warning, "audio_system: could not start playback, playbacks list is full! [file:{s}]", info.asset_id.get_debug_string());
 	return k_invalid;
 }
 

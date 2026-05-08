@@ -4,7 +4,7 @@
 
 #include "types/types.h"
 #include "debug/asserts.h"
-#include "file/file_path.h"
+#include "structures/string/string_id.h"
 
 using t_sound_playback_id = uint64;
 
@@ -23,7 +23,7 @@ struct s_sound_info
 		asset_id(asset_id),
 		playback_type(playback_type) {}*/
 
-	uint64 asset_id;
+	c_string_id asset_id;
 	e_sound_source_playback_type playback_type;
 };
 

@@ -3,7 +3,7 @@
 #include "types/render_types.h"
 #include "types/asset_types.h"
 
-const s_asset_definition k_click_audio_asset_def = {12837838472974, asset_scope_global,  "C:\\Users\\RJ\\git\\simm_engine\\assets\\click_24_44k.wav" };
+const s_asset_definition k_click_audio_asset_def = { "sound_click_01", asset_scope_global,  "C:\\Users\\RJ\\git\\simm_engine\\assets\\click_24_44k.wav" };
 
 extern "C"
 {

@@ -2,9 +2,13 @@
 #define __STRING_ID_H__
 #pragma once
 
-#include "config.h"
+// probably need to split config defines out from platform defines in config.h
+// so that we can include config.h in common without leaking platform info
+#include "../engine/config.h"
+
+// move to common
+#include "../engine/algorithms/algorithms.h"
 #include "string.h"
-#include "algorithms/algorithms.h"
 #include "types/types.h"
 #include "structures/string/string.h"
 #include "memory/memory.h"
@@ -29,6 +33,12 @@ public:
 		m_hash(other.m_hash)
 		DEBUG_ONLY_PARAM_LEFT_COMMA(d_debug_string(other.d_debug_string)) {}
 
+	c_string_id& operator=(const c_string_id& other)
+	{
+		copy_from(other);
+		return *this;
+	}
+	
 	void copy_from(const c_string_id& other)
 	{
 		memory_copy(this, &other, sizeof(c_string_id));
@@ -58,10 +68,9 @@ public:
 		return!(*this == other);
 	}
 
-#ifdef CONFIG_DEBUG
-	// not sure how this would be needed outside debug, so leaving out for now
 	constexpr uint64 get_id() const { return m_hash; }
-	
+
+#ifdef CONFIG_DEBUG
 	const char* get_debug_string() const
 	{
 		return d_debug_string;
@@ -73,7 +82,6 @@ private:
 	// may want these some day, but for now keep it simple
 	c_string_id(c_string_id&& other) = delete;
 	c_string_id& operator=(const char* string) = delete;
-	c_string_id& operator=(const c_string_id& other) = delete;
 	c_string_id& operator=(const c_string_id&& other) = delete;
 
 	const uint64 m_hash;

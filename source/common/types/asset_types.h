@@ -3,6 +3,8 @@
 #pragma once
 
 #include "file/file_path.h"
+#include "structures/string/string_id.h"
+
 enum e_asset_type
 {
 	asset_type_wav,
@@ -21,7 +23,7 @@ enum e_asset_scope
 struct s_asset_definition
 {
 	// get c_string_id into common and make this a c_string_id
-	uint64 id;
+	c_string_id id;
 	e_asset_scope scope;
 	c_file_path path;
 };

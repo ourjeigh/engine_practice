@@ -20,14 +20,14 @@ struct s_load_asset_request
 
 struct s_asset_internal
 {
-	t_asset_handle asset_handle;
+	c_string_id asset_handle;
 	int32 ref_count;
 	c_array<byte> memory;
 };
 
 struct s_asset_internal_comparitor
 {
-	bool operator()(const t_asset_handle& lhs, const t_asset_handle& rhs)
+	bool operator()(const uint64& lhs, const uint64& rhs)
 	{
 		return lhs == rhs;
 	}
@@ -35,7 +35,7 @@ struct s_asset_internal_comparitor
 
 struct s_asset_internal_hasher
 {
-	uint32 operator()(const t_asset_handle& value)
+	uint32 operator()(const uint64& value)
 	{
 		// the asset handle is just a hash of the filepath so hashing is a NOP
 		return value;
@@ -58,7 +58,7 @@ private:
 using t_asset_request_stack = c_static_spsc_queue<s_load_asset_request, k_max_asset_load_requests>;
 t_asset_request_stack* g_asset_load_requests;
 
-using t_asset_hash_set = c_hash_map<t_asset_handle, s_asset_internal, k_max_active_assets, s_asset_internal_hasher, s_asset_internal_comparitor>;
+using t_asset_hash_set = c_hash_map<uint64, s_asset_internal, k_max_active_assets, s_asset_internal_hasher, s_asset_internal_comparitor>;
 t_asset_hash_set* g_active_assets;
 
 c_asset_loader_thread g_asset_loader_thread;
@@ -106,11 +106,11 @@ bool c_asset_system::load_asset(const s_asset_definition* asset_def, void* objec
 	return success;
 }
 
-const c_array<byte>* c_asset_system::get_asset_data(t_asset_handle handle)
+const c_array<byte>* c_asset_system::get_asset_data(c_string_id asset_id)
 {
 	ASSERT(get_current_thread_id() != g_asset_loader_thread.get_thread_id());
 
-	s_asset_internal& asset = g_active_assets->find(handle);
+	s_asset_internal& asset = g_active_assets->find(asset_id.get_id());
 	
 	if (asset.memory.is_valid())
 	{
@@ -120,7 +120,7 @@ const c_array<byte>* c_asset_system::get_asset_data(t_asset_handle handle)
 	return nullptr;
 }
 
-void c_asset_system::unload_asset(t_asset_handle handle)
+void c_asset_system::unload_asset(c_string_id asset_id)
 {
 	// find asset
 	// release memory
@@ -163,20 +163,24 @@ void c_asset_loader_thread::process_asset_loads()
 	while (g_asset_load_requests->pop_front(request))
 	{
 		processed++;
+
 		// first check if we have the asset loaded already
 		t_string_256 file_path;
 		request.asset_definition.path.get_path_string(file_path);
-		t_asset_handle asset_id = request.asset_definition.id;
+		c_string_id asset_id = request.asset_definition.id;
 
-		s_asset_internal& asset = g_active_assets->find_or_insert(asset_id);
+		s_asset_internal& asset = g_active_assets->find_or_insert(asset_id.get_id());
 
 		if (asset.memory.is_valid())
 		{
-			request.callback(asset.asset_handle, request.object);
+			if (request.callback != nullptr)
+			{
+				request.callback(asset.asset_handle, request.object);
+			}
 
-			log_message(verbose, "asset_system: existing asset already loaded[file: {s}, handle: {u}]",
-				request.asset_definition.path.get_full_path(),
-				asset.asset_handle);
+			log_message(verbose, "asset_system: existing asset already loaded [asset: {s}, file: {s}]",
+				request.asset_definition.id.get_debug_string(),
+				request.asset_definition.path.get_full_path());
 		}
 		else
 		{
@@ -206,20 +210,24 @@ void c_asset_loader_thread::process_asset_loads()
 						request.callback(asset.asset_handle, request.object);
 					}
 					
-					log_message(verbose, "asset_system: loaded new asset [file: {s}, handle: {u}, size: {i}]",
+					log_message(verbose, "asset_system: loaded new asset [asset: {s}, file: {s}, size: {i}]",
+						request.asset_definition.id.get_debug_string(),
 						request.asset_definition.path.get_full_path(),
-						asset.asset_handle,
 						bytes_read);
 				}
 				else
 				{
-					g_active_assets->remove(asset.asset_handle);
-					log_message(critical, "asset_system: failed to open asset file! [file:{s}]", request.asset_definition.path.get_full_path());
+					g_active_assets->remove(asset.asset_handle.get_id());
+					log_message(critical, "asset_system: failed to open asset file! [asset: {s}, file: {s}]", 
+						request.asset_definition.id.get_debug_string(),
+						request.asset_definition.path.get_full_path());
 				}
 			}
 			else
 			{
-				log_message(warning, "asset_system: file not found at: {s}", request.asset_definition.path.get_full_path());
+				log_message(warning, "asset_system: file not found [asset: {s}, file: {s}]",
+					request.asset_definition.id.get_debug_string(),
+					request.asset_definition.path.get_full_path());
 			}
 		}
 	}
