@@ -5,6 +5,10 @@
 #include "config.h"
 #include "structures/string/string.h"
 
+#ifdef _WIN64
+#define PLATFORM_NAME "win64"
+#define PLATFORM_WIN64
+#endif // _WIN64
 
 
 #define NOP() platform_nop()

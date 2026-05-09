@@ -4,22 +4,22 @@
 
 // probably need to split config defines out from platform defines in config.h
 // so that we can include config.h in common without leaking platform info
-#include "../engine/config.h"
+#include "config.h"
 
 // move to common
-#include "../engine/algorithms/algorithms.h"
-#include "string.h"
+#include "algorithms/algorithms.h"
+#include "memory/memory.h"
 #include "types/types.h"
 #include "structures/string/string.h"
-#include "memory/memory.h"
 
 #define DECLARE_STRING_ID(variable, string) constexpr c_string_id variable = c_string_id(string)
-//#define DECLARE_STRING_ID(variable, string) constexpr c_string_id variable = c_string_id(fnv1a_string_hash_64(string, string_length(string)), string)
 
 class c_string_id
 {
 public:
-	c_string_id() : m_hash(k_invalid) DEBUG_ONLY_PARAM_LEFT_COMMA(d_debug_string(nullptr)) {}
+	c_string_id() : 
+		m_hash(k_invalid) 
+		DEBUG_ONLY_PARAM_LEFT_COMMA(d_debug_string(nullptr)) {}
 	
 	constexpr c_string_id(const char* string) :
 		m_hash(fnv1a_string_hash_64(string, string_length(string)))
@@ -29,7 +29,7 @@ public:
 		m_hash(hash)
 		DEBUG_ONLY_PARAM_LEFT_COMMA(d_debug_string(string)) {}
 
-	c_string_id(const c_string_id& other) :
+	constexpr c_string_id(const c_string_id& other) :
 		m_hash(other.m_hash)
 		DEBUG_ONLY_PARAM_LEFT_COMMA(d_debug_string(other.d_debug_string)) {}
 

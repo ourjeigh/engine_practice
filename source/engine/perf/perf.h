@@ -9,6 +9,8 @@
 #include "time/time.h"
 #include "threads/threads.h"
 
+// these cause their id's constructors to get called at runtime, running the fnv1 hash the first time
+// they're called. not ideal
 #define PERF_MEASURE_FUNCTION() s_stack_perf_measurer measurer(c_string_id(__FUNCTION__))
 #define PERF_MEASURE_SECTION(name) s_stack_perf_measurer measurer(c_string_id(name))
 

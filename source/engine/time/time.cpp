@@ -52,9 +52,8 @@ uint64 c_time_span::get_delta_raw() const
 	return m_end - m_start;
 }
 
-c_timer::c_timer()
+c_timer::c_timer() : m_span()
 {
-	m_span = c_time_span();
 }
 
 void c_timer::start()
