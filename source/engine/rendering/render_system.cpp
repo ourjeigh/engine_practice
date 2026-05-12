@@ -9,6 +9,55 @@
 #include "perf/perf.h"
 #include "platform/platform.h"
 
+// TEMP
+// ---------
+#include "assets/asset_system.h"
+
+#pragma pack(push, 1)
+struct s_bitmap_file_header
+{
+	uint16 bfType;
+	uint32 bfSize;
+	uint16 bfReserved1;
+	uint16 bfReserved2;
+	uint32 bfOffBits;
+};
+
+struct s_bitmap_info_header
+{
+	uint32 biSize;
+	int32 width;
+	int32 height;
+	uint16 biPlanes;
+	uint16 bits_per_pixel;
+	uint32 compression; // 3 == no compression
+	uint32 image_size_bytes; // in bytes
+	int32 biXPelsPerMeter;
+	int32 biYPelsPerMeter;
+	uint32 biClrUsed;
+	uint32 biClrImportant;
+
+	uint32 red_mask;
+	uint32 green_mask;
+	uint32 blue_mask;
+	uint32 alpha_mask;
+};
+#pragma pack(pop)
+
+// move
+struct s_bitmap_info
+{
+	int32 width;
+	int32 height;
+
+	c_array<uint32> pixels;
+};
+
+//s_asset_definition k_test_bmp_asset_def = { "test_bmp", asset_scope_global, R"(C:\Users\RJ\git\simm_engine\assets\test\test_60x40.bmp)" };
+s_asset_definition k_test_bmp_asset_def = { "test_bmp", asset_scope_global, R"(C:\Users\RJ\git\simm_engine\assets\dude.bmp)" };
+
+// ---------
+
 enum e_render_layer
 {
 	render_layer_invalid = k_invalid,
@@ -90,10 +139,28 @@ void c_render_system::init()
 
 	g_render_commands_allocator = ALLOCATE_NEW_GLOBAL(c_static_stack_allocator<k_byte_kib>, memory_arena_system);
 	g_render_messages = ALLOCATE_NEW_GLOBAL(t_render_message_stack, memory_arena_system);
+
+	c_asset_system::load_asset(&k_test_bmp_asset_def, nullptr, nullptr);
 }
 
 void c_render_system::term()
 {
+}
+
+uint32 bit_scan_forward(uint32 value)
+{
+	uint32 out = k_invalid;
+
+	for (int32 i = 0; i < 32; i++)
+	{
+		if (value & (1 << i))
+		{
+			out = i;
+			break;
+		}
+	}
+
+	return out;
 }
 
 void c_render_system::update()
@@ -155,6 +222,72 @@ void c_render_system::update()
 			}
 		}
 	}
+
+	// TEST
+	// -------
+	if (true)
+	{
+		c_array<byte>* asset_data = c_asset_system::get_asset_data(k_test_bmp_asset_def.id);
+		if (asset_data != nullptr && asset_data->is_valid())
+		{
+			const s_bitmap_file_header* header = reinterpret_cast<const s_bitmap_file_header*>(asset_data->data());
+			const s_bitmap_info_header* core = reinterpret_cast<const s_bitmap_info_header*> (asset_data->data() + sizeof(s_bitmap_file_header));
+			//const uint32* bmp_buffer = reinterpret_cast<const uint32*>(asset_data->data() + header->bfOffBits);
+
+			uint32 red_mask = core->red_mask;
+			uint32 green_mask = core->green_mask;
+			uint32 blue_mask = core->blue_mask;
+			uint32 alpha_mask = core->alpha_mask;
+
+			uint32 red_shift = bit_scan_forward(red_mask);
+			uint32 green_shift = bit_scan_forward(green_mask);
+			uint32 blue_shift = bit_scan_forward(blue_mask);
+			uint32 alpha_shift = bit_scan_forward(alpha_mask);
+
+			s_bitmap_info bmp_info;
+			bmp_info.height = core->height;
+			bmp_info.width = core->width;
+			
+			int32 pixel_count = core->height * core->width;
+			ASSERT(pixel_count * sizeof(uint32) == core->image_size_bytes);
+
+			bmp_info.pixels = c_array<uint32>(reinterpret_cast<uint32*>(asset_data->data() + header->bfOffBits), pixel_count);
+
+			int32 pixels_written = 0;
+			int32 dest_y = 0;
+			for (int32 y = (bmp_info.height - 1); y >=  0; y--, dest_y++)
+			{
+				int32 dest_x = 0;
+
+				for (int32 x = 0; x < bmp_info.width; x++, dest_x++)
+				{
+					// handle mask shift
+					uint32 index = y * bmp_info.width + x;
+					uint32 pixel = bmp_info.pixels[index];
+
+					// TODO: We should just process the shift once up front in the loaded asset
+					pixel =
+						(((pixel >> alpha_shift) & 0xFF) << 24) |
+						(((pixel >> red_shift) & 0xFF) << 16) |
+						(((pixel >> green_shift) & 0xFF) << 8) |
+						(((pixel >> blue_shift) & 0xFF) << 0);
+
+					if (pixel)
+					{
+						NOP();
+					}
+
+					draw_pixel_to_buffer_internal(dest_x, dest_y, pixel , &current_backbuffer);
+
+					NOP();
+					pixels_written++;
+				}
+			}
+
+			ASSERT((pixels_written * 4) == core->image_size_bytes);
+		}
+	}
+	// -------
 
 	m_write_buffer_index.store(!write_index);
 	g_render_commands_allocator->clear();

@@ -15,7 +15,7 @@ public:
 	void update();
 
 	static_function bool load_asset(const s_asset_definition* asset_def, void* object, f_asset_loaded_callback* callback);
-	static_function const c_array<byte>* get_asset_data(c_string_id asset_id);
+	static_function c_array<byte>* get_asset_data(c_string_id asset_id);
 	static_function void unload_asset(c_string_id asset_id);
 };
 

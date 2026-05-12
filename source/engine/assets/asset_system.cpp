@@ -106,7 +106,11 @@ bool c_asset_system::load_asset(const s_asset_definition* asset_def, void* objec
 	return success;
 }
 
-const c_array<byte>* c_asset_system::get_asset_data(c_string_id asset_id)
+// returning a non-const pointer to the memory so that things like
+// bitmap loading can re-arrange pixel masks if needed. In the long-term
+// maybe the asset system is responsible for processing things like that
+// so we can go back to just returning read-only memory
+c_array<byte>* c_asset_system::get_asset_data(c_string_id asset_id)
 {
 	ASSERT(get_current_thread_id() != g_asset_loader_thread.get_thread_id());
 
