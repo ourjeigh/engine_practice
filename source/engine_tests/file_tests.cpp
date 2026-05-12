@@ -130,7 +130,7 @@ TEST(C_FILE, READ_BYTES)
 
 TEST(C_FILE, WRITE_BYTES)
 {
-	const char* file_path_string = "C:\\Users\\RJ\\Desktop\\test\\c_file_write_test.txt";
+	const char* file_path_string = "c_file_write_bytes_test.txt";
 	c_file_path file_path(file_path_string);
 	
 	t_file_open_mode_flags flags;
@@ -154,7 +154,7 @@ TEST(C_FILE, WRITE_BYTES)
 
 TEST(C_FILE, WRITE_STRING)
 {
-	const char* file_path_string = "C:\\Users\\RJ\\Desktop\\test\\c_file_write_text_test.txt";
+	const char* file_path_string = "c_file_write_text_test.txt";
 	c_file_path file_path(file_path_string);
 
 	t_file_open_mode_flags flags;

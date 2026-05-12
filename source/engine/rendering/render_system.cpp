@@ -12,6 +12,7 @@
 // TEMP
 // ---------
 #include "assets/asset_system.h"
+#include "types/input_types.h"
 
 #pragma pack(push, 1)
 struct s_bitmap_file_header
@@ -50,11 +51,16 @@ struct s_bitmap_info
 	int32 width;
 	int32 height;
 
+	uint32 red_shift;
+	uint32 green_shift;
+	uint32 blue_shift;
+	uint32 alpha_shift;
+
 	c_array<uint32> pixels;
 };
 
 //s_asset_definition k_test_bmp_asset_def = { "test_bmp", asset_scope_global, R"(C:\Users\RJ\git\simm_engine\assets\test\test_60x40.bmp)" };
-s_asset_definition k_test_bmp_asset_def = { "test_bmp", asset_scope_global, R"(C:\Users\RJ\git\simm_engine\assets\dude.bmp)" };
+s_asset_definition k_test_bmp_asset_def = { "test_bmp", asset_scope_global, R"(C:\Users\RJ\git\simm_engine\assets\test\dude.bmp)" };
 
 // ---------
 
@@ -119,6 +125,7 @@ void process_draw_rect_message_internal(const s_render_message_data_draw_rect co
 void process_draw_line_message_internal(const s_render_message_data_draw_line const_ptr message, s_backbuffer const_ptr buffer);
 void process_draw_circle_message_internal(const s_render_message_data_draw_circle const_ptr message, s_backbuffer const_ptr buffer);
 void process_draw_circle_outline_message_internal(const s_render_message_data_draw_circle const_ptr message, s_backbuffer const_ptr buffer);
+void process_draw_bitmap_internal(const s_bitmap_info& bitmap_info, int32 x, int32 y, s_backbuffer const_ptr buffer);
 
 inline void draw_pixel_to_buffer_internal(int32 x, int32 y, uint32 color, s_backbuffer const_ptr buffer);
 void draw_horizontal_line_internal(int32 start_x, int32 end_x, int32 y, uint32 color, s_backbuffer const_ptr buffer);
@@ -149,6 +156,7 @@ void c_render_system::term()
 
 uint32 bit_scan_forward(uint32 value)
 {
+	// TODO: use intrinsic if available
 	uint32 out = k_invalid;
 
 	for (int32 i = 0; i < 32; i++)
@@ -227,6 +235,8 @@ void c_render_system::update()
 	// -------
 	if (true)
 	{
+		PERF_MEASURE_SECTION("BITMAP RENDER");
+
 		c_array<byte>* asset_data = c_asset_system::get_asset_data(k_test_bmp_asset_def.id);
 		if (asset_data != nullptr && asset_data->is_valid())
 		{
@@ -239,52 +249,26 @@ void c_render_system::update()
 			uint32 blue_mask = core->blue_mask;
 			uint32 alpha_mask = core->alpha_mask;
 
-			uint32 red_shift = bit_scan_forward(red_mask);
-			uint32 green_shift = bit_scan_forward(green_mask);
-			uint32 blue_shift = bit_scan_forward(blue_mask);
-			uint32 alpha_shift = bit_scan_forward(alpha_mask);
 
-			s_bitmap_info bmp_info;
-			bmp_info.height = core->height;
-			bmp_info.width = core->width;
+			s_bitmap_info bitmap_info;
+			bitmap_info.height = core->height;
+			bitmap_info.width = core->width;
+			bitmap_info.red_shift = bit_scan_forward(red_mask);
+			bitmap_info.green_shift = bit_scan_forward(green_mask);
+			bitmap_info.blue_shift = bit_scan_forward(blue_mask);
+			bitmap_info.alpha_shift = bit_scan_forward(alpha_mask);
 			
 			int32 pixel_count = core->height * core->width;
 			ASSERT(pixel_count * sizeof(uint32) == core->image_size_bytes);
 
-			bmp_info.pixels = c_array<uint32>(reinterpret_cast<uint32*>(asset_data->data() + header->bfOffBits), pixel_count);
+			bitmap_info.pixels = c_array<uint32>(reinterpret_cast<uint32*>(asset_data->data() + header->bfOffBits), pixel_count);
+			s_mouse_position_state mouse = input_system_get_mouse_state()->position;
 
-			int32 pixels_written = 0;
-			int32 dest_y = 0;
-			for (int32 y = (bmp_info.height - 1); y >=  0; y--, dest_y++)
-			{
-				int32 dest_x = 0;
+			int32 x = mouse.x - (bitmap_info.width / 2);
+			int32 y = mouse.y - (bitmap_info.height / 2);
 
-				for (int32 x = 0; x < bmp_info.width; x++, dest_x++)
-				{
-					// handle mask shift
-					uint32 index = y * bmp_info.width + x;
-					uint32 pixel = bmp_info.pixels[index];
-
-					// TODO: We should just process the shift once up front in the loaded asset
-					pixel =
-						(((pixel >> alpha_shift) & 0xFF) << 24) |
-						(((pixel >> red_shift) & 0xFF) << 16) |
-						(((pixel >> green_shift) & 0xFF) << 8) |
-						(((pixel >> blue_shift) & 0xFF) << 0);
-
-					if (pixel)
-					{
-						NOP();
-					}
-
-					draw_pixel_to_buffer_internal(dest_x, dest_y, pixel , &current_backbuffer);
-
-					NOP();
-					pixels_written++;
-				}
-			}
-
-			ASSERT((pixels_written * 4) == core->image_size_bytes);
+			process_draw_bitmap_internal(bitmap_info, x, y, &current_backbuffer);
+			
 		}
 	}
 	// -------
@@ -500,6 +484,7 @@ void process_draw_line_message_internal(const s_render_message_data_draw_line co
 
 void process_draw_circle_outline_message_internal(const s_render_message_data_draw_circle const_ptr message, s_backbuffer const_ptr buffer)
 {
+	PERF_MEASURE_FUNCTION();
 	const real32 degree_delta = 0.005f;
 	const real32 radius = message->circle.radius;
 	
@@ -546,10 +531,79 @@ void process_draw_circle_message_internal(const s_render_message_data_draw_circl
 	}
 }
 
+inline void process_draw_bitmap_internal(const s_bitmap_info& bitmap_info, int32 x, int32 y, s_backbuffer const_ptr buffer)
+{
+	PERF_MEASURE_FUNCTION();
+	int32 dest_y = y;
+	for (int32 y = (bitmap_info.height - 1); y >= 0; y--, dest_y++)
+	{
+		if (in_range_int32(0, buffer->height - 1, dest_y))
+		{
+			int32 dest_x = x;
+
+			for (int32 x = 0; x < bitmap_info.width; x++, dest_x++)
+			{
+				if (in_range_int32(0, buffer->width - 1, dest_x))
+				{
+					uint32 index = y * bitmap_info.width + x;
+					uint32 pixel = bitmap_info.pixels[index];
+
+					// TODO: We should just process the rearrange shift once up front in the loaded asset
+					pixel =
+						(((pixel >> bitmap_info.alpha_shift) & 0xFF) << 24) |
+						(((pixel >> bitmap_info.red_shift) & 0xFF) << 16) |
+						(((pixel >> bitmap_info.green_shift) & 0xFF) << 8) |
+						(((pixel >> bitmap_info.blue_shift) & 0xFF) << 0);
+
+					draw_pixel_to_buffer_internal(dest_x, dest_y, pixel, buffer);
+				}
+			}
+		}
+	}
+}
+
 inline void draw_pixel_to_buffer_internal(int32 x, int32 y, uint32 color, s_backbuffer const_ptr buffer)
 {
 	ASSERT(in_range(k_int32_zero, buffer->width, x) && in_range(k_int32_zero, buffer->height, y));
-	buffer->memory[y * buffer->width + x] = color;
+
+	uint32 alpha = (color >> 24) & 0xFF;
+	if (alpha == 0xFF)
+	{
+		buffer->memory[y * buffer->width + x] = color;
+	}
+	else
+	{
+		if (alpha > 0)
+		{
+			uint32 buffer_pixel = buffer->memory[y * buffer->width + x];
+			real32 buffer_red = ((buffer_pixel >> 16) & 0xFF) / 255.0f;
+			real32 buffer_green = ((buffer_pixel >> 8) & 0xFF) / 255.0f;
+			real32 buffer_blue = ((buffer_pixel >> 0) & 0xFF) / 255.0f;
+			
+			real32 color_red = ((color >> 16) & 0xFF) / 255.0f;
+			real32 color_green = ((color >> 8) & 0xFF) / 255.0f;
+			real32 color_blue = ((color >> 0) & 0xFF) / 255.0f;
+
+			real32 falpha = alpha / 255.0f;
+			real32 invalpha = 1.0f - falpha;
+
+			real32 fred = (color_red * falpha) + (buffer_red * invalpha);
+			real32 fgreen = (color_green * falpha) + (buffer_green * invalpha);
+			real32 fblue = (color_blue * falpha) + (buffer_blue * invalpha);
+
+			uint32 red = fred * 255;
+			uint32 green = fgreen * 255;
+			uint32 blue = fblue * 255;
+
+			uint32 final_pixel = (red << 16) | (green << 8) | (blue << 0);
+			buffer->memory[y * buffer->width + x] = final_pixel;
+			NOP();
+		}
+		else
+		{
+			buffer->memory[y * buffer->width + x] |= color;
+		}
+	}
 }
 
 void draw_horizontal_line_internal(int32 start_x, int32 end_x, int32 y, uint32 color, s_backbuffer const_ptr buffer)

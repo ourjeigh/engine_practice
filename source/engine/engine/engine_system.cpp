@@ -47,12 +47,12 @@ void engine_systems_term()
 	g_audio_system.term();
 	g_render_system.term();
 	g_input_system.term();
-	log_message(verbose, "Engine System Term Complete");
 	
 	g_perf_system.term();
 	g_asset_system.term();
 	g_memory_system.term();
 
+	log_message(verbose, "Engine System Term Complete");
 	// term logging last so it's available for all other systems to use
 	g_logging_system.term();
 }

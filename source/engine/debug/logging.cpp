@@ -33,7 +33,7 @@ void c_logging_system::init(s_log_config config)
 	m_config = config;
 
 	// temp
-	c_file_path path("C:\\Users\\RJ\\Desktop\\test\\test_log_file.txt");
+	c_file_path path("test_log_file.txt");
 	t_file_open_mode_flags flags;
 	flags.set(file_open_mode_write, true);
 	flags.set(file_open_mode_replace, true);
