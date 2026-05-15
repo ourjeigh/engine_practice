@@ -34,7 +34,6 @@ public:
 	t_type exchange(t_type value, e_atomic_memory_order order = atomic_memory_order_sequential);
 	bool compare_exchange(t_type& expected, t_type desired, e_atomic_memory_order order = atomic_memory_order_sequential);
 	
-	// TODO:
 	t_type operator=(const t_type& other) = delete;
 	bool operator==(const t_type& other) = delete;
 	bool operator!=(const t_type& other) = delete;

@@ -235,6 +235,4 @@ void c_asset_loader_thread::process_asset_loads()
 			}
 		}
 	}
-
-	ASSERT(g_asset_load_requests->empty());
 }

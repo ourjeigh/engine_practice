@@ -4,6 +4,28 @@
 
 #include "types/types.h"
 
+enum e_render_layer
+{
+	render_layer_invalid = k_invalid,
+
+	render_layer_background,
+	render_layer_main,
+	render_layer_ui,
+	render_layer_debug,
+
+	k_render_layer_count
+};
+
+struct s_bitmap_info
+{
+	int32 width;
+	int32 height;
+
+	c_array<uint32> pixels;
+
+	int32 size() { return width * height; }
+};
+
 struct s_color
 {
 	s_color() : red(k_invalid), green(k_invalid), blue(k_invalid), alpha(k_invalid) {}

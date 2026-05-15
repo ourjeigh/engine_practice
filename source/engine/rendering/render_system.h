@@ -29,6 +29,8 @@ public:
 	void draw_rect(const s_render_shape_rect rect, const uint32 color);
 	void draw_line(const s_render_shape_point start, const s_render_shape_point end, const uint32 color);
 	void draw_circle(const s_render_shape_circle circle, uint32 color, bool fill);
+	void draw_bitmap(const s_bitmap_info bitmap, e_render_layer layer);
+
 	const s_backbuffer* get_backbuffer();
 
 	void resize(int32 width, int32 height);

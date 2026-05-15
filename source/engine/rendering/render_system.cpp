@@ -17,7 +17,7 @@
 #pragma pack(push, 1)
 struct s_bitmap_file_header
 {
-	uint16 bfType;
+	char bfType[2];
 	uint32 bfSize;
 	uint16 bfReserved1;
 	uint16 bfReserved2;
@@ -46,35 +46,14 @@ struct s_bitmap_info_header
 #pragma pack(pop)
 
 // move
-struct s_bitmap_info
-{
-	int32 width;
-	int32 height;
 
-	uint32 red_shift;
-	uint32 green_shift;
-	uint32 blue_shift;
-	uint32 alpha_shift;
-
-	c_array<uint32> pixels;
-};
 
 //s_asset_definition k_test_bmp_asset_def = { "test_bmp", asset_scope_global, R"(C:\Users\RJ\git\simm_engine\assets\test\test_60x40.bmp)" };
 s_asset_definition k_test_bmp_asset_def = { "test_bmp", asset_scope_global, R"(C:\Users\RJ\git\simm_engine\assets\test\dude.bmp)" };
 
 // ---------
 
-enum e_render_layer
-{
-	render_layer_invalid = k_invalid,
 
-	render_layer_background,
-	render_layer_main,
-	render_layer_ui,
-	render_layer_debug,
-
-	k_render_layer_count
-};
 
 enum e_render_message_type
 {
@@ -84,40 +63,50 @@ enum e_render_message_type
 	render_message_type_draw_rect,
 	render_message_type_draw_line,
 	render_message_type_draw_circle,
+	render_message_type_draw_bitmap,
 
 	k_render_message_type_count
 };
 
-struct s_render_message_data_fill_screen
+struct s_render_message_data
+{
+};
+
+struct s_render_message_data_fill_screen : s_render_message_data
 {
 	uint32 color;
 };
 
-struct s_render_message_data_draw_rect
+struct s_render_message_data_draw_rect : s_render_message_data
 {
 	s_render_shape_rect rect;
 	uint32 fill_color;
 	uint32 outline_color; // TODO;
 };
 
-struct s_render_message_data_draw_line
+struct s_render_message_data_draw_line : s_render_message_data
 {
 	s_render_shape_point start;
 	s_render_shape_point end;
 	uint32 color;
 };
 
-struct s_render_message_data_draw_circle
+struct s_render_message_data_draw_circle : s_render_message_data
 {
 	s_render_shape_circle circle;
 	uint32 color;
 	bool fill;
 };
 
+struct s_render_message_data_draw_bitmap : s_render_message_data
+{
+	s_bitmap_info bitmap;
+};
+
 struct s_render_message
 {
 	e_render_message_type type;
-	void* data;
+	s_render_message_data* data;
 };
 
 void process_fill_screen_message_internal(const s_render_message_data_fill_screen const_ptr message, s_backbuffer const_ptr buffer);
@@ -169,6 +158,43 @@ uint32 bit_scan_forward(uint32 value)
 	}
 
 	return out;
+}
+
+s_bitmap_info create_bitmap_info(c_array<byte> const_ptr asset_data, s_bitmap_info& out_bitmap_info)
+{
+	const s_bitmap_file_header* header = reinterpret_cast<const s_bitmap_file_header*>(asset_data->data());
+	ASSERT(header != nullptr);
+	ASSERT(header->bfType[0] == 'B' && header->bfType[1] == 'M');
+	const s_bitmap_info_header* core = reinterpret_cast<const s_bitmap_info_header*> (asset_data->data() + sizeof(s_bitmap_file_header));
+
+	uint32 red_mask = core->red_mask;
+	uint32 green_mask = core->green_mask;
+	uint32 blue_mask = core->blue_mask;
+	uint32 alpha_mask = core->alpha_mask;
+
+	out_bitmap_info.height = core->height;
+	out_bitmap_info.width = core->width;
+
+	uint32 red_shift = bit_scan_forward(red_mask);
+	uint32 green_shift = bit_scan_forward(green_mask);
+	uint32 blue_shift = bit_scan_forward(blue_mask);
+	uint32 alpha_shift = bit_scan_forward(alpha_mask);
+
+	int32 pixel_count = core->height * core->width;
+	ASSERT(pixel_count * sizeof(uint32) == core->image_size_bytes);
+
+	out_bitmap_info.pixels = c_array<uint32>(reinterpret_cast<uint32*>(asset_data->data() + header->bfOffBits), pixel_count);
+
+	for (auto& pixel : out_bitmap_info.pixels)
+	{
+		pixel =
+			(((pixel >> alpha_shift) & 0xFF) << 24) |
+			(((pixel >> red_shift) & 0xFF) << 16) |
+			(((pixel >> green_shift) & 0xFF) << 8) |
+			(((pixel >> blue_shift) & 0xFF) << 0);
+	}
+
+	return out_bitmap_info;
 }
 
 void c_render_system::update()
@@ -240,35 +266,15 @@ void c_render_system::update()
 		c_array<byte>* asset_data = c_asset_system::get_asset_data(k_test_bmp_asset_def.id);
 		if (asset_data != nullptr && asset_data->is_valid())
 		{
-			const s_bitmap_file_header* header = reinterpret_cast<const s_bitmap_file_header*>(asset_data->data());
-			const s_bitmap_info_header* core = reinterpret_cast<const s_bitmap_info_header*> (asset_data->data() + sizeof(s_bitmap_file_header));
-			//const uint32* bmp_buffer = reinterpret_cast<const uint32*>(asset_data->data() + header->bfOffBits);
-
-			uint32 red_mask = core->red_mask;
-			uint32 green_mask = core->green_mask;
-			uint32 blue_mask = core->blue_mask;
-			uint32 alpha_mask = core->alpha_mask;
-
-
 			s_bitmap_info bitmap_info;
-			bitmap_info.height = core->height;
-			bitmap_info.width = core->width;
-			bitmap_info.red_shift = bit_scan_forward(red_mask);
-			bitmap_info.green_shift = bit_scan_forward(green_mask);
-			bitmap_info.blue_shift = bit_scan_forward(blue_mask);
-			bitmap_info.alpha_shift = bit_scan_forward(alpha_mask);
-			
-			int32 pixel_count = core->height * core->width;
-			ASSERT(pixel_count * sizeof(uint32) == core->image_size_bytes);
+			create_bitmap_info(asset_data, bitmap_info);
 
-			bitmap_info.pixels = c_array<uint32>(reinterpret_cast<uint32*>(asset_data->data() + header->bfOffBits), pixel_count);
 			s_mouse_position_state mouse = input_system_get_mouse_state()->position;
 
 			int32 x = mouse.x - (bitmap_info.width / 2);
 			int32 y = mouse.y - (bitmap_info.height / 2);
 
 			process_draw_bitmap_internal(bitmap_info, x, y, &current_backbuffer);
-			
 		}
 	}
 	// -------
@@ -335,6 +341,17 @@ void c_render_system::draw_circle(const s_render_shape_circle circle, uint32 col
 	new_message.data = message_data;
 }
 
+void c_render_system::draw_bitmap(const s_bitmap_info bitmap, e_render_layer layer)
+{
+	s_render_message_data_draw_bitmap* message_data = ALLOCATE_NO_CONSTRUCTOR(s_render_message_data_draw_bitmap, *g_render_commands_allocator);
+	ASSERT(message_data != nullptr);
+
+	message_data->bitmap = bitmap;
+
+	s_render_message& new_message = g_render_messages->get_item(layer)->push();
+	new_message.type = render_message_type_draw_bitmap;
+	new_message.data = message_data;
+}
 
 const s_backbuffer* c_render_system::get_backbuffer()
 {
@@ -548,13 +565,6 @@ inline void process_draw_bitmap_internal(const s_bitmap_info& bitmap_info, int32
 					uint32 index = y * bitmap_info.width + x;
 					uint32 pixel = bitmap_info.pixels[index];
 
-					// TODO: We should just process the rearrange shift once up front in the loaded asset
-					pixel =
-						(((pixel >> bitmap_info.alpha_shift) & 0xFF) << 24) |
-						(((pixel >> bitmap_info.red_shift) & 0xFF) << 16) |
-						(((pixel >> bitmap_info.green_shift) & 0xFF) << 8) |
-						(((pixel >> bitmap_info.blue_shift) & 0xFF) << 0);
-
 					draw_pixel_to_buffer_internal(dest_x, dest_y, pixel, buffer);
 				}
 			}
@@ -571,10 +581,8 @@ inline void draw_pixel_to_buffer_internal(int32 x, int32 y, uint32 color, s_back
 	{
 		buffer->memory[y * buffer->width + x] = color;
 	}
-	else
+	else if (alpha > 0)
 	{
-		if (alpha > 0)
-		{
 			uint32 buffer_pixel = buffer->memory[y * buffer->width + x];
 			real32 buffer_red = ((buffer_pixel >> 16) & 0xFF) / 255.0f;
 			real32 buffer_green = ((buffer_pixel >> 8) & 0xFF) / 255.0f;
@@ -598,11 +606,11 @@ inline void draw_pixel_to_buffer_internal(int32 x, int32 y, uint32 color, s_back
 			uint32 final_pixel = (red << 16) | (green << 8) | (blue << 0);
 			buffer->memory[y * buffer->width + x] = final_pixel;
 			NOP();
-		}
-		else
-		{
-			buffer->memory[y * buffer->width + x] |= color;
-		}
+	}
+	else
+	{
+		// fully transparent, leave underlying buffer as-is.
+		NOP();
 	}
 }
 
