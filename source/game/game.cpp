@@ -3,7 +3,19 @@
 #include "types/render_types.h"
 #include "types/asset_types.h"
 
-const s_asset_definition k_click_audio_asset_def = { "sound_click_01", asset_scope_global,  "C:\\Users\\RJ\\git\\simm_engine\\assets\\click_24_44k.wav" };
+const s_asset_definition k_click_audio_asset_def = { "sound_click_01", asset_scope_global, asset_type_wav, "C:\\Users\\RJ\\git\\simm_engine\\assets\\click_24_44k.wav" };
+const s_asset_definition k_test_bmp_asset_def = { "test_bmp", asset_scope_global, asset_type_bitmap, R"(C:\Users\RJ\git\simm_engine\assets\test\dude.bmp)" };
+
+s_bitmap_asset* g_test_bmp;
+
+void handle_asset_callback(c_string_id asset_id, s_asset* asset, void* object)
+{
+	if (asset_id == k_test_bmp_asset_def.id)
+	{
+		g_test_bmp = static_cast<s_bitmap_asset*>(asset);
+		ASSERT(g_test_bmp != nullptr);
+	}
+}
 
 extern "C"
 {
@@ -14,7 +26,8 @@ extern "C"
 
 		engine_log_verbose("Hello Game World! {i}", 7);
 
-		engine_load_asset(&k_click_audio_asset_def);
+		engine_load_asset(&k_click_audio_asset_def, handle_asset_callback, nullptr);
+		engine_load_asset(&k_test_bmp_asset_def, handle_asset_callback, nullptr);
 	}
 
 	bool was_mouse_down = false;
@@ -37,6 +50,13 @@ extern "C"
 		s_render_shape_circle circle;
 		circle.center = s_render_shape_point(mouse_x, mouse_y);
 		circle.radius = 38;
+
+		if (g_test_bmp)
+		{
+			int32 x = mouse_x - (g_test_bmp->width / 2);
+			int32 y = mouse_y - (g_test_bmp->height / 2);
+			engine_render_bitmap(*g_test_bmp, x, y, render_layer_main);
+		}
 
 		if (mouse_down)
 		{

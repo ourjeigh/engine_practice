@@ -5,6 +5,20 @@
 #include "file/file_path.h"
 #include "structures/string/string_id.h"
 
+struct s_asset
+{
+};
+
+struct s_bitmap_asset : s_asset
+{
+	int32 width;
+	int32 height;
+
+	c_array<uint32> pixels;
+
+	int32 size() { return width * height; }
+};
+
 enum e_asset_type
 {
 	asset_type_wav,
@@ -22,10 +36,12 @@ enum e_asset_scope
 
 struct s_asset_definition
 {
-	// get c_string_id into common and make this a c_string_id
 	c_string_id id;
 	e_asset_scope scope;
+	e_asset_type type;
 	c_file_path path;
 };
+
+using f_asset_loaded_callback = void(c_string_id, s_asset*, void*);
 
 #endif // !__ASSET_TYPES_H__

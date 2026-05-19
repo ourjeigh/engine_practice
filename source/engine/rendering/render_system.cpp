@@ -9,52 +9,6 @@
 #include "perf/perf.h"
 #include "platform/platform.h"
 
-// TEMP
-// ---------
-#include "assets/asset_system.h"
-#include "types/input_types.h"
-
-#pragma pack(push, 1)
-struct s_bitmap_file_header
-{
-	char bfType[2];
-	uint32 bfSize;
-	uint16 bfReserved1;
-	uint16 bfReserved2;
-	uint32 bfOffBits;
-};
-
-struct s_bitmap_info_header
-{
-	uint32 biSize;
-	int32 width;
-	int32 height;
-	uint16 biPlanes;
-	uint16 bits_per_pixel;
-	uint32 compression; // 3 == no compression
-	uint32 image_size_bytes; // in bytes
-	int32 biXPelsPerMeter;
-	int32 biYPelsPerMeter;
-	uint32 biClrUsed;
-	uint32 biClrImportant;
-
-	uint32 red_mask;
-	uint32 green_mask;
-	uint32 blue_mask;
-	uint32 alpha_mask;
-};
-#pragma pack(pop)
-
-// move
-
-
-//s_asset_definition k_test_bmp_asset_def = { "test_bmp", asset_scope_global, R"(C:\Users\RJ\git\simm_engine\assets\test\test_60x40.bmp)" };
-s_asset_definition k_test_bmp_asset_def = { "test_bmp", asset_scope_global, R"(C:\Users\RJ\git\simm_engine\assets\test\dude.bmp)" };
-
-// ---------
-
-
-
 enum e_render_message_type
 {
 	render_message_type_invalid = k_invalid,
@@ -100,7 +54,9 @@ struct s_render_message_data_draw_circle : s_render_message_data
 
 struct s_render_message_data_draw_bitmap : s_render_message_data
 {
-	s_bitmap_info bitmap;
+	s_bitmap_asset bitmap;
+	int32 x;
+	int32 y;
 };
 
 struct s_render_message
@@ -114,7 +70,7 @@ void process_draw_rect_message_internal(const s_render_message_data_draw_rect co
 void process_draw_line_message_internal(const s_render_message_data_draw_line const_ptr message, s_backbuffer const_ptr buffer);
 void process_draw_circle_message_internal(const s_render_message_data_draw_circle const_ptr message, s_backbuffer const_ptr buffer);
 void process_draw_circle_outline_message_internal(const s_render_message_data_draw_circle const_ptr message, s_backbuffer const_ptr buffer);
-void process_draw_bitmap_internal(const s_bitmap_info& bitmap_info, int32 x, int32 y, s_backbuffer const_ptr buffer);
+void process_draw_bitmap_message_internal(const s_render_message_data_draw_bitmap const_ptr message, s_backbuffer const_ptr buffer);
 
 inline void draw_pixel_to_buffer_internal(int32 x, int32 y, uint32 color, s_backbuffer const_ptr buffer);
 void draw_horizontal_line_internal(int32 start_x, int32 end_x, int32 y, uint32 color, s_backbuffer const_ptr buffer);
@@ -135,67 +91,12 @@ void c_render_system::init()
 
 	g_render_commands_allocator = ALLOCATE_NEW_GLOBAL(c_static_stack_allocator<k_byte_kib>, memory_arena_system);
 	g_render_messages = ALLOCATE_NEW_GLOBAL(t_render_message_stack, memory_arena_system);
-
-	c_asset_system::load_asset(&k_test_bmp_asset_def, nullptr, nullptr);
 }
 
 void c_render_system::term()
 {
 }
 
-uint32 bit_scan_forward(uint32 value)
-{
-	// TODO: use intrinsic if available
-	uint32 out = k_invalid;
-
-	for (int32 i = 0; i < 32; i++)
-	{
-		if (value & (1 << i))
-		{
-			out = i;
-			break;
-		}
-	}
-
-	return out;
-}
-
-s_bitmap_info create_bitmap_info(c_array<byte> const_ptr asset_data, s_bitmap_info& out_bitmap_info)
-{
-	const s_bitmap_file_header* header = reinterpret_cast<const s_bitmap_file_header*>(asset_data->data());
-	ASSERT(header != nullptr);
-	ASSERT(header->bfType[0] == 'B' && header->bfType[1] == 'M');
-	const s_bitmap_info_header* core = reinterpret_cast<const s_bitmap_info_header*> (asset_data->data() + sizeof(s_bitmap_file_header));
-
-	uint32 red_mask = core->red_mask;
-	uint32 green_mask = core->green_mask;
-	uint32 blue_mask = core->blue_mask;
-	uint32 alpha_mask = core->alpha_mask;
-
-	out_bitmap_info.height = core->height;
-	out_bitmap_info.width = core->width;
-
-	uint32 red_shift = bit_scan_forward(red_mask);
-	uint32 green_shift = bit_scan_forward(green_mask);
-	uint32 blue_shift = bit_scan_forward(blue_mask);
-	uint32 alpha_shift = bit_scan_forward(alpha_mask);
-
-	int32 pixel_count = core->height * core->width;
-	ASSERT(pixel_count * sizeof(uint32) == core->image_size_bytes);
-
-	out_bitmap_info.pixels = c_array<uint32>(reinterpret_cast<uint32*>(asset_data->data() + header->bfOffBits), pixel_count);
-
-	for (auto& pixel : out_bitmap_info.pixels)
-	{
-		pixel =
-			(((pixel >> alpha_shift) & 0xFF) << 24) |
-			(((pixel >> red_shift) & 0xFF) << 16) |
-			(((pixel >> green_shift) & 0xFF) << 8) |
-			(((pixel >> blue_shift) & 0xFF) << 0);
-	}
-
-	return out_bitmap_info;
-}
 
 void c_render_system::update()
 {
@@ -251,33 +152,17 @@ void c_render_system::update()
 				}
 				break;
 			}
+			case render_message_type_draw_bitmap:
+			{
+				const s_render_message_data_draw_bitmap* message_data = static_cast<s_render_message_data_draw_bitmap*>(message.data);
+				ASSERT(message_data != nullptr);
+				process_draw_bitmap_message_internal(message_data, &current_backbuffer);
+			}
 			default:
 				NOP();
 			}
 		}
 	}
-
-	// TEST
-	// -------
-	if (true)
-	{
-		PERF_MEASURE_SECTION("BITMAP RENDER");
-
-		c_array<byte>* asset_data = c_asset_system::get_asset_data(k_test_bmp_asset_def.id);
-		if (asset_data != nullptr && asset_data->is_valid())
-		{
-			s_bitmap_info bitmap_info;
-			create_bitmap_info(asset_data, bitmap_info);
-
-			s_mouse_position_state mouse = input_system_get_mouse_state()->position;
-
-			int32 x = mouse.x - (bitmap_info.width / 2);
-			int32 y = mouse.y - (bitmap_info.height / 2);
-
-			process_draw_bitmap_internal(bitmap_info, x, y, &current_backbuffer);
-		}
-	}
-	// -------
 
 	m_write_buffer_index.store(!write_index);
 	g_render_commands_allocator->clear();
@@ -341,12 +226,14 @@ void c_render_system::draw_circle(const s_render_shape_circle circle, uint32 col
 	new_message.data = message_data;
 }
 
-void c_render_system::draw_bitmap(const s_bitmap_info bitmap, e_render_layer layer)
+void c_render_system::draw_bitmap(const s_bitmap_asset bitmap, int32 x, int32 y, e_render_layer layer)
 {
 	s_render_message_data_draw_bitmap* message_data = ALLOCATE_NO_CONSTRUCTOR(s_render_message_data_draw_bitmap, *g_render_commands_allocator);
 	ASSERT(message_data != nullptr);
 
 	message_data->bitmap = bitmap;
+	message_data->x = x;
+	message_data->y = y;
 
 	s_render_message& new_message = g_render_messages->get_item(layer)->push();
 	new_message.type = render_message_type_draw_bitmap;
@@ -548,22 +435,23 @@ void process_draw_circle_message_internal(const s_render_message_data_draw_circl
 	}
 }
 
-inline void process_draw_bitmap_internal(const s_bitmap_info& bitmap_info, int32 x, int32 y, s_backbuffer const_ptr buffer)
+inline void process_draw_bitmap_message_internal(const s_render_message_data_draw_bitmap const_ptr message, s_backbuffer const_ptr buffer)
 {
 	PERF_MEASURE_FUNCTION();
-	int32 dest_y = y;
-	for (int32 y = (bitmap_info.height - 1); y >= 0; y--, dest_y++)
+
+	int32 dest_y = message->y;
+	for (int32 source_y = 0; source_y < message->bitmap.height; source_y++, dest_y++)
 	{
 		if (in_range_int32(0, buffer->height - 1, dest_y))
 		{
-			int32 dest_x = x;
+			int32 dest_x = message->x;
 
-			for (int32 x = 0; x < bitmap_info.width; x++, dest_x++)
+			for (int32 source_x = 0; source_x < message->bitmap.width; source_x++, dest_x++)
 			{
 				if (in_range_int32(0, buffer->width - 1, dest_x))
 				{
-					uint32 index = y * bitmap_info.width + x;
-					uint32 pixel = bitmap_info.pixels[index];
+					uint32 index = source_y * message->bitmap.width + source_x;
+					uint32 pixel = message->bitmap.pixels[index];
 
 					draw_pixel_to_buffer_internal(dest_x, dest_y, pixel, buffer);
 				}

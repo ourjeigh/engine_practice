@@ -29,7 +29,7 @@ public:
 	void draw_rect(const s_render_shape_rect rect, const uint32 color);
 	void draw_line(const s_render_shape_point start, const s_render_shape_point end, const uint32 color);
 	void draw_circle(const s_render_shape_circle circle, uint32 color, bool fill);
-	void draw_bitmap(const s_bitmap_info bitmap, e_render_layer layer);
+	void draw_bitmap(const s_bitmap_asset bitmap, int32 x, int32 y, e_render_layer layer);
 
 	const s_backbuffer* get_backbuffer();
 
@@ -46,5 +46,6 @@ inline void render_system_fill_screen(const uint32 color) { c_render_system::get
 inline void render_system_draw_rect(const s_render_shape_rect rect, const uint32 color) { c_render_system::get().draw_rect(rect, color); }
 inline void render_system_draw_line(const s_render_shape_point start, const s_render_shape_point end, const uint32 color) { c_render_system::get().draw_line(start, end, color); }
 inline void render_system_draw_circle(const s_render_shape_circle circle, uint32 color, bool fill) { c_render_system::get().draw_circle(circle, color, fill); }
+inline void render_system_draw_bitmap(const s_bitmap_asset bitmap, int32 x, int32 y, e_render_layer layer) { c_render_system::get().draw_bitmap(bitmap, x, y, layer); }
 inline s_render_shape_point render_system_get_screen_center() { return c_render_system::get().get_screen_center(); }
 #endif //__SOFTWARE_RENDERER_H__

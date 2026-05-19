@@ -16,15 +16,7 @@ enum e_render_layer
 	k_render_layer_count
 };
 
-struct s_bitmap_info
-{
-	int32 width;
-	int32 height;
 
-	c_array<uint32> pixels;
-
-	int32 size() { return width * height; }
-};
 
 struct s_color
 {

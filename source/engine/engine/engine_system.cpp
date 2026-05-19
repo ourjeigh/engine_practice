@@ -61,7 +61,6 @@ void engine_systems_pregame_update()
 {
 	// anything that will be needed for the game to update
 	g_input_system.update();
-	g_memory_system.update();
 	g_asset_system.update();
 }
 
@@ -73,4 +72,7 @@ void engine_systems_postgame_update()
 	
 	g_perf_system.update();
 	g_logging_system.update();
+	
+	// update memory last since it will clear the single frame allocator
+	g_memory_system.update();
 }

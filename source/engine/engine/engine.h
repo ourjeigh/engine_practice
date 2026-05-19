@@ -17,12 +17,14 @@ public:
 	s_key_state input_get_key_state(e_input_keycode key);
 	const s_mouse_state* input_get_mouse_state();
 
-	bool load_asset(const s_asset_definition* asset_def);
+	bool load_asset(const s_asset_definition* asset_def, f_asset_loaded_callback* callback, void* object);
 
 	void render_fill_screen(const uint32 color);
 	void render_draw_rect(const s_render_shape_rect rect, const uint32 color);
 	void render_draw_line(const s_render_shape_point start, const s_render_shape_point end, const uint32 color);
 	void render_draw_circle(const s_render_shape_circle circle, uint32 color, bool fill);
+	void render_draw_bitmap(const s_bitmap_asset bitmap, int32 x, int32 y, e_render_layer layer);
+
 	s_render_shape_point get_screen_center();
 
 	t_sound_playback_id play_sound(s_sound_info& info);

@@ -47,9 +47,9 @@ const s_mouse_state* c_engine::input_get_mouse_state()
 	return input_system_get_mouse_state();
 }
 
-bool c_engine::load_asset(const s_asset_definition* asset_def)
+bool c_engine::load_asset(const s_asset_definition* asset_def, f_asset_loaded_callback* callback, void* object)
 {
-	return c_asset_system::get().load_asset(asset_def, nullptr, nullptr);
+	return c_asset_system::get().load_asset(asset_def, callback, object);
 }
 
 
@@ -71,6 +71,11 @@ void c_engine::render_draw_line(const s_render_shape_point start, const s_render
 void c_engine::render_draw_circle(const s_render_shape_circle circle, uint32 color, bool fill)
 {
 	render_system_draw_circle(circle, color, fill);
+}
+
+void c_engine::render_draw_bitmap(const s_bitmap_asset bitmap, int32 x, int32 y, e_render_layer layer)
+{
+	render_system_draw_bitmap(bitmap, x, y, layer);
 }
 
 s_render_shape_point c_engine::get_screen_center()

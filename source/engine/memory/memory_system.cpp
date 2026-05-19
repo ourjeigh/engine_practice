@@ -37,6 +37,7 @@ void c_memory_system::term()
 
 void c_memory_system::update()
 {
+	g_arenas[memory_arena_frame].clear();
 }
 
 void* c_memory_system::allocate(uint64 size, uint64 align, e_memory_arena arena)
