@@ -59,6 +59,7 @@ private:
 
 void process_new_asset(s_load_asset_request& request, s_asset_internal& asset);
 void process_bitmap_asset(c_array<byte> const_ptr asset_data, s_bitmap_asset& out_bitmap_info);
+void process_wav_asset(c_array<byte> const_ptr asset_data, s_wav_asset& out_wav_asset);
 
 using t_asset_request_stack = c_static_spsc_queue<s_load_asset_request, k_max_asset_load_requests>;
 t_asset_request_stack* g_asset_load_requests;
@@ -129,9 +130,17 @@ c_array<byte>* c_asset_system::get_asset_data(c_string_id asset_id)
 	return nullptr;
 }
 
-s_asset* c_asset_system::get_asset(c_string_id asset_id)
+const s_asset* c_asset_system::get_asset(c_string_id asset_id)
 {
-	// we'll need to actually be storing the asset itself instead of just the raw memory
+	ASSERT(get_current_thread_id() != g_asset_loader_thread.get_thread_id());
+
+	s_asset_internal& asset = g_active_assets->find(asset_id.get_id());
+
+	if (asset.memory.is_valid())
+	{
+		return asset.asset;
+	}
+
 	return nullptr;
 }
 
@@ -229,8 +238,17 @@ void c_asset_loader_thread::process_asset_loads()
 					case asset_type_bitmap:
 					{
 						s_bitmap_asset* new_asset = ALLOCATE_GLOBAL_NO_CONSTRUCTOR(s_bitmap_asset, memory_arena_system);
-
+						ASSERT(new_asset != nullptr);
 						process_bitmap_asset(&asset.memory, *new_asset);
+						asset.asset = new_asset;
+						break;
+					}
+					case asset_type_wav:
+					{
+						s_wav_asset* new_asset = ALLOCATE_GLOBAL_NO_CONSTRUCTOR(s_wav_asset, memory_arena_system);
+						ASSERT(new_asset != nullptr);
+
+						process_wav_asset(&asset.memory, *new_asset);
 						asset.asset = new_asset;
 						break;
 					}
@@ -270,7 +288,6 @@ void c_asset_loader_thread::process_asset_loads()
 // private
 
 //  move this to bitmap_asset.h?
-
 #pragma pack(push, 1)
 struct s_bitmap_file_header
 {
@@ -323,7 +340,8 @@ void process_bitmap_asset(c_array<byte> const_ptr asset_data, s_bitmap_asset& ou
 {
 	const s_bitmap_file_header* header = reinterpret_cast<const s_bitmap_file_header*>(asset_data->data());
 	ASSERT(header != nullptr);
-	ASSERT(header->bfType[0] == 'B' && header->bfType[1] == 'M');
+	ASSERT(memory_compare(header->bfType, "BM", sizeof(char) * 2) == 0);
+	ASSERT(header->bfType[0] == 'B' && header->bfType[1] == 'M'); //remove
 	const s_bitmap_info_header* core = reinterpret_cast<const s_bitmap_info_header*> (asset_data->data() + sizeof(s_bitmap_file_header));
 
 	uint32 red_mask = core->red_mask;
@@ -368,4 +386,202 @@ void process_bitmap_asset(c_array<byte> const_ptr asset_data, s_bitmap_asset& ou
 				(((source_pixel >> blue_shift) & 0xFF) << 0);
 		}
 	}
+}
+
+// move this to wav_asset.h
+
+// these types correspond to the predefined wave file chunks.
+// they must be sized (and ordered) to spec so we can read them 
+// directly from files.
+// see: http://soundfile.sapp.org/doc/WaveFormat/
+struct s_audio_wav_header_riff
+{
+	char riff[4];
+	uint32 chunk_size;
+	char wave[4];
+};
+COMPILE_ASSERT(sizeof(s_audio_wav_header_riff) == 12);
+
+struct s_audio_wav_header_format
+{
+	char format[4];
+	uint32 chunk_size;
+	uint16 audio_format;
+	uint16 channel_count;
+	uint32 sample_rate;
+	uint32 bytes_per_second;
+	uint16 block_align;
+	uint16 bits_per_sample;
+};
+COMPILE_ASSERT(sizeof(s_audio_wav_header_format) == 24);
+
+struct s_audio_wav_header_chunk
+{
+	char name[4];
+	uint32 chunk_size;
+};
+COMPILE_ASSERT(sizeof(s_audio_wav_header_chunk) == 8);
+
+e_audio_sample_type get_sample_type_from_bits_per_sample(uint16 bits_per_sample)
+{
+	e_audio_sample_type out_type = audio_sample_type_unknown;
+	switch (bits_per_sample)
+	{
+	case 16:
+		out_type = audio_sample_type_int16;
+		break;
+	case 24:
+		out_type = audio_sample_type_int24;
+		break;
+	default:
+		break;
+	}
+
+	return out_type;
+}
+
+e_audio_compression_format get_compression_format_from_wave_format(uint16 format)
+{
+	e_audio_compression_format out_format = audio_compression_format_unknown;
+
+	switch (format)
+	{
+	case 1:
+		out_format = audio_compression_format_pcm;
+		break;
+	default:
+		break;
+	}
+
+	return out_format;
+}
+
+inline real32 convert_sample_to_real32(byte const_ptr in, e_audio_sample_type sample_type)
+{
+	real32 out = 0.0f;
+
+	switch (sample_type)
+	{
+	case audio_sample_type_int8:
+	{
+		const uint8 k_audio_int8_zero = 128;
+		const real32 divizor = 1 / k_audio_int8_zero;
+		out = (static_cast<uint8>(*in) - k_audio_int8_zero) * divizor;
+		HALT_UNIMPLEMENTED(); // needs testing
+		break;
+	}
+	case audio_sample_type_int16:
+	{
+		const real32 divizor = 1 / (k_int16_max + 1);
+		out = (*reinterpret_cast<int16*>(in)) * divizor;
+		//HALT_UNIMPLEMENTED(); // needs testing
+		break;
+	}
+	case audio_sample_type_int24:
+	{
+		constexpr uint32 int24_max = math_pow<uint32>(2, 31);
+		const real32 divisor = 1.0f / int24_max;
+		out = ((in[0] << 8) | (in[1] << 16) | (in[2] << 24)) * divisor;
+		break;
+	}
+	case audio_sample_type_int32:
+	{
+		const real32 divizor = 1 / int64_to_real32((int32_to_int64(k_int32_max) + 1));
+		out = (*reinterpret_cast<int32*>(in)) * divizor;
+		HALT_UNIMPLEMENTED(); // needs testing
+		break;
+	}
+	case audio_sample_type_float32:
+	{
+		out = *reinterpret_cast<real32*>(in);
+		break;
+	}
+	default:
+		HALT("Unknown sample type");
+	}
+
+	return out;
+}
+
+void process_wav_asset(c_array<byte> const_ptr asset_data, s_wav_asset& out_wav_asset)
+{
+	// some of this can go away...
+	s_audio_file_format format;
+
+	uint32 index = 0;
+	s_audio_wav_header_riff riff_chunk;
+	memory_copy(&riff_chunk, &asset_data->data()[index], sizeof(s_audio_wav_header_riff));
+
+	index += sizeof(s_audio_wav_header_riff);
+
+	s_audio_wav_header_format format_chunk;
+	memory_copy(&format_chunk, &asset_data->data()[index], sizeof(s_audio_wav_header_format));
+
+	format.sample_type = get_sample_type_from_bits_per_sample(format_chunk.bits_per_sample);
+	format.channel_count = format_chunk.channel_count;
+	format.sample_rate = format_chunk.sample_rate;
+	format.bits_per_sample = format_chunk.bits_per_sample;
+	format.block_align = format_chunk.block_align;
+
+	ASSERT(format.sample_type != audio_sample_type_unknown);
+	ASSERT(format.channel_count > 0);
+	ASSERT(format.sample_rate > 0);
+	ASSERT(format.bits_per_sample > 0);
+	ASSERT(format.block_align > 0);
+
+	index += sizeof(s_audio_wav_header_format);
+
+	// now we're in uncharted territory. look for the "data" chunk
+	s_audio_wav_header_chunk chunk;
+	bool data_chunk_found = false;
+
+	while (!data_chunk_found)
+	{
+		if (index + sizeof(s_audio_wav_header_chunk) >= asset_data->capacity())
+		{
+			HALT_UNIMPLEMENTED();
+		}
+
+		memory_copy(&chunk, &asset_data->data()[index], sizeof(s_audio_wav_header_chunk));
+
+		data_chunk_found = memory_compare(chunk.name, "data", sizeof(chunk.name)) == 0;
+
+		if (!data_chunk_found)
+		{
+			// the next chunk will start chunk_size bytes away
+			index += sizeof(s_audio_wav_header_chunk) + chunk.chunk_size;
+		}
+	}
+
+	format.sample_count = chunk.chunk_size / format_chunk.block_align;
+	format.data_position = index + sizeof(s_audio_wav_header_chunk);
+
+	ASSERT(format.sample_count > 0);
+	ASSERT(format.data_position > (sizeof(s_audio_wav_header_riff) + sizeof(s_audio_wav_header_format) + sizeof(s_audio_wav_header_chunk)));
+
+	int32 channel_count = format_chunk.channel_count;
+
+	uint32 sample_count = chunk.chunk_size / format_chunk.block_align;
+	int32 samples_per_channel = sample_count / channel_count;
+
+	real32* samples = static_cast<real32*>(c_memory_system::allocate(sizeof(real32) * sample_count, alignof(real32), memory_arena_system));
+	out_wav_asset.buffer = t_audio_buffer_real32(channel_count, samples_per_channel);
+	out_wav_asset.buffer.set_data(samples);
+
+	// TODO: Need to handle sample rate conversion
+	int32 sample_index = 0;
+	const int32 bytes_per_sample = format.bits_per_sample / 8;
+	for (int32 byte_index = format.data_position; byte_index < format.sample_count; byte_index += format.block_align)
+	{
+		for (int32 channenl_index = 0; channenl_index < format.channel_count; channenl_index++)
+		{
+			// TODO: this involves way too much switch logic. rework to just do the switch once
+			real32 sample = convert_sample_to_real32(&asset_data->data()[byte_index + (bytes_per_sample * channenl_index)], format.sample_type);
+			out_wav_asset.buffer.get_channel(channenl_index)[sample_index] = sample;
+		}
+
+		sample_index++;
+	}
+
+	NOP();
 }

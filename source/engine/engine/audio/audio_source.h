@@ -2,7 +2,7 @@
 #define __AUDIO_SOURCE_H__
 #pragma once
 
-#include "audio_buffer.h"
+#include "structures/audio/audio_buffer.h"
 #include "types/audio_types.h"
 #include "types/types.h"
 #include "engine/file_system/file.h"
@@ -66,7 +66,13 @@ public:
 	c_audio_source_file();
 	~c_audio_source_file();
 
+	// remove
 	void set_memory(const c_array<byte>* memory);
+
+	void set_buffer(const t_audio_buffer_real32& buffer)
+	{
+		m_buffer = buffer;
+	}
 
 	void get_samples(t_audio_buffer_real32& out_buffer);
 	bool HACK_finished() const { return m_HACK_finished; }
@@ -77,6 +83,8 @@ private:
 	uint32 m_position;
 	bool m_looping;
 	bool m_HACK_finished;
+
+	t_audio_buffer_real32 m_buffer;
 };
 
 class c_audio_source_file_streamed : public c_audio_source

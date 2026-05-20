@@ -52,6 +52,10 @@ bool c_engine::load_asset(const s_asset_definition* asset_def, f_asset_loaded_ca
 	return c_asset_system::get().load_asset(asset_def, callback, object);
 }
 
+const s_asset* c_engine::get_asset(c_string_id asset_id)
+{
+	return c_asset_system::get().get_asset(asset_id);
+};
 
 void c_engine::render_fill_screen(const uint32 color)
 {
@@ -86,4 +90,9 @@ s_render_shape_point c_engine::get_screen_center()
 t_sound_playback_id c_engine::play_sound(s_sound_info& info)
 {
 	return audio_system_play_sound(info);
+}
+
+t_sound_playback_id c_engine::play_sound(const s_wav_asset& asset)
+{
+	return audio_system_play_sound(asset);
 }

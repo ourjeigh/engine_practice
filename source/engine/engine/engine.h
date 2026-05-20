@@ -18,6 +18,7 @@ public:
 	const s_mouse_state* input_get_mouse_state();
 
 	bool load_asset(const s_asset_definition* asset_def, f_asset_loaded_callback* callback, void* object);
+	const s_asset* get_asset(c_string_id asset_id);
 
 	void render_fill_screen(const uint32 color);
 	void render_draw_rect(const s_render_shape_rect rect, const uint32 color);
@@ -28,6 +29,7 @@ public:
 	s_render_shape_point get_screen_center();
 
 	t_sound_playback_id play_sound(s_sound_info& info);
+	t_sound_playback_id play_sound(const s_wav_asset& asset);
 };
 
 #endif //__ENGINE_H__

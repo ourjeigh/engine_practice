@@ -4,6 +4,7 @@
 
 #include "file/file_path.h"
 #include "structures/string/string_id.h"
+#include "structures/audio/audio_buffer.h"
 
 struct s_asset
 {
@@ -17,6 +18,11 @@ struct s_bitmap_asset : s_asset
 	c_array<uint32> pixels;
 
 	int32 size() { return width * height; }
+};
+
+struct s_wav_asset : s_asset
+{
+	t_audio_buffer_real32 buffer;
 };
 
 enum e_asset_type

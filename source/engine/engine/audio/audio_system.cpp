@@ -7,6 +7,7 @@
 #include "memory/allocator.h"
 #include "memory/memory_system.h"
 #include <assets/asset_system.h>
+#include "engine/audio/./audio_threadsafe_buffer.h"
 
 const int32 k_audio_engine_buffer_size = 512;
 const int32 k_audio_output_buffer_size = k_audio_engine_buffer_size * 16;
@@ -76,6 +77,26 @@ void c_audio_system::update()
 	// update audio sources and mix
 }
 
+t_sound_playback_id c_audio_system::play_sound(const s_wav_asset& asset)
+{
+	c_audio_source_file* source = ALLOCATE_NEW(c_audio_source_file, *g_audio_source_allocator);
+	source->set_buffer(asset.buffer);
+
+	for (auto it = g_audio_playbacks.begin(); it != g_audio_playbacks.end(); ++it)
+	{
+		if (it->id == k_invalid)
+		{
+			it->id = g_sound_id_top++;
+			it->source = source;
+
+			//log_message(verbose, "audio_system: play_sound: [id:{u} name:{s}]", it->id, info.asset_id.get_debug_string()); // make this the string when it's a string_id
+
+			return it->id;
+		}
+	}
+	return k_invalid;
+}
+
 // todo: this should take in a s_sound_properties, so we can start playback with correct gain, etc;
 t_sound_playback_id c_audio_system::play_sound(s_sound_info& info)
 {
@@ -96,7 +117,7 @@ t_sound_playback_id c_audio_system::play_sound(s_sound_info& info)
 				it->id = g_sound_id_top++;
 				it->source = source;
 
-				log_message(verbose, "audio_system: play_sound: [id:{u} name:{s}]", it->id, info.asset_id.get_debug_string()); // make this the string when it's a string_id
+				log_message(verbose, "audio_system: play_sound: [id:{u} name:{s}]", it->id, info.asset_id.get_debug_string());
 
 				return it->id;
 			}

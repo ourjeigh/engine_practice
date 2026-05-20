@@ -2,7 +2,7 @@
 #define __AUDIO_SYSTEM_H__
 #pragma once
 
-#include "audio_buffer.h"
+#include "structures/audio/audio_buffer.h"
 #include "types/audio_types.h"
 #include "audio_source.h"
 #include "config.h"
@@ -52,6 +52,7 @@ public:
 	void term() override;
 	void update() override;
 
+	static_function t_sound_playback_id play_sound(const s_wav_asset& asset);
 	static_function t_sound_playback_id play_sound(s_sound_info& info);
 	static_function void update_sound(t_sound_playback_id playback_id, s_sound_properties& properties);
 };
@@ -112,6 +113,11 @@ const s_audio_device_format& audio_get_format();
 inline t_sound_playback_id audio_system_play_sound(s_sound_info& info)
 {
 	return c_audio_system::play_sound(info);
+}
+
+inline t_sound_playback_id audio_system_play_sound(const s_wav_asset& asset)
+{
+	return c_audio_system::play_sound(asset);
 }
 
 #endif //__AUDIO_SYSTEM_H__

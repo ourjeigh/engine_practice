@@ -157,9 +157,10 @@ void c_render_system::update()
 				const s_render_message_data_draw_bitmap* message_data = static_cast<s_render_message_data_draw_bitmap*>(message.data);
 				ASSERT(message_data != nullptr);
 				process_draw_bitmap_message_internal(message_data, &current_backbuffer);
+				break;
 			}
 			default:
-				NOP();
+				HALT_UNIMPLEMENTED();
 			}
 		}
 	}

@@ -7,13 +7,19 @@ const s_asset_definition k_click_audio_asset_def = { "sound_click_01", asset_sco
 const s_asset_definition k_test_bmp_asset_def = { "test_bmp", asset_scope_global, asset_type_bitmap, R"(C:\Users\RJ\git\simm_engine\assets\test\dude.bmp)" };
 
 s_bitmap_asset* g_test_bmp;
+s_wav_asset* g_test_sound;
 
-void handle_asset_callback(c_string_id asset_id, s_asset* asset, void* object)
+void asset_loaded_callback(c_string_id asset_id, s_asset* asset, void* object)
 {
 	if (asset_id == k_test_bmp_asset_def.id)
 	{
 		g_test_bmp = static_cast<s_bitmap_asset*>(asset);
 		ASSERT(g_test_bmp != nullptr);
+	}
+	else if (asset_id == k_click_audio_asset_def.id)
+	{
+		g_test_sound = static_cast<s_wav_asset*>(asset);
+		ASSERT(g_test_sound != nullptr);
 	}
 }
 
@@ -26,8 +32,8 @@ extern "C"
 
 		engine_log_verbose("Hello Game World! {i}", 7);
 
-		engine_load_asset(&k_click_audio_asset_def, handle_asset_callback, nullptr);
-		engine_load_asset(&k_test_bmp_asset_def, handle_asset_callback, nullptr);
+		engine_load_asset(&k_click_audio_asset_def, asset_loaded_callback, nullptr);
+		engine_load_asset(&k_test_bmp_asset_def, asset_loaded_callback, nullptr);
 	}
 
 	bool was_mouse_down = false;
@@ -70,8 +76,12 @@ extern "C"
 
 		if (mouse_down && !was_mouse_down)
 		{
-			s_sound_info sound_info(k_click_audio_asset_def.id, sound_source_playback_type_streamed);
-			engine_audio_play_sound(sound_info);
+			const s_wav_asset* click_asset = static_cast<const s_wav_asset*>(engine_get_asset(k_click_audio_asset_def.id));
+			if (click_asset != nullptr)
+			{
+				engine_audio_play_sound(*click_asset);
+			}
+			//s_sound_info sound_info(k_click_audio_asset_def.id, sound_source_playback_type_streamed);
 		}
 
 		was_mouse_down = mouse_down;
