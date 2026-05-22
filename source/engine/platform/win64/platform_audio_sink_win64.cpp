@@ -19,7 +19,7 @@ const IID IID_IAudioRenderClient = __uuidof(IAudioRenderClient);
 	HRESULT hres = x; \
 	if (FAILED(hres)) \
 	{ \
-		log_message(critical, "Windows Call: %s returned non S_OK: [%s]", #x, _com_error(hres).ErrorMessage()); \
+		log_message(critical, "Windows Call: {s} returned non S_OK: [{s}]", #x, _com_error(hres).ErrorMessage()); \
 		return false; \
 	} \
 } while (0)
@@ -29,7 +29,7 @@ const IID IID_IAudioRenderClient = __uuidof(IAudioRenderClient);
 	HRESULT hres = x; \
 	if (FAILED(hres)) \
 	{ \
-		log_message(critical, "Windows Call: %s returned non S_OK: [%s]", #x, _com_error(hres).ErrorMessage()); \
+		log_message(critical, "Windows Call: {s} returned non S_OK: [{s}]", #x, _com_error(hres).ErrorMessage()); \
 		return; \
 	} \
 } while (0)
@@ -77,6 +77,7 @@ bool c_platform_audio_sink::register_sink(s_audio_device_format& inout_audio_for
 
 	DWORD stream_flags = 0;
 
+	// TODO: we'll want to be able to set our own sample rate here, currently just using the default of 44.1k
 	CALL_WIN_FUNC_LOG_CRITICAL_AND_RETURN_FALSE_ON_ERROR(g_audio_client->Initialize(
 		AUDCLNT_SHAREMODE_SHARED,
 		stream_flags,

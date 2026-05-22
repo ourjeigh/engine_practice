@@ -189,12 +189,7 @@ void c_audio_source_file::get_samples(t_audio_buffer_real32& out_buffer)
 	// need copy_from_offset
 	for (int32 channel_index = 0; channel_index < out_buffer.channel_count(); channel_index++)
 	{
-		int32 source_position = m_position;
-		for (int32 sample_index = 0; sample_index < first_read; sample_index++)
-		{
-			out_buffer.get_channel(channel_index)[sample_index] = m_buffer.get_channel(channel_index)[source_position];
-			source_position++;
-		}
+		memory_copy(out_buffer.get_channel(channel_index), &m_buffer.get_channel(channel_index)[m_position], sizeof(real32) * first_read);
 	}
 
 	m_position += first_read;
@@ -219,72 +214,6 @@ void c_audio_source_file::get_samples(t_audio_buffer_real32& out_buffer)
 		}
 	}
 }
-
-//void c_audio_source_file::get_samples(t_audio_buffer_real32& out_buffer)
-//{
-//	const int32 sample_count = out_buffer.size();
-//	const int32 bytes_per_sample = m_format.bits_per_sample / 8;
-//
-//	const int32 samples_left = m_format.sample_count - m_position;
-//	const int32 first_read = math_min(sample_count, samples_left);
-//
-//	c_static_audio_buffer<real32, 2, 1024> audio_buffer;
-//
-//	for (int32 sample_index = 0 ;
-//		sample_index < first_read;
-//		sample_index++)
-//	{
-//		int32 byte_index = (m_position + sample_index) * bytes_per_sample;
-//		
-//		for (int32 channel_index = 0; channel_index < m_format.channel_count; channel_index++)
-//		{
-//			// TODO: this involves way too much switch logic. rework to just do the switch once
-//			real32 sample = convert_sample_to_real32(&m_memory.data()[byte_index + (bytes_per_sample * channel_index)], m_format.sample_type);
-//			out_buffer.get_channel(channel_index)[sample_index] = sample;
-//		}
-//	}
-//
-//	//out_buffer.copy_from(audio_buffer);
-//
-//	m_position += first_read;
-//
-//	if (first_read < sample_count)
-//	{
-//		ASSERT(m_position == m_format.sample_count);
-//
-//		if (m_looping)
-//		{
-//			int32 second_read = sample_count - first_read;
-//
-//			for (int32 sample_index = first_read;
-//				sample_index < sample_count;
-//				sample_index++)
-//			{
-//				int32 byte_index = (m_position + sample_index) * bytes_per_sample;
-//
-//				for (int32 channel_index = 0; channel_index < m_format.channel_count; channel_index++)
-//				{
-//					// TODO: this involves way too much switch logic. rework to just do the switch once
-//					real32 sample = convert_sample_to_real32(&m_memory.data()[byte_index + (bytes_per_sample * channel_index)], m_format.sample_type);
-//					out_buffer.get_channel(channel_index)[sample_index] = sample;
-//				}
-//			}
-//
-//			m_position = second_read;
-//		}
-//		else
-//		{
-//			m_HACK_finished = true;
-//			int32 begin = sample_count - first_read;
-//			int32 end = sample_count;
-//
-//			if (begin != end)
-//			{
-//				out_buffer.zero(begin, end);
-//			}
-//		}
-//	}
-//}
 
 c_audio_source_file_streamed::c_audio_source_file_streamed() :
 	m_file(),

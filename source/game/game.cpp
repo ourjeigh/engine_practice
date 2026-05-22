@@ -3,7 +3,7 @@
 #include "types/render_types.h"
 #include "types/asset_types.h"
 
-const s_asset_definition k_click_audio_asset_def = { "sound_click_01", asset_scope_global, asset_type_wav, "C:\\Users\\RJ\\git\\simm_engine\\assets\\click_24_44k.wav" };
+const s_asset_definition k_click_audio_asset_def = { "sound_click_01", asset_scope_global, asset_type_wav, "C:\\Users\\RJ\\git\\simm_engine\\assets\\click_16_44k.wav" };
 const s_asset_definition k_test_bmp_asset_def = { "test_bmp", asset_scope_global, asset_type_bitmap, R"(C:\Users\RJ\git\simm_engine\assets\test\dude.bmp)" };
 
 s_bitmap_asset* g_test_bmp;
@@ -29,8 +29,6 @@ extern "C"
 	{
 		g_engine_ptr = game_state.engine;
 		g_assert_handler = game_state.assert_hook;
-
-		engine_log_verbose("Hello Game World! {i}", 7);
 
 		engine_load_asset(&k_click_audio_asset_def, asset_loaded_callback, nullptr);
 		engine_load_asset(&k_test_bmp_asset_def, asset_loaded_callback, nullptr);

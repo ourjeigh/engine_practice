@@ -56,6 +56,7 @@ template<typename t_type> inline constexpr bool operator!=(const e_invalid& lhs,
 }
 
 // limits
+// turn these into defines to avoid casting?
 static_global const char k_char_max = 0x7F;
 static_global const byte k_byte_max = 0xFF;
 
