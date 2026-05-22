@@ -9,6 +9,10 @@
 #include "perf/perf.h"
 #include "platform/platform.h"
 
+// temp
+#include "debug/debug_letters.h"
+void TEST_render_string(c_string string, int32 x, int32 y, s_backbuffer const_ptr buffer);
+
 enum e_render_message_type
 {
 	render_message_type_invalid = k_invalid,
@@ -165,8 +169,36 @@ void c_render_system::update()
 		}
 	}
 
+	t_string_128 helloworld = "HELLOWORLD";
+	helloworld.pop();
+	TEST_render_string(helloworld, 50, 50, &current_backbuffer);
+
 	m_write_buffer_index.store(!write_index);
 	g_render_commands_allocator->clear();
+}
+
+void TEST_render_string(c_string string, int32 x, int32 y, s_backbuffer const_ptr buffer)
+{
+	for (auto c : string)
+	{
+		t_debug_render_char_array a = get_debug_char_array(c);
+
+		int i = 0;
+		int32 start_x = x;
+		int32 start_y = y;
+		for (int y = start_y; y < start_y + 8; y++)
+		{
+			for (int x = start_x; x < start_x + 8; x++)
+			{
+				real32 letter = *a.get_item(i);
+				s_color color(letter, letter, letter, letter);
+				draw_pixel_to_buffer_internal(x, y, color.to_uint32(), buffer);
+				i++;
+			}
+		}
+
+		x += 8;
+	}
 }
 
 void c_render_system::fill_screen(const uint32 color)
