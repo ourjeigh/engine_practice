@@ -11,7 +11,7 @@
 
 // temp
 #include "debug/debug_letters.h"
-void TEST_render_string(c_string string, int32 x, int32 y, s_backbuffer const_ptr buffer);
+void TEST_render_string(c_string string, int32 x, int32 y, s_color color, s_backbuffer const_ptr buffer);
 
 enum e_render_message_type
 {
@@ -169,15 +169,16 @@ void c_render_system::update()
 		}
 	}
 
-	t_string_128 helloworld = "HELLOWORLD";
+	t_string_128 helloworld = "HELLO WORLD! [,.:+-=/\\ &]";
+	helloworld.appendf(" {f.2}", 0.25f);
 	helloworld.pop();
-	TEST_render_string(helloworld, 50, 50, &current_backbuffer);
+	TEST_render_string(helloworld, 500, 500, k_color_green, &current_backbuffer);
 
 	m_write_buffer_index.store(!write_index);
 	g_render_commands_allocator->clear();
 }
 
-void TEST_render_string(c_string string, int32 x, int32 y, s_backbuffer const_ptr buffer)
+void TEST_render_string(c_string string, int32 x, int32 y, s_color color, s_backbuffer const_ptr buffer)
 {
 	for (auto c : string)
 	{
@@ -191,8 +192,8 @@ void TEST_render_string(c_string string, int32 x, int32 y, s_backbuffer const_pt
 			for (int x = start_x; x < start_x + 8; x++)
 			{
 				real32 letter = *a.get_item(i);
-				s_color color(letter, letter, letter, letter);
-				draw_pixel_to_buffer_internal(x, y, color.to_uint32(), buffer);
+				uint32 pixel = color.to_uint32() * letter;
+				draw_pixel_to_buffer_internal(x, y, pixel, buffer);
 				i++;
 			}
 		}
