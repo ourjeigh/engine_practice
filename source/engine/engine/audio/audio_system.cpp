@@ -8,6 +8,7 @@
 #include "memory/memory_system.h"
 #include <assets/asset_system.h>
 #include "engine/audio/./audio_threadsafe_buffer.h"
+#include <rendering/render_system.h>
 
 const int32 k_audio_engine_buffer_size = 512;
 const int32 k_audio_output_buffer_size = k_audio_engine_buffer_size * 16;
@@ -72,9 +73,23 @@ void c_audio_system::term()
 
 void c_audio_system::update()
 {
-	//log(verbose, "Audio System Update");
-
 	// update audio sources and mix
+	
+	if (false)
+	{
+		int32 active_sounds = 0;
+		for (auto it = g_audio_playbacks.begin(); it != g_audio_playbacks.end(); ++it)
+		{
+			if (it->id != k_invalid)
+			{
+				active_sounds++;
+			}
+		}
+
+		t_string_128 string;
+		string.printf("Active Sounds: {i}", active_sounds);
+		render_system_draw_debug_string(string, 5, 5, k_color_white);
+	}
 }
 
 t_sound_playback_id c_audio_system::play_sound(const s_wav_asset& asset)

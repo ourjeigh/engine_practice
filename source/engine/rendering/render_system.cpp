@@ -11,7 +11,7 @@
 
 // temp
 #include "debug/debug_letters.h"
-void TEST_render_string(c_string string, int32 x, int32 y, s_color color, s_backbuffer const_ptr buffer);
+void TEST_render_string(c_string string, int32 x, int32 y, c_color color, s_backbuffer const_ptr buffer);
 
 enum e_render_message_type
 {
@@ -22,6 +22,7 @@ enum e_render_message_type
 	render_message_type_draw_line,
 	render_message_type_draw_circle,
 	render_message_type_draw_bitmap,
+	render_message_type_draw_debug_string,
 
 	k_render_message_type_count
 };
@@ -63,6 +64,16 @@ struct s_render_message_data_draw_bitmap : s_render_message_data
 	int32 y;
 };
 
+#ifdef CONFIG_DEBUG
+struct s_render_message_data_draw_debug_string : s_render_message_data
+{
+	t_string_256 string;
+	int32 x;
+	int32 y;
+	c_color color;
+};
+#endif //CONFIG_DEBUG
+
 struct s_render_message
 {
 	e_render_message_type type;
@@ -75,6 +86,7 @@ void process_draw_line_message_internal(const s_render_message_data_draw_line co
 void process_draw_circle_message_internal(const s_render_message_data_draw_circle const_ptr message, s_backbuffer const_ptr buffer);
 void process_draw_circle_outline_message_internal(const s_render_message_data_draw_circle const_ptr message, s_backbuffer const_ptr buffer);
 void process_draw_bitmap_message_internal(const s_render_message_data_draw_bitmap const_ptr message, s_backbuffer const_ptr buffer);
+void process_draw_debug_string_message_internal(const s_render_message_data_draw_debug_string const_ptr message, s_backbuffer const_ptr buffer);
 
 inline void draw_pixel_to_buffer_internal(int32 x, int32 y, uint32 color, s_backbuffer const_ptr buffer);
 void draw_horizontal_line_internal(int32 start_x, int32 end_x, int32 y, uint32 color, s_backbuffer const_ptr buffer);
@@ -163,44 +175,25 @@ void c_render_system::update()
 				process_draw_bitmap_message_internal(message_data, &current_backbuffer);
 				break;
 			}
+#ifdef CONFIG_DEBUG
+			case render_message_type_draw_debug_string:
+			{
+				const s_render_message_data_draw_debug_string* message_data = static_cast<s_render_message_data_draw_debug_string*>(message.data);
+				ASSERT(message_data != nullptr);
+				process_draw_debug_string_message_internal(message_data, &current_backbuffer);
+				break;
+			}
+#endif //CONFIG_DEBUG
 			default:
 				HALT_UNIMPLEMENTED();
 			}
 		}
 	}
 
-	t_string_128 helloworld = "HELLO WORLD! [,.:+-=/\\ &]";
-	helloworld.appendf(" {f.2}", 0.25f);
-	helloworld.pop();
-	TEST_render_string(helloworld, 500, 500, k_color_green, &current_backbuffer);
-
 	m_write_buffer_index.store(!write_index);
 	g_render_commands_allocator->clear();
 }
 
-void TEST_render_string(c_string string, int32 x, int32 y, s_color color, s_backbuffer const_ptr buffer)
-{
-	for (auto c : string)
-	{
-		t_debug_render_char_array a = get_debug_char_array(c);
-
-		int i = 0;
-		int32 start_x = x;
-		int32 start_y = y;
-		for (int y = start_y; y < start_y + 8; y++)
-		{
-			for (int x = start_x; x < start_x + 8; x++)
-			{
-				real32 letter = *a.get_item(i);
-				uint32 pixel = color.to_uint32() * letter;
-				draw_pixel_to_buffer_internal(x, y, pixel, buffer);
-				i++;
-			}
-		}
-
-		x += 8;
-	}
-}
 
 void c_render_system::fill_screen(const uint32 color)
 {
@@ -274,6 +267,22 @@ void c_render_system::draw_bitmap(const s_bitmap_asset bitmap, int32 x, int32 y,
 	new_message.data = message_data;
 }
 
+#ifdef CONFIG_DEBUG
+void c_render_system::draw_debug_string(const c_string string, int32 x, int32 y, c_color color)
+{
+	s_render_message_data_draw_debug_string* message_data = ALLOCATE_NEW(s_render_message_data_draw_debug_string, *g_render_commands_allocator);
+	ASSERT(message_data != nullptr);
+
+	message_data->string.copy_from(string);
+	message_data->x = x;
+	message_data->y = y;
+	message_data->color = color;
+
+	s_render_message& new_message = g_render_messages->get_item(render_layer_debug)->push();
+	new_message.type = render_message_type_draw_debug_string;
+	new_message.data = message_data;
+}
+#endif //CONFIG_DEBUG
 const s_backbuffer* c_render_system::get_backbuffer()
 {
 	const int32 write_index = m_write_buffer_index.load();
@@ -493,6 +502,37 @@ inline void process_draw_bitmap_message_internal(const s_render_message_data_dra
 		}
 	}
 }
+
+#ifdef CONFIG_DEBUG
+inline void process_draw_debug_string_message_internal(const s_render_message_data_draw_debug_string const_ptr message, s_backbuffer const_ptr buffer)
+{
+	int32 x = message->x;
+	for (auto it = message->string.begin_const(); it != message->string.end_const(); ++it)
+	{
+		t_debug_render_char_array letter_pixels = get_debug_char_array(*it);
+		
+		if (*it == k_null_char) break;
+
+		int i = 0;
+		int32 start_x = x;
+		int32 start_y = message->y;
+		for (int y = start_y; y < start_y + 8; y++)
+		{
+			for (int x = start_x; x < start_x + 8; x++)
+			{
+				// we need a 64bit float to handle the precision loss in multiplication
+				real64 letter_weight = *letter_pixels.get_item(i);
+				uint32 pixel = message->color.to_uint32() * letter_weight;
+
+				draw_pixel_to_buffer_internal(x, y, pixel, buffer);
+				i++;
+			}
+		}
+
+		x += 8;
+	}
+}
+#endif //CONFIG_DEBUG
 
 inline void draw_pixel_to_buffer_internal(int32 x, int32 y, uint32 color, s_backbuffer const_ptr buffer)
 {

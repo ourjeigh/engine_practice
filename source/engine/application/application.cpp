@@ -10,6 +10,7 @@
 #include "platform/platform_process.h"
 #include "time/time.h"
 #include "platform/platform_window.h"
+#include <rendering/render_system.h>
 
 const real32 k_max_fps = 60.0f;
 const real32 k_max_frame_interval_seconds = 1 / k_max_fps;
@@ -113,8 +114,13 @@ void c_application::run()
 			log_message(warning, "Long Frame Time: {f.2} milliseconds", frame_work_time_ms);
 		}
 
-		// TODO: track loop time somewhere
 		c_time_span span = loop_timer.get_loop_time_span_and_continue();
+
+#ifdef CONFIG_DEBUG
+		t_string_128 string;
+		string.printf("Frame Time: {f.2}ms", span.get_duration_milliseconds());
+		render_system_draw_debug_string(string, 5, 5, k_color_white);
+#endif //CONFIG_DEBUG
 	}
 }
 
