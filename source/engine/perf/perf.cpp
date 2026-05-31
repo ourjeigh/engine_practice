@@ -1,4 +1,6 @@
 #include "perf.h"
+#ifdef FEATURE_PERF_MEASUREMENT
+
 #include "perf_system.h"
 
 s_stack_perf_measurer::s_stack_perf_measurer(c_string_id id) : id(id)
@@ -16,3 +18,4 @@ s_stack_perf_measurer::~s_stack_perf_measurer()
 
 	c_perf_system::report_perf_message(measurement);
 }
+#endif //FEATURE_PERF_MEASUREMENT

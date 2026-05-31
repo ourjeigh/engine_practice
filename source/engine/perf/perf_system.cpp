@@ -1,7 +1,10 @@
 #include "perf_system.h"
+
+#ifdef FEATURE_PERF_MEASUREMENT
 #include "debug/logging.h"
 #include "structures/hash_set.h"
 #include "platform/platform.h"
+
 
 struct s_perf_measurement_set
 {
@@ -141,3 +144,5 @@ void c_perf_system::report_perf_message(const s_perf_measurement& measurement)
 
 	memory_copy(&new_measurement, &measurement, sizeof(s_perf_measurement));
 }
+
+#endif //FEATURE_PERF_MEASUREMENT

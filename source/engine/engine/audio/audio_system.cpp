@@ -7,8 +7,8 @@
 #include "memory/allocator.h"
 #include "memory/memory_system.h"
 #include <assets/asset_system.h>
-#include "engine/audio/./audio_threadsafe_buffer.h"
-#include <rendering/render_system.h>
+#include "engine/audio/audio_threadsafe_buffer.h"
+#include "rendering/render_system.h"
 
 const int32 k_audio_engine_buffer_size = 512;
 const int32 k_audio_output_buffer_size = k_audio_engine_buffer_size * 16;
@@ -86,9 +86,11 @@ void c_audio_system::update()
 			}
 		}
 
+#ifdef CONFIG_DEBUG
 		t_string_128 string;
 		string.printf("Active Sounds: {i}", active_sounds);
-		render_system_draw_debug_string(string, 5, 5, k_color_white);
+		render_system_draw_debug_string(string, 5, 5, 1, k_color_white);
+#endif //CONFIG_DEBUG
 	}
 }
 

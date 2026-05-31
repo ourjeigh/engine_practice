@@ -10,7 +10,10 @@
 
 // TODO: make dev only
 static_global c_logging_system g_logging_system;
+
+#ifdef FEATURE_PERF_MEASUREMENT
 static_global c_perf_system g_perf_system;
+#endif //FEATURE_PERF_MEASUREMENT
 
 static_global c_memory_system g_memory_system;
 static_global c_asset_system g_asset_system;
@@ -31,7 +34,9 @@ void engine_systems_init()
 	g_logging_system.init(log_settings);
 	g_memory_system.init();
 	g_asset_system.init();
+#ifdef FEATURE_PERF_MEASUREMENT
 	g_perf_system.init();
+#endif //FEATURE_PERF_MEASUREMENT
 
 	g_input_system.init();
 	g_render_system.init();
@@ -47,8 +52,10 @@ void engine_systems_term()
 	g_audio_system.term();
 	g_render_system.term();
 	g_input_system.term();
-	
+
+#ifdef FEATURE_PERF_MEASUREMENT
 	g_perf_system.term();
+#endif //FEATURE_PERF_MEASUREMENT
 	g_asset_system.term();
 	g_memory_system.term();
 
@@ -69,8 +76,10 @@ void engine_systems_postgame_update()
 	// anything needed to respond to the game's update
 	g_audio_system.update();
 	g_render_system.update();
-	
+
+#ifdef FEATURE_PERF_MEASUREMENT
 	g_perf_system.update();
+#endif //FEATURE_PERF_MEASUREMENT
 	g_logging_system.update();
 	
 	// update memory last since it will clear the single frame allocator

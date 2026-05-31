@@ -21,7 +21,7 @@
 #define DEBUG_ONLY_PARAM_RIGHT_COMMA(x)  x ,
 
 #else 
-# no config detected, RELEASE assumed
+#define CONFIG_NAME "release"
 #define CONFIG_RELEASE
 
 #define IF_DEBUG(x)

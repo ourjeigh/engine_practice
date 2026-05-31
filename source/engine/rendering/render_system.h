@@ -32,7 +32,7 @@ public:
 	void draw_bitmap(const s_bitmap_asset bitmap, int32 x, int32 y, e_render_layer layer);
 
 #ifdef CONFIG_DEBUG
-	void draw_debug_string(const c_string string, int32 x, int32 y, c_color color);
+	void draw_debug_string(const c_string string, int32 x, int32 y, int32 scale, c_color color);
 #endif // CONFIG_DEBUG
 
 	const s_backbuffer* get_backbuffer();
@@ -53,7 +53,7 @@ inline void render_system_draw_circle(const s_render_shape_circle circle, uint32
 inline void render_system_draw_bitmap(const s_bitmap_asset bitmap, int32 x, int32 y, e_render_layer layer) { c_render_system::get().draw_bitmap(bitmap, x, y, layer); }
 
 #ifdef CONFIG_DEBUG
-inline void render_system_draw_debug_string(const c_string string, int32 x, int32 y, c_color color) { c_render_system::get().draw_debug_string(string, x, y, color); }
+inline void render_system_draw_debug_string(const c_string string, int32 x, int32 y, int32 scale, c_color color) { c_render_system::get().draw_debug_string(string, x, y, scale, color); }
 #endif // CONFIG_DEBUG
 
 inline s_render_shape_point render_system_get_screen_center() { return c_render_system::get().get_screen_center(); }
