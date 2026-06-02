@@ -12,7 +12,8 @@ TEST(HASH_TABLES, HASH_TABLE_BASE)
 
 	c_linear_hash_table_base<int32, int32, 128, s_get_key> test_table;
 
-	EXPECT_EQ(test_table.find_or_insert(256), 256);
+	bool found;
+	EXPECT_EQ(test_table.find_or_insert(256, found), 256);
 	EXPECT_TRUE(test_table.contains(256));
 
 	const int32 find = test_table.find_const(256);
@@ -134,8 +135,8 @@ TEST(HASH_TABLES, HASH_MAP)
 	EXPECT_TRUE(map.full());
 
 	// inserting when false fails
-	real32 new_val;
-	EXPECT_FALSE(map.try_find_or_insert(129, new_val));
+	real32* new_val;
+	EXPECT_FALSE(map.try_find_or_insert(129, &new_val));
 
 	// Verify all inserted values
 	for (int32 i = 0; i < 128; i++)

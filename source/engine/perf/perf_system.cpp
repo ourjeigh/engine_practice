@@ -84,7 +84,8 @@ void c_perf_system::update()
 				id.measurement_id.copy_from(it->id);
 				id.thread_id = it->thread_id;
 				
-				s_perf_measurement_set& set = g_measurements.find_or_insert(id);
+				bool found;
+				s_perf_measurement_set& set = g_measurements.find_or_insert(id, found);
 				
 				set.unique_id.measurement_id.copy_from(it->id);
 				set.unique_id.thread_id = it->thread_id;

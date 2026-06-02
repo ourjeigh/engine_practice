@@ -81,6 +81,7 @@ public:
 				index++;
 			}
 		}
+
 		c_linear_hash_table_base* table;
 		int32 index;
 	};
@@ -120,12 +121,11 @@ public:
 		return m_data[index].data;
 	}
 
-	t_type& find_or_insert(const t_key& key)
+	t_type& find_or_insert(const t_key& key, bool& out_found)
 	{
-		bool found;
-		int32 index = find_index(key, found);
+		int32 index = find_index(key, out_found);
 
-		if (found)
+		if (out_found)
 		{
 			ASSERT(m_data[index].state == cell_state_occupied);
 			return m_data[index].data;
@@ -138,7 +138,8 @@ public:
 		return m_data[index].data;
 	}
 
-	bool try_find_or_insert(const t_key& key, t_type* out_value)
+	// returns true if found, out_value will be nullptr if couldn't find or insert
+	bool try_find_or_insert(const t_key& key, t_type** out_value)
 	{
 		bool found;
 		int32 index = find_index(key, found);
@@ -146,19 +147,19 @@ public:
 		if (found)
 		{
 			ASSERT(m_data[index].state == cell_state_occupied);
-			out_value = &m_data[index].data;
+			*out_value = &m_data[index].data;
 			return true;
 		}
 
 		// didn't find, try to insert
 		if (full())
 		{
-			out_value = nullptr;
+			*out_value = nullptr;
 			return false;
 		}
 	
 		insert_at_index_unsafe(index, key);
-		out_value = &m_data[index].data;
+		*out_value = &m_data[index].data;
 
 		return false;
 	}
@@ -299,31 +300,20 @@ public:
 	iterator begin() { return m_table.begin(); }
 	iterator end() { return m_table.end(); }
 
-	bool insert(const t_type& key)
+	t_type& insert(const t_type& key)
 	{
-		int32 size = used();
-		t_type out;
-		m_table.try_find_or_insert(key, &out);
-		return used() > size;
+		return m_table.insert(key);
 	}
 
-	// returns true if found
-	bool find_or_insert(t_type*& key)
+	t_type& find_or_insert(t_type& key, bool& out_found)
 	{
-		int32 size = used();
-		t_type& out = m_table.find_or_insert(*key);
-		bool found = size == used();
-		
-		if (!found)
-		{
-			out = *key;
-		}
-		else
-		{
-			*key = out;
-		}
+		return m_table.find_or_insert(key, out_found);
+	}
 
-		return found;
+	// returns true if found, out_value will be nullptr if couldn't find or insert
+	bool try_find_or_insert(t_type& key, t_type** out_value)
+	{
+		m_table.try_find_or_insert(key, out_value);
 	}
 
 	bool remove(const t_type& key)
@@ -376,20 +366,19 @@ public:
 		return m_table.insert(key).value;
 	}
 
-	t_value& find_or_insert(const t_key& key)
+	t_value& find_or_insert(const t_key& key, bool& out_found)
 	{
-		return m_table.find_or_insert(key).value;
+		return m_table.find_or_insert(key, out_found).value;
 	}
 
-	bool try_find_or_insert(const t_key& key, t_value& out_value)
+	// returns true if found, out_value will be nullptr if couldn't find or insert
+	bool try_find_or_insert(const t_key& key, t_value** out_value)
 	{
-		// need to rethink this, this does not properly return the actual
-		// table object which means you can't modify the out_value
-		t_kvp out_kvp;
+		t_kvp* out_kvp;
 		bool result = m_table.try_find_or_insert(key, &out_kvp);
 		if (result)
 		{
-			out_value = out_kvp.value;
+			*out_value = &out_kvp->value;
 		}
 
 		return result;
@@ -417,7 +406,8 @@ public:
 
 	t_value& operator[](const t_key& key)
 	{
-		return find_or_insert(key);
+		bool found;
+		return find_or_insert(key, found);
 	}
 
 	int32 usabale_capacity() { return m_table.usabale_capacity(); }

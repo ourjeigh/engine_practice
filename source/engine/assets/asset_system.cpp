@@ -189,10 +189,12 @@ void c_asset_loader_thread::process_asset_loads()
 		
 		c_string_id asset_id = request.asset_definition.id;
 
-		s_asset_internal& asset = g_active_assets->find_or_insert(asset_id.get_id());
+		bool found;
+		s_asset_internal& asset = g_active_assets->find_or_insert(asset_id.get_id(), found);
 
-		if (asset.ref_count > 0)
+		if (found)
 		{
+			ASSERT(asset.ref_count > 0);
 			ASSERT(asset.memory.is_valid());
 			asset.ref_count++;
 
