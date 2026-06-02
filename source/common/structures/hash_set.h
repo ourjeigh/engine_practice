@@ -293,7 +293,7 @@ template<
 class c_hash_set
 {
 public:
-	class s_get_key;
+	struct s_get_key;
 	using t_table = c_linear_hash_table_base<t_type, t_type, k_max_size, s_get_key, f_hasher, f_comparator>;
 	using iterator = t_table::iterator;
 
@@ -354,7 +354,7 @@ template<
 class c_hash_map
 {
 public:
-	class s_get_key;
+	struct s_get_key;
 	using t_table = c_linear_hash_table_base<s_key_value_pair<t_key, t_value>, t_key, k_max_size, s_get_key, f_hasher, f_comparitor>;
 	using iterator = t_table::iterator;
 	
