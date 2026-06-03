@@ -502,7 +502,7 @@ void convert_samples_to_real32(
 		// of a 4 byte integer so that we preserve the sign of the 24bit value. if we
 		// only shifted them up 3 (0, 8, 16) we would lose the sign and all negative
 		// values would be incorrect. to account for this, our divisor has to be based
-		// of 
+		// off uint32_max
 		constexpr uint32 max = math_pow<uint32>(2, 31);
 		const real32 divisor = 1.0f / static_cast<real32>(max);
 		const int32 bytes_per_sample = 3;
@@ -525,7 +525,7 @@ void convert_samples_to_real32(
 		ASSERT(sample_index == out_buffer->size());
 		break;
 	}
-	case audio_sample_type_float32:
+	case audio_sample_type_real32:
 	{
 		// needs testing with real sample
 		HALT_UNIMPLEMENTED(); 
@@ -558,6 +558,18 @@ void convert_samples_to_real32(
 		break;
 	}
 	}
+}
+
+void convert_and_resample_to_real32(
+	c_array<byte> samples,
+	e_audio_sample_type sample_type,
+	int32 channel_count,
+	int32 block_align,
+	int32 source_sample_rate,
+	int32 target_sample_rate,
+	t_audio_buffer_real32 const_ptr out_buffer)
+{
+	//todo
 }
 
 void process_wav_asset(c_array<byte> const_ptr asset_data, s_wav_asset& out_wav_asset)
@@ -604,31 +616,112 @@ void process_wav_asset(c_array<byte> const_ptr asset_data, s_wav_asset& out_wav_
 	ASSERT(data_position > (sizeof(s_audio_wav_header_riff) + sizeof(s_audio_wav_header_format) + sizeof(s_audio_wav_header_chunk)));
 	ASSERT(sample_count > 0);
 
-	real32* samples = static_cast<real32*>(c_memory_system::allocate(sizeof(real32) * sample_count * channel_count, alignof(real32), memory_arena_system));
-	out_wav_asset.buffer = t_audio_buffer_real32(channel_count, sample_count);
-	out_wav_asset.buffer.set_data(samples);
-
-	// TODO: Need to handle sample rate conversion
+	// todo: generalize, recombine
 	if (format_chunk.sample_rate != audio_system_get_sample_rate())
 	{
-		HALT_UNIMPLEMENTED();
+		real64 source_rate = format_chunk.sample_rate;
+		real64 target_rate = audio_system_get_sample_rate();
+		
+		real64 ratio = source_rate / target_rate;
+		int32 target_samples = sample_count * ratio;
+
+		real32* samples = static_cast<real32*>(c_memory_system::allocate(sizeof(real32) * target_samples * channel_count, alignof(real32), memory_arena_system));
+		out_wav_asset.buffer = t_audio_buffer_real32(channel_count, target_samples);
+		out_wav_asset.buffer.set_data(samples);
+
+		const int32 bytes_per_sample = format_chunk.bits_per_sample / 8;
+
+		ASSERT(asset_data->capacity() - data_position == sample_count * format_chunk.block_align);
+		ASSERT(format_chunk.block_align == bytes_per_sample * channel_count);
+
+		int32 start_index = data_position;
+
+		// linear resampling
+		for (int32 target_sample = 0; target_sample < target_samples; target_sample++)
+		{
+			real64 source_index = (static_cast<real32>(target_sample) / target_samples) * sample_count;
+			int32 source_index_lo = source_index;
+			int32 source_index_hi = source_index_lo + 1;
+
+#ifndef CONFIG_RELEASE
+			if (target_sample == target_samples - 1)
+			{
+				ASSERT(source_index_hi == sample_count - 1);
+			}
+#endif
+
+			real32 weight_hi = source_index - source_index_lo;
+			real32 weight_lo = 1.0f - weight_hi;
+
+			if (source_index_hi >= sample_count)
+			{
+				weight_hi = 0.0f;
+			}
+
+			for (int32 channel_index = 0; channel_index < channel_count; channel_index++)
+			{
+				int32 byte_index_lo = start_index + (format_chunk.block_align * source_index_lo) + (bytes_per_sample * channel_index);
+				int32 byte_index_hi = byte_index_lo + format_chunk.block_align;
+
+				const byte* sample_bytes_lo = asset_data->get_item(byte_index_lo);
+				const byte* sample_bytes_hi = asset_data->get_item(byte_index_hi);
+
+				real32 sample_lo = 0;
+				real32 sample_hi = 0;
+
+				switch (sample_type)
+				{
+				case audio_sample_type_int16:
+				{
+					constexpr uint32 max = math_pow<uint32>(2, 15);
+					const real32 divisor = 1 / static_cast<real32>(max);
+
+					sample_lo = static_cast<int16>(sample_bytes_lo[0] | sample_bytes_lo[1] << 8) * divisor;
+					sample_hi = static_cast<int16>(sample_bytes_hi[0] | sample_bytes_hi[1] << 8) * divisor;
+					break;
+				}
+				case audio_sample_type_int24:
+				{
+					constexpr uint32 max = math_pow<uint32>(2, 31);
+					const real32 divisor = 1.0f / static_cast<real32>(max);
+
+					sample_lo = ((sample_bytes_lo[0] << 8) | (sample_bytes_lo[1] << 16) | (sample_bytes_lo[2] << 24)) * divisor;
+					sample_hi = ((sample_bytes_hi[0] << 8) | (sample_bytes_hi[1] << 16) | (sample_bytes_hi[2] << 24)) * divisor;
+					break;
+				}
+				default:
+					HALT_UNIMPLEMENTED();
+					break;
+				}
+
+				real32 sample = (sample_lo * weight_lo) + (sample_hi * weight_hi);
+				out_wav_asset.buffer.get_channel(channel_index)[target_sample] = sample;
+			}
+		}
+	}
+	else
+	{
+		real32* samples = static_cast<real32*>(c_memory_system::allocate(sizeof(real32) * sample_count * channel_count, alignof(real32), memory_arena_system));
+		out_wav_asset.buffer = t_audio_buffer_real32(channel_count, sample_count);
+		out_wav_asset.buffer.set_data(samples);
+
+		int32 bytes_to_read = sample_count * format_chunk.block_align;
+		const int32 bytes_per_sample = format_chunk.bits_per_sample / 8;
+
+		ASSERT(asset_data->capacity() - data_position == bytes_to_read);
+		ASSERT(format_chunk.block_align == bytes_per_sample * channel_count);
+
+
+		int32 start_index = data_position;
+		int32 end_index = data_position + bytes_to_read - 1;
+		ASSERT(end_index == asset_data->capacity() - 1);
+	
+		convert_samples_to_real32(
+			asset_data->make_sub_array(start_index, end_index),
+			sample_type,
+			channel_count,
+			format_chunk.block_align,
+			&out_wav_asset.buffer);
 	}
 
-	int32 bytes_to_read = sample_count * format_chunk.block_align;
-	const int32 bytes_per_sample = format_chunk.bits_per_sample / 8;
-
-	ASSERT(asset_data->capacity() - data_position == bytes_to_read);
-	ASSERT(format_chunk.block_align == bytes_per_sample * channel_count);
-
-
-	int32 start_index = data_position;
-	int32 end_index = data_position + bytes_to_read - 1;
-	ASSERT(end_index == asset_data->capacity() - 1);
-	
-	convert_samples_to_real32(
-		asset_data->make_sub_array(start_index, end_index),
-		sample_type,
-		channel_count,
-		format_chunk.block_align,
-		&out_wav_asset.buffer);
 }

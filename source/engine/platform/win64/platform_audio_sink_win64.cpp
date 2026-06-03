@@ -60,14 +60,16 @@ bool c_platform_audio_sink::register_sink(s_audio_device_format& inout_audio_for
 		NULL,
 		CLSCTX_ALL,
 		IID_IMMDeviceEnumerator,
-		(void**)&device_enumerator));
+		reinterpret_cast<void**>(&device_enumerator)));
 
 	CALL_WIN_FUNC_LOG_CRITICAL_AND_RETURN_FALSE_ON_ERROR(device_enumerator->GetDefaultAudioEndpoint(
 		eRender, eConsole, &audio_device));
 
 	CALL_WIN_FUNC_LOG_CRITICAL_AND_RETURN_FALSE_ON_ERROR(audio_device->Activate(
-		IID_IAudioClient, CLSCTX_ALL,
-		NULL, (void**)&g_audio_client));
+		IID_IAudioClient, 
+		CLSCTX_ALL,
+		NULL, 
+		reinterpret_cast<void**>(&g_audio_client)));
 
 	CALL_WIN_FUNC_LOG_CRITICAL_AND_RETURN_FALSE_ON_ERROR(g_audio_client->GetMixFormat(&mix_format));
 
@@ -75,9 +77,15 @@ bool c_platform_audio_sink::register_sink(s_audio_device_format& inout_audio_for
 	int64 device_period_min;
 	CALL_WIN_FUNC_LOG_CRITICAL_AND_RETURN_FALSE_ON_ERROR(g_audio_client->GetDevicePeriod(&device_period_default, &device_period_min));
 
-	DWORD stream_flags = 0;
+	// setup our own mix
+	mix_format->nSamplesPerSec = inout_audio_format.sample_rate;
+	mix_format->nChannels = inout_audio_format.channel_count;
+	mix_format->wBitsPerSample = 32;
+	mix_format->nBlockAlign = inout_audio_format.channel_count * 32 / 8;
+	mix_format->nAvgBytesPerSec = inout_audio_format.sample_rate * mix_format->nBlockAlign;
 
-	// TODO: we'll want to be able to set our own sample rate here, currently just using the default of 44.1k
+	DWORD stream_flags = AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM | AUDCLNT_STREAMFLAGS_SRC_DEFAULT_QUALITY; // Force WASAPI to resample;
+
 	CALL_WIN_FUNC_LOG_CRITICAL_AND_RETURN_FALSE_ON_ERROR(g_audio_client->Initialize(
 		AUDCLNT_SHAREMODE_SHARED,
 		stream_flags,
@@ -105,12 +113,18 @@ bool c_platform_audio_sink::register_sink(s_audio_device_format& inout_audio_for
 	{
 	case 16:
 		inout_audio_format.sample_type = audio_sample_type_int16;
+		HALT_UNIMPLEMENTED();
+		break;
+	case 24:
+		inout_audio_format.sample_type = audio_sample_type_int24;
+		HALT_UNIMPLEMENTED();
 		break;
 	case 32:
-		inout_audio_format.sample_type = audio_sample_type_float32;
+		inout_audio_format.sample_type = audio_sample_type_real32;
 		break;
 	default:
 		inout_audio_format.sample_type = audio_sample_type_unknown;
+		HALT_UNIMPLEMENTED();
 		break;
 	}
 

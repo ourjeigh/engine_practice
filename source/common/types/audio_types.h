@@ -40,7 +40,7 @@ enum e_audio_sample_type
 	audio_sample_type_int16,
 	audio_sample_type_int24,
 	audio_sample_type_int32,
-	audio_sample_type_float32,
+	audio_sample_type_real32,
 
 	k_audio_sample_type_count
 };

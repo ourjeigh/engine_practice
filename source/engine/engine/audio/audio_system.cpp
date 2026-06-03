@@ -43,6 +43,7 @@ void c_audio_system::init()
 	g_audio_render_thread.init();
 
 	// HACK? we need to wait for the audio render thread to setup the audio device and fill in the format
+	// replace with a flag checking for audio sync setup
 	while (g_audio_format.sample_rate == 0)
 	{
 		sleep_for_milliseconds(10);
@@ -273,8 +274,16 @@ bool c_audio_render_thread::setup_audio_sink()
 	bool result = false;
 	ASSERT(get_current_thread_id() == this->get_thread_id());
 
-	if (m_sink.register_sink(g_audio_format))
+	// temp: move to settings
+	s_audio_device_format requested_format;
+	requested_format.channel_count = 2;
+	requested_format.sample_rate = 48000;
+	requested_format.sample_type = audio_sample_type_real32;
+
+	if (m_sink.register_sink(requested_format))
 	{
+		g_audio_format = requested_format;
+
 		result = true;
 		log_message(verbose, "Audio Sink registration succeeded");
 	}
@@ -322,6 +331,7 @@ void c_audio_render_thread::shutdown_audio_sink()
 
 void c_audio_render_thread::render_audio()
 {
+	// replace this with a flag check to verify audio sink is started
 	if (g_audio_output_ring_buffer == nullptr) return;
 
 	real32* buffer = nullptr;

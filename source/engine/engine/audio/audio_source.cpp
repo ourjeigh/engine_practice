@@ -282,7 +282,7 @@ inline real32 convert_sample_to_real32(byte* in, e_audio_sample_type sample_type
 		HALT_UNIMPLEMENTED(); // needs testing
 		break;
 	}
-	case audio_sample_type_float32:
+	case audio_sample_type_real32:
 	{
 		out = *reinterpret_cast<real32*>(in);
 		break;
