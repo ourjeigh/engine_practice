@@ -34,7 +34,7 @@ TEST(HASH_TABLES, HASH_SET)
 	EXPECT_TRUE(set.contains(42));
 
 	// Test inserting a duplicate value
-	EXPECT_FALSE(set.insert(42));
+	EXPECT_DEATH(set.insert(42), ".*");
 
 	// Test removing a value
 	EXPECT_TRUE(set.remove(42));
@@ -75,11 +75,11 @@ TEST(HASH_TABLES, HASH_SET)
 	for (int32 i = 0; i < 128; i++)
 	{
 		EXPECT_FALSE(set.full());
-		EXPECT_TRUE(set.insert(i));
+		EXPECT_TRUE(set.insert(i) == i);
 	}
 
 	EXPECT_TRUE(set.full());
-	EXPECT_FALSE(set.insert(129));
+	EXPECT_DEATH(set.insert(129), ".*");
 }
 
 TEST(HASH_TABLES, HASH_MAP)
@@ -154,7 +154,7 @@ TEST(HASH_TABLES, RECLAIMS_DELETED_ITEMS)
 	// Fill it up to the limit
 	for (int32 i = 0; i < capacity; ++i)
 	{
-		EXPECT_TRUE(set.insert(i));
+		EXPECT_TRUE(set.insert(i) == i);
 	}
 
 	EXPECT_TRUE(set.full());
