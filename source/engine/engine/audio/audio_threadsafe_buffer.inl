@@ -103,3 +103,12 @@ int32 c_audio_threadsafe_ring_buffer<t_type>::free_sample_count()
 	int32 writable_samples = read_position == write_position ? sz : (read_position - write_position - 1 + sz) % sz;
 	return writable_samples;
 }
+
+template<typename t_type>
+bool c_audio_threadsafe_ring_buffer<t_type>::is_initialized() const
+{
+	int32 read_position = m_read_position.load(atomic_memory_order_relaxed);
+	int32 write_position = m_write_position.load(atomic_memory_order_relaxed);
+
+	return read_position != k_invalid && write_position != k_invalid;
+}

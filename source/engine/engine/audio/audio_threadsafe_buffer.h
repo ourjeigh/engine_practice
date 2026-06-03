@@ -10,12 +10,14 @@ template<typename t_type>
 class c_audio_threadsafe_ring_buffer
 {
 public:
-	c_audio_threadsafe_ring_buffer() : m_write_position(0), m_read_position(0) {}
+	c_audio_threadsafe_ring_buffer() : m_write_position(k_invalid), m_read_position(k_invalid) {}
 	~c_audio_threadsafe_ring_buffer() {}
 
 	void init(int32 channel_count, int32 size, t_type* data)
 	{
 		m_buffer = c_audio_buffer<t_type>(channel_count, size, data);
+		m_read_position.store(0, atomic_memory_order_release);
+		m_write_position.store(0, atomic_memory_order_release);
 	}
 
 	// returns actual samples written
@@ -29,6 +31,7 @@ public:
 	int32 free_sample_count();
 	int32 channel_count() const { return m_buffer.channel_count(); }
 	int32 size() const { return m_buffer.size(); }
+	bool is_initialized() const;
 
 protected:
 	c_atomic<int32> m_write_position;

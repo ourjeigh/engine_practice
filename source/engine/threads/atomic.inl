@@ -34,25 +34,27 @@ bool c_atomic<t_type>::compare_exchange(t_type& expected, t_type desired, e_atom
 #else // USING_STD_ATOMIC
 #include "platform/platform_atomic.h"
 
-// based on std::atomic but doesn't respect memory order input. for now everything behaves as tho
-// the ordering is atomic_memory_order_sequential. maybe someday we can improve that.
-
 template<typename t_type>
-t_type c_atomic<t_type>::load(e_atomic_memory_order order)
+t_type c_atomic<t_type>::load(e_atomic_memory_order order) const
 {
 	t_type out;
 	
 	if constexpr (sizeof(t_type) == 4)
 	{
-		out = atomic_compare_exchange_32(&m_data, 0, 0);
+		out = atomic_load_32(&m_data);
 	}
 	else if constexpr (sizeof(t_type) == 8)
 	{
-		out = atomic_compare_exchange_64(&m_data, 0, 0);
+		out = atomic_load_64(&m_data);
 	}
 	else
 	{
 		HALT_UNIMPLEMENTED();
+	}
+
+	if (order == atomic_memory_order_sequential || order == atomic_memory_order_acquire)
+	{
+		atomic_memory_read_barrier();
 	}
 
 	return out;
@@ -61,17 +63,27 @@ t_type c_atomic<t_type>::load(e_atomic_memory_order order)
 template<typename t_type>
 void c_atomic<t_type>::store(t_type value, e_atomic_memory_order order)
 {
+	if (order == atomic_memory_order_sequential || order == atomic_memory_order_release)
+	{
+		atomic_memory_write_barrier();
+	}
+
 	if constexpr (sizeof(t_type) == 4)
 	{
-		atomic_exchange_32(&m_data, value);
+		atomic_store_32(&m_data, value);
 	}
 	else if constexpr (sizeof(t_type) == 8)
 	{
-		atomic_exchange_64(&m_data, value);
+		atomic_store_64(&m_data, value);
 	}
 	else
 	{
 		HALT_UNIMPLEMENTED();
+	}
+
+	if (order == atomic_memory_order_sequential)
+	{
+		atomic_memory_fence();
 	}
 }
 

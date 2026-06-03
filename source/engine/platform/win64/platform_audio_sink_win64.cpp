@@ -78,10 +78,28 @@ bool c_platform_audio_sink::register_sink(s_audio_device_format& inout_audio_for
 	CALL_WIN_FUNC_LOG_CRITICAL_AND_RETURN_FALSE_ON_ERROR(g_audio_client->GetDevicePeriod(&device_period_default, &device_period_min));
 
 	// setup our own mix
-	mix_format->nSamplesPerSec = inout_audio_format.sample_rate;
-	mix_format->nChannels = inout_audio_format.channel_count;
-	mix_format->wBitsPerSample = 32;
-	mix_format->nBlockAlign = inout_audio_format.channel_count * 32 / 8;
+	if (inout_audio_format.sample_rate != k_invalid)
+	{
+		mix_format->nSamplesPerSec = inout_audio_format.sample_rate;
+	}
+
+	if (inout_audio_format.channel_count != k_invalid)
+	{
+		mix_format->nChannels = inout_audio_format.channel_count;
+	}
+
+	switch (inout_audio_format.sample_type)
+	{
+	case audio_sample_type_real32:
+	{
+		mix_format->wBitsPerSample = 32;
+		mix_format->nBlockAlign = mix_format->nChannels * sizeof(real32);
+		break;
+	}
+	default:
+		HALT_UNIMPLEMENTED();
+	}
+
 	mix_format->nAvgBytesPerSec = inout_audio_format.sample_rate * mix_format->nBlockAlign;
 
 	DWORD stream_flags = AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM | AUDCLNT_STREAMFLAGS_SRC_DEFAULT_QUALITY; // Force WASAPI to resample;

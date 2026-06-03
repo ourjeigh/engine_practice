@@ -29,7 +29,7 @@ public:
 	c_atomic() = default;
 	c_atomic(t_type value) { store(value); }
 
-	t_type load(e_atomic_memory_order order = atomic_memory_order_sequential);
+	t_type load(e_atomic_memory_order order = atomic_memory_order_sequential) const;
 	void store(t_type value, e_atomic_memory_order order = atomic_memory_order_sequential);
 	t_type exchange(t_type value, e_atomic_memory_order order = atomic_memory_order_sequential);
 	bool compare_exchange(t_type& expected, t_type desired, e_atomic_memory_order order = atomic_memory_order_sequential);
@@ -42,7 +42,7 @@ private:
 #ifdef USING_STD_ATOMIC
 	std::atomic<t_type> m_data;
 #else
-	volatile t_type m_data;
+	mutable volatile t_type m_data;
 #endif
 	COMPILE_ASSERT(sizeof(t_type) == 4 || sizeof(t_type) == 8);
 };

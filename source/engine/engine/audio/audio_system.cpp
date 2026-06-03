@@ -12,6 +12,7 @@
 
 const int32 k_audio_engine_buffer_size = 512;
 const int32 k_audio_output_buffer_size = k_audio_engine_buffer_size * 16;
+const int32 k_audio_engine_sample_rate = 48000;
 
 c_audio_engine_thread g_audio_engine_thread;
 
@@ -276,8 +277,10 @@ bool c_audio_render_thread::setup_audio_sink()
 
 	// temp: move to settings
 	s_audio_device_format requested_format;
-	requested_format.channel_count = 2;
-	requested_format.sample_rate = 48000;
+	
+	// inherit system channel count
+	requested_format.channel_count = k_invalid;
+	requested_format.sample_rate = k_audio_engine_sample_rate;
 	requested_format.sample_type = audio_sample_type_real32;
 
 	if (m_sink.register_sink(requested_format))
@@ -332,7 +335,7 @@ void c_audio_render_thread::shutdown_audio_sink()
 void c_audio_render_thread::render_audio()
 {
 	// replace this with a flag check to verify audio sink is started
-	if (g_audio_output_ring_buffer == nullptr) return;
+	if (g_audio_output_ring_buffer == nullptr || !g_audio_output_ring_buffer->is_initialized()) return;
 
 	real32* buffer = nullptr;
 	uint32 buffer_size;
