@@ -183,7 +183,7 @@ void c_application::handle_window_focus(bool is_in_focus)
 
 void c_application::handle_window_resize(int32 height, int32 width)
 {
-	NOP();
+	c_render_system::get().resize(width, height);
 }
 
 // todo: should we have the game dll expose a function to get it's dll name instead of hardcoding "game" ?

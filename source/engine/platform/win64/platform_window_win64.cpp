@@ -106,6 +106,8 @@ bool c_window_thread::setup_window()
 
 	ShowWindow(g_hwnd, SW_SHOWDEFAULT);
 
+	resize(g_window_info.width, g_window_info.height);
+
 	return true;
 }
 
@@ -146,6 +148,7 @@ void c_window_thread::render()
 
 void c_window_thread::resize(int width, int height)
 {
+	ASSERT((width * height) % 2 == 0);
 	zero_object(g_window_info);
 
 	g_window_info.width = width;
@@ -157,6 +160,32 @@ void c_window_thread::resize(int width, int height)
 	g_window_info.bmi.bmiHeader.biPlanes = 1;
 	g_window_info.bmi.bmiHeader.biBitCount = 32;
 	g_window_info.bmi.bmiHeader.biCompression = BI_RGB;
+}
+
+struct s_rect
+{
+	int32 height;
+	int32 width;
+};
+
+// returns true if rect was modified
+// TODO: this should check against some list of supported rects and pick the closest
+bool verify_window_size(s_rect& in_out_rect)
+{
+	bool modified = false;
+	if (in_out_rect.height % 2 != 0)
+	{
+		in_out_rect.height--;
+		modified = true;
+	}
+
+	if (in_out_rect.width % 2 != 0)
+	{
+		in_out_rect.width--;
+		modified = true;
+	}
+
+	return modified;
 }
 
 LRESULT CALLBACK process_message_callback(HWND hwnd, UINT msg, WPARAM param, LPARAM lParam)
@@ -175,22 +204,25 @@ LRESULT CALLBACK process_message_callback(HWND hwnd, UINT msg, WPARAM param, LPA
 			return 0;
 		}
 
-		if (msg == WM_SIZE)
+		if (msg == WM_SIZING)
 		{
-			RECT rect;
-			GetClientRect(hwnd, &rect);
-			int32 height = rect.bottom - rect.top;
-			int32 width = rect.right - rect.left;
-			window->resize(width, height);
+			RECT* rect = reinterpret_cast<RECT*>(lParam);
 
-			s_window_event_resize event;
-			event.height = height;
-			event.width = width;
-			window->send_window_event(event);
+			s_rect requested;
+			requested.height = rect->bottom - rect->top;
+			requested.width = rect->right - rect->left;
 
-			// this is maybe not great. it gets called very early, before c_render_system::init has been called
-			c_render_system::get().resize(width, height);
-			return 0;
+			if (verify_window_size(requested))
+			{
+				window->resize(requested.width, requested.height);
+
+				s_window_event_resize event;
+				event.height = requested.height;
+				event.width = requested.width;
+				window->send_window_event(event);
+			}
+
+			return 1;
 		}
 
 		if (msg == WM_SETFOCUS || msg == WM_KILLFOCUS)
