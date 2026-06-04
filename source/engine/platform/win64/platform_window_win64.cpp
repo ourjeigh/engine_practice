@@ -212,8 +212,28 @@ LRESULT CALLBACK process_message_callback(HWND hwnd, UINT msg, WPARAM param, LPA
 			requested.height = rect->bottom - rect->top;
 			requested.width = rect->right - rect->left;
 
-			if (verify_window_size(requested))
+			verify_window_size(requested);
+			window->resize(requested.width, requested.height);
+
+			s_window_event_resize event;
+			event.height = requested.height;
+			event.width = requested.width;
+			window->send_window_event(event);
+
+			return 0;
+		}
+
+		if (msg == WM_WINDOWPOSCHANGING)
+		{
+			WINDOWPOS* window_position = reinterpret_cast<WINDOWPOS*>(lParam);
+
+			if (!(window_position->flags & SWP_NOSIZE))
 			{
+				s_rect requested;
+				requested.width = window_position->cx;
+				requested.height = window_position->cy;
+
+				verify_window_size(requested);
 				window->resize(requested.width, requested.height);
 
 				s_window_event_resize event;
@@ -221,8 +241,6 @@ LRESULT CALLBACK process_message_callback(HWND hwnd, UINT msg, WPARAM param, LPA
 				event.width = requested.width;
 				window->send_window_event(event);
 			}
-
-			return 1;
 		}
 
 		if (msg == WM_SETFOCUS || msg == WM_KILLFOCUS)
