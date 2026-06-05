@@ -241,6 +241,8 @@ LRESULT CALLBACK process_message_callback(HWND hwnd, UINT msg, WPARAM param, LPA
 				event.width = requested.width;
 				window->send_window_event(event);
 			}
+
+			return 0;
 		}
 
 		if (msg == WM_SETFOCUS || msg == WM_KILLFOCUS)

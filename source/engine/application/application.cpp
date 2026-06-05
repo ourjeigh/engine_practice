@@ -5,12 +5,14 @@
 #include "events/delegates.h"
 #include "game_api.h"
 #include "memory/allocator.h"
+#include "memory/memory_system.h"
 #include "platform/platform.h"
 #include "platform/platform_assert.h"
 #include "platform/platform_process.h"
 #include "time/time.h"
 #include "platform/platform_window.h"
 #include "rendering/render_system.h"
+#include "perf/perf.h"
 
 const real32 k_max_fps = 60.0f;
 const real32 k_max_frame_interval_seconds = 1 / k_max_fps;
@@ -20,15 +22,19 @@ const real32 k_max_frame_interval_ms = 1000 / k_max_fps;
 const int32 k_default_window_width = 1440;
 const int32 k_default_window_height = 720;
 
-
+// todo: should we have the game dll expose a function to get it's dll name instead of hardcoding "game" ?
 const c_file_path k_built_dll_path("game_" CONFIG_NAME "_" PLATFORM_NAME ".dll");
 const char* k_runtime_dll_name_base = "game_" CONFIG_NAME "_" PLATFORM_NAME "_temp_";
 
 struct s_game_info_internal
 {
-	c_game_state game_state;
+	s_game_engine_context game_engine_context;
 	f_game_init init;
 	f_game_update update;
+#ifdef HOT_RELOAD
+	f_game_reload reload;
+#endif // HOT_RELOAD
+
 	uint64 last_dll_write_time;
 	int32 dll_reload_count;
 	c_platform_handle library;
@@ -67,10 +73,15 @@ void c_application::init()
 
 	zero_object(g_game_info);
 	load_game();
-	g_game_info.game_state.engine = g_engine_ptr;
-	g_game_info.game_state.assert_hook = g_assert_handler;
+	g_game_info.game_engine_context.engine = g_engine_ptr;
+	g_game_info.game_engine_context.assert_hook = g_assert_handler;
+	
+	// bad/temp
+	int32 game_state_memory_size = 10 * k_byte_mb;
+	g_game_info.game_engine_context.memory.data = static_cast<void*>(c_memory_system::get().allocate(game_state_memory_size, alignof(byte), memory_arena_game_state));
+	g_game_info.game_engine_context.memory.size = game_state_memory_size;
 
-	g_game_info.init(g_game_info.game_state);
+	g_game_info.init(g_game_info.game_engine_context);
 }
 
 void c_application::term()
@@ -91,15 +102,23 @@ void c_application::run()
 	{
 		c_timer timer;
 		timer.start();
-			
-		engine_systems_pregame_update();
-		g_game_info.update();
-		engine_systems_postgame_update();
 
+		{
+			PERF_MEASURE_SECTION("application loop");
+
+			engine_systems_pregame_update();
+			g_game_info.update();
+			engine_systems_postgame_update();
+		}
+
+#ifdef HOT_RELOAD
 		if (check_game_dll_and_reload_if_newer())
 		{
-			g_game_info.init(g_game_info.game_state);
+			// todo: make a specific reload function for this so we don't have to worry
+			// about actual init-specific logic getting rerun on reload.
+			g_game_info.reload(g_game_info.game_engine_context);
 		}
+#endif //HOT_RELOAD
 
 		timer.stop();
 		real64 frame_work_time_ms = timer.get_time_span()->get_duration_milliseconds();
@@ -172,7 +191,6 @@ void c_application::handle_escape_key(bool down)
 void c_application::handle_window_close()
 {
 	m_running = false;
-
 	// tbd if we want to explicitly call term here...
 }
 
@@ -185,9 +203,6 @@ void c_application::handle_window_resize(int32 height, int32 width)
 {
 	c_render_system::get().resize(width, height);
 }
-
-// todo: should we have the game dll expose a function to get it's dll name instead of hardcoding "game" ?
-
 
 void load_game()
 {
@@ -209,6 +224,7 @@ void load_game()
 
 					t_string_128 game_init_function_name("game_init");
 					t_string_128 game_update_function_name("game_update");
+					t_string_128 game_reload_function_name("game_reload");
 
 					g_game_info.init = reinterpret_cast<f_game_init>(platform_process_get_library_function_address(
 						g_game_info.library,
@@ -218,8 +234,14 @@ void load_game()
 						g_game_info.library,
 						game_update_function_name));
 
+					g_game_info.reload = reinterpret_cast<f_game_reload>(platform_process_get_library_function_address(
+						g_game_info.library,
+						game_reload_function_name));
+
 					ASSERT(g_game_info.init != nullptr);
 					ASSERT(g_game_info.update != nullptr);
+					ASSERT(g_game_info.reload != nullptr);
+
 					g_game_info.last_dll_write_time = get_file_info(k_built_dll_path).write_time;
 					
 					success = true;
@@ -255,6 +277,7 @@ void unload_game()
 	}
 }
 
+#ifdef HOT_RELOAD
 bool check_game_dll_and_reload_if_newer()
 {
 	bool reloaded = false;
@@ -281,6 +304,8 @@ bool check_game_dll_and_reload_if_newer()
 
 	return reloaded;
 }
+#endif //HOT_RELOAD
+
 
 static void handle_game_reload(bool down)
 {

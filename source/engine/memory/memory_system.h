@@ -18,11 +18,11 @@ enum e_memory_arena
 	// eg: render command buffer
 	memory_arena_system,
 
-	// memory needed to be tracked over game lifetime
-	// eg: transforms
+	// memory needed to be tracked over engine lifetime
 	// eg: audio playbacks
-	// eg: game state
-	memory_arena_state,
+	memory_arena_engine_state,
+
+	memory_arena_game_state,
 
 	// memory needed for a single frame
 	// eg: audio mix buffers
@@ -37,9 +37,10 @@ enum e_memory_arena
 const c_static_array<int32, k_memory_arena_count> k_arena_sizes =
 {
 	10 * k_byte_mb,									// memory_arena_system
-	01 * k_byte_mb,									// memory_arena_state
-	01 * k_byte_mb,									// memory_arena_frame
-	DEBUG_ONLY_PARAM_RIGHT_COMMA(01 * k_byte_mb)	// memory_arena_debug
+	 1 * k_byte_mb,									// memory_arena_engine_state
+	10 * k_byte_mb,									// memory_arena_game_state
+	 1 * k_byte_mb,									// memory_arena_frame
+	DEBUG_ONLY_PARAM_RIGHT_COMMA(1 * k_byte_mb)		// memory_arena_debug
 };
 
 class c_memory_system : public c_engine_system<c_memory_system>
