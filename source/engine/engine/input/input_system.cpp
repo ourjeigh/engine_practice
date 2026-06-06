@@ -22,61 +22,6 @@ struct s_input_queued_event
 	};
 };
 
-class c_key_state_internal
-{
-public:
-	c_key_state_internal() :
-		m_is_down(false),
-		m_last_changed_timestamp(0)
-	{
-	}
-
-	s_key_state to_key_state()
-	{
-		s_key_state out;
-		out.is_down = is_down();
-		out.last_change_timestamp = get_last_changed_timestamp();
-		return out;
-	}
-
-	bool is_down() const
-	{
-		if (m_is_down) return true;
-
-		auto span = get_time_since(m_last_changed_timestamp);
-		real64 duration_seconds = span.get_duration_seconds();
-
-		return (duration_seconds < k_input_keydown_allowance_seconds);
-	}
-
-	t_timestamp get_last_changed_timestamp() const { return m_last_changed_timestamp; }
-
-	void set(bool is_down, t_timestamp timestamp)
-	{
-		if (is_down != m_is_down)
-		{
-			m_is_down = is_down;
-			m_last_changed_timestamp = timestamp;
-		}
-	}
-
-private:
-	bool m_is_down;
-	t_timestamp m_last_changed_timestamp;
-};
-
-struct s_input_state
-{
-	c_static_array<c_key_state_internal, k_input_key_count> key_states;
-	s_mouse_state mouse_state;
-
-	void clear()
-	{
-		key_states.zero_data();
-		zero_object(mouse_state);
-	}
-};
-
 // prototypes
 void process_input_event_queue_internal();
 
@@ -85,13 +30,24 @@ void process_input_event_queue_internal();
 // called and written from the message pump, processed in the input system update
 // todo this needs to be thread safe
 c_static_stack<s_input_queued_event, 256> g_input_event_queue;
+
 s_input_state g_input_state;
+
+// these let us calculate timespans for key state without needing to maintain
+// a separate internal key state struct
+c_static_array<t_timestamp, k_input_key_count> g_key_timestamps;
 
 // public methods
 void c_input_system::init()
 {
 	g_input_event_queue.clear();
 	g_input_state.clear();
+
+	for (auto& timestamp : g_key_timestamps)
+	{
+		timestamp = k_invalid;
+	}
+
 	log_message(verbose, "Input System Initialized");
 }
 
@@ -113,7 +69,7 @@ void c_input_system::update()
 		// mask and we just compare them instead of iterating each key in the combo
 		for (auto& key : combo.combo.keys)
 		{
-			new_down &= g_input_state.key_states[key].is_down();
+			new_down &= g_input_state.get_key_state(key).is_down;
 		}
 
 		if (new_down != combo.down)
@@ -126,12 +82,17 @@ void c_input_system::update()
 
 s_key_state input_system_get_key_state(e_input_keycode key)
 {
-	return g_input_state.key_states[key].to_key_state();
+	return g_input_state.key_states[key];
 }
 
 const s_mouse_state* input_system_get_mouse_state()
 {
 	return &g_input_state.mouse_state;
+}
+
+const s_input_state* input_system_get_current_input_state()
+{
+	return &g_input_state;
 }
 
 void input_system_handle_event(s_event& event)
@@ -172,6 +133,8 @@ void input_system_handle_event(s_event& event)
 
 void process_input_event_queue_internal()
 {
+	t_timestamp current_time = get_high_precision_timestamp();
+
 	// todo: record input to file if setting enabled, to allow for automated playback
 	while(!g_input_event_queue.empty())
 	{
@@ -183,7 +146,9 @@ void process_input_event_queue_internal()
 		case event_type_input_key:
 		{
 			s_input_event_key_data& data = event.key_data;
-			g_input_state.key_states[data.key].set(data.down, event.timestamp);
+			g_input_state.key_states[data.key].is_down = data.down;
+			g_input_state.key_states[data.key].time_in_state = c_engine_time_span::to_span(g_key_timestamps[data.key], current_time);
+
 			log_message(verbose, "input system: key:{i} {s} repeat:{i}",
 				data.key, 
 				data.down ? "down" : "up", 

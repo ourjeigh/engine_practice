@@ -279,7 +279,7 @@ private:
 #endif // CONFIG_DEBUG
 	}
 
-	static const int32 k_array_size_actual = real32_to_int32(0.5f + (k_max_size * 1 / k_load_factor_threshold));
+	static_member_data const int32 k_array_size_actual = real32_to_int32(0.5f + (k_max_size * 1 / k_load_factor_threshold));
 	c_static_array<s_cell, k_array_size_actual> m_data;
 	int32 m_used;
 };

@@ -14,19 +14,19 @@ public:
 	virtual void term() = 0;
 	virtual void update() = 0;
 
-	static_function t_system& get()
+	static_member_function t_system& get()
 	{
 		ASSERT(m_instance);
 		return *m_instance;
 	}
 
-	static_function const t_system& get_const()
+	static_member_function const t_system& get_const()
 	{
 		ASSERT(m_instance);
 		return *m_instance;
 	}
 
-	static_function bool is_valid()
+	static_member_function bool is_valid()
 	{
 		return m_instance != nullptr;
 	}
@@ -44,7 +44,7 @@ protected:
 	}
 
 private:
-	inline static t_system* m_instance = nullptr;
+	inline static_member_data t_system* m_instance = nullptr;
 };
 
 void engine_systems_init();

@@ -110,14 +110,14 @@ public:
 
 bool g_static_callback_result_no_payload_called;
 
-static void static_callback_handler_no_payload()
+static_global void static_callback_handler_no_payload()
 {
 	g_static_callback_result_no_payload_called = true;
 }
 
 int g_static_callback_result_with_payload_data;
 
-static void static_callback_handler_with_payload(void* arg)
+static_global void static_callback_handler_with_payload(void* arg)
 {
 	auto* data = static_cast<s_payload*>(arg);
 	g_static_callback_result_with_payload_data = data->value;
@@ -125,7 +125,7 @@ static void static_callback_handler_with_payload(void* arg)
 
 int g_static_callback_result_typed_payload_data;
 
-static void static_callback_handler_typed_payload(s_payload* arg)
+static_global void static_callback_handler_typed_payload(s_payload* arg)
 {
 	g_static_callback_result_typed_payload_data = arg->value;
 }

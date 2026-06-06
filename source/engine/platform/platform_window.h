@@ -56,7 +56,7 @@ public:
 	void resize(int width, int height);
 
 private:
-	static_function void window_thread_entry_point(c_window_thread const_ptr thread);
+	static_member_function void window_thread_entry_point(c_window_thread const_ptr thread);
 	
 	bool setup_window();
 	void message_pump();

@@ -43,10 +43,11 @@ struct s_game_info_internal
 bool check_game_dll_and_reload_if_newer();
 void load_game();
 void unload_game();
-static void handle_game_reload(bool down);
+static_global void handle_game_reload(bool down);
 
 s_game_info_internal g_game_info;
 bool g_interrupt_signalled = false;
+real32 g_last_dt;
 
 void c_application::init()
 {
@@ -107,7 +108,9 @@ void c_application::run()
 			PERF_MEASURE_SECTION("application loop");
 
 			engine_systems_pregame_update();
-			g_game_info.update();
+			g_game_info.update(
+				input_system_get_current_input_state(),
+				g_last_dt);
 			engine_systems_postgame_update();
 		}
 
@@ -121,7 +124,7 @@ void c_application::run()
 #endif //HOT_RELOAD
 
 		timer.stop();
-		real64 frame_work_time_ms = timer.get_time_span()->get_duration_milliseconds();
+		real64 frame_work_time_ms = timer.get_time_span().get_duration_milliseconds();
 		real64 sleep_time_ms = (k_max_frame_interval_ms - frame_work_time_ms);
 
 		if (sleep_time_ms > 0.0f)
@@ -133,7 +136,8 @@ void c_application::run()
 			log_message(warning, "Long Frame Time: {f.2} milliseconds", frame_work_time_ms);
 		}
 
-		c_time_span span = loop_timer.get_loop_time_span_and_continue();
+		c_engine_time_span span = loop_timer.get_loop_time_span_and_continue();
+		g_last_dt = span.get_duration_seconds();
 
 #ifdef CONFIG_DEBUG
 		t_string_128 string;
@@ -307,7 +311,7 @@ bool check_game_dll_and_reload_if_newer()
 #endif //HOT_RELOAD
 
 
-static void handle_game_reload(bool down)
+static_global void handle_game_reload(bool down)
 {
 	if (down)
 	{

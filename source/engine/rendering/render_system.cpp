@@ -1,16 +1,15 @@
 ﻿
 #include "rendering/render_system.h"
-#include "engine/input/input_system.h"
 #include "memory/memory.h"
 #include "memory/allocator.h"
-#include "memory/memory.h"
 #include "memory/memory_system.h"
 #include "types/types.h"
 #include "perf/perf.h"
 #include "platform/platform.h"
 
-// temp
+#ifdef CONFIG_DEBUG
 #include "debug/debug_letters.h"
+#endif //CONFIG_DEBUG
 
 enum e_render_message_type
 {
@@ -444,7 +443,7 @@ void process_draw_circle_outline_message_internal(const s_render_message_data_dr
 		int32 x = math_round_real32_to_int32(radius * math_cos(degree)) + message->circle.center.x;
 		int32 y = math_round_real32_to_int32(radius * math_sin(degree)) + message->circle.center.y;
 		
-		if (in_range(k_int32_zero, buffer->width, x) && in_range(k_int32_zero, buffer->height, y))
+		if (in_range_inclusive(k_int32_zero, buffer->width, x) && in_range_inclusive(k_int32_zero, buffer->height, y))
 		{
 			draw_pixel_to_buffer_internal(x, y, message->color, buffer);
 		}
@@ -466,7 +465,7 @@ void process_draw_circle_message_internal(const s_render_message_data_draw_circl
 	for (int32 y = -radius; y <= radius; ++y)
 	{
 		int32 y_pos = center_y + y;
-		if (in_range(k_int32_zero, buffer->height, y_pos))
+		if (in_range_inclusive(k_int32_zero, buffer->height, y_pos))
 		{
 			int32 y_squared = y * y;
 
@@ -489,13 +488,13 @@ inline void process_draw_bitmap_message_internal(const s_render_message_data_dra
 	int32 dest_y = message->y;
 	for (int32 source_y = 0; source_y < message->bitmap.height; source_y++, dest_y++)
 	{
-		if (in_range_int32(0, buffer->height - 1, dest_y))
+		if (in_range_inclusive_int32(0, buffer->height - 1, dest_y))
 		{
 			int32 dest_x = message->x;
 
 			for (int32 source_x = 0; source_x < message->bitmap.width; source_x++, dest_x++)
 			{
-				if (in_range_int32(0, buffer->width - 1, dest_x))
+				if (in_range_inclusive_int32(0, buffer->width - 1, dest_x))
 				{
 					uint32 index = source_y * message->bitmap.width + source_x;
 					uint32 pixel = message->bitmap.pixels[index];
@@ -533,11 +532,11 @@ inline void process_draw_debug_string_message_internal(const s_render_message_da
 
 				for (int32 sy = y; sy < y + scale; sy++)
 				{
-					if (in_range_int32(0, buffer->height - 1, sy))
+					if (in_range_inclusive_int32(0, buffer->height - 1, sy))
 					{
 						for (int32 sx = x; sx < x + scale; sx++)
 						{
-							if (in_range_int32(0, buffer->width - 1, sx))
+							if (in_range_inclusive_int32(0, buffer->width - 1, sx))
 							{
 								draw_pixel_to_buffer_internal(sx, sy, pixel, buffer);
 							}
@@ -556,7 +555,7 @@ inline void process_draw_debug_string_message_internal(const s_render_message_da
 
 inline void draw_pixel_to_buffer_internal(int32 x, int32 y, uint32 color, s_backbuffer const_ptr buffer)
 {
-	ASSERT(in_range(k_int32_zero, buffer->width, x) && in_range(k_int32_zero, buffer->height, y));
+	ASSERT(in_range_inclusive(k_int32_zero, buffer->width, x) && in_range_inclusive(k_int32_zero, buffer->height, y));
 
 	uint32 alpha = (color >> 24) & 0xFF;
 	if (alpha == 0xFF)
@@ -598,9 +597,9 @@ inline void draw_pixel_to_buffer_internal(int32 x, int32 y, uint32 color, s_back
 
 void draw_horizontal_line_internal(int32 start_x, int32 end_x, int32 y, uint32 color, s_backbuffer const_ptr buffer)
 {
-	ASSERT(in_range(k_int32_zero, buffer->width, start_x));
-	ASSERT(in_range(k_int32_zero, buffer->width, end_x));
-	ASSERT(in_range(k_int32_zero, buffer->height, y));
+	ASSERT(in_range_inclusive(k_int32_zero, buffer->width, start_x));
+	ASSERT(in_range_inclusive(k_int32_zero, buffer->width, end_x));
+	ASSERT(in_range_inclusive(k_int32_zero, buffer->height, y));
 
 	if (start_x > end_x)
 	{

@@ -192,7 +192,7 @@ void c_audio_engine_thread::audio_engine_thread_entry_point(c_audio_engine_threa
 		thread->process_audio();
 
 		timer.stop();
-		real64 time_span_ms = timer.get_time_span()->get_duration_milliseconds();
+		real64 time_span_ms = timer.get_time_span().get_duration_milliseconds();
 
 		const real64 sleep_padding_ms = 1.0f;
 		if (update_period_ms - time_span_ms > sleep_padding_ms)
@@ -201,7 +201,7 @@ void c_audio_engine_thread::audio_engine_thread_entry_point(c_audio_engine_threa
 			sleep_for_milliseconds(real64_to_uint32(sleep_duration_milliseconds));
 		}
 
-		while (update_period_ms - timer.get_time_span()->get_duration_milliseconds() > 0.5f)
+		while (update_period_ms - timer.get_time_span().get_duration_milliseconds() > 0.5f)
 		{
 			NOP();
 		}

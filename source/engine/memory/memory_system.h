@@ -50,7 +50,7 @@ public:
 	void term();
 	void update();
 
-	static_function void* allocate(uint64 size, uint64 align, e_memory_arena arena);
+	static_member_function void* allocate(uint64 size, uint64 align, e_memory_arena arena);
 };
 
 #endif //__MEMORY_SYSTEM_H__

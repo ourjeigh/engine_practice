@@ -3,10 +3,16 @@
 #pragma once
 
 #include "types/time_types.h"
+#include "structures/array.h"
 
 enum e_input_keycode : int16
 {
 	input_key_invalid = k_invalid,
+	
+	input_key_arrow_up,
+	input_key_arrow_down,
+	input_key_arrow_left,
+	input_key_arrow_right,
 
 	input_key_num_0,
 	input_key_num_1,
@@ -71,6 +77,9 @@ enum e_input_keycode : int16
 	input_mouse_middle,
 	input_mouse_right,
 
+	k_input_key_first_arrow = input_key_arrow_up,
+	k_input_key_last_arrow = input_key_arrow_right,
+
 	k_input_key_first_num = input_key_num_0,
 	k_input_key_last_num = input_key_num_9,
 
@@ -93,7 +102,7 @@ enum e_input_keycode : int16
 struct s_key_state
 {
 	bool is_down;
-	t_timestamp last_change_timestamp;
+	s_time_span time_in_state;
 };
 
 struct s_mouse_position_state
@@ -117,4 +126,25 @@ struct s_mouse_state
 	s_mouse_scroll_state vertical_scroll;
 };
 
+struct s_input_state
+{
+	c_static_array<s_key_state, k_input_key_count> key_states;
+	s_mouse_state mouse_state;
+
+	const s_key_state get_key_state(e_input_keycode key) const
+	{
+		return key_states[key];
+	}
+
+	const s_mouse_state get_mouse_state() const
+	{
+		return mouse_state;
+	}
+
+	void clear()
+	{
+		key_states.zero_data();
+		zero_object(mouse_state);
+	}
+};
 #endif // !__INPUT_TYPES_H__

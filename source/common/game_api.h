@@ -3,6 +3,7 @@
 #pragma once
 
 #include "types/types.h"
+#include "types/input_types.h"
 #include "debug/assert_handler.h"
 
 #ifdef HOT_RELOAD
@@ -27,7 +28,7 @@ struct s_game_engine_context
 };
 
 typedef void(*f_game_init)(s_game_engine_context& engine_context);
-typedef void(*f_game_update)();
+typedef void(*f_game_update)(const s_input_state const_ptr input_state, real32 dt);
 #ifdef HOT_RELOAD
 typedef void(*f_game_reload)(s_game_engine_context& engine_context);
 #endif //HOT_RELOAD

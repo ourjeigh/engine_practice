@@ -14,6 +14,11 @@ const uint16 k_input_id_sys_key_up = WM_SYSKEYUP;
 const uint16 k_input_id_sys_char = WM_SYSCHAR;
 const uint16 k_input_id_sys_dead_char = WM_SYSDEADCHAR; // a dead key that is pressed while holding down the ALT key.
 
+const uint16 k_input_id_arr_up = VK_UP;
+const uint16 k_input_id_arr_down = VK_DOWN;
+const uint16 k_input_id_arr_left = VK_LEFT;
+const uint16 k_input_id_arr_right = VK_RIGHT;
+
 const uint16 k_input_id_kbd_0 = '0';
 const uint16 k_input_id_kbd_1 = '1';
 const uint16 k_input_id_kbd_2 = '2';
@@ -120,6 +125,11 @@ e_input_keycode get_key_code_from_platform_key(uint64 platform_key)
 {
 	switch (platform_key)
 	{
+	case k_input_id_arr_up: return input_key_arrow_up;
+	case k_input_id_arr_down: return input_key_arrow_down;
+	case k_input_id_arr_left: return input_key_arrow_left;
+	case k_input_id_arr_right: return input_key_arrow_right;
+
 	case k_input_id_kbd_0: return input_key_num_0;
 	case k_input_id_kbd_1: return input_key_num_1;
 	case k_input_id_kbd_2: return input_key_num_2;

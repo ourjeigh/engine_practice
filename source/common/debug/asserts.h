@@ -14,7 +14,7 @@
 			} \
 			else \
 			{ \
-				int x = *(int*)0;; \
+				int x = *(int*)0; \
 			} \
 		} \
 	} while (0)

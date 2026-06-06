@@ -2,6 +2,8 @@
 #define __CALLBACKS_H__
 #pragma once
 
+#include "types/types.h"
+
 #define MAKE_STATIC_CALLBACK(function) c_callback::from<function>()
 
 #define MAKE_STATIC_CALLBACK_WITH_ARGS(function)                              \
@@ -32,7 +34,7 @@ public:
 
 	// instanced, no arg (arg_type = void)
 	template <class t_class, class, void (t_class::* t_function)()>
-	static c_callback from(t_class* instance)
+	static_member_function c_callback from(t_class* instance)
 	{
 		return c_callback{ instance, &invoke_no_arg<t_class, t_function> };
 	}
@@ -40,13 +42,13 @@ public:
 
 	// instanced, with arg
 	template <class t_class, void (t_class::* t_function)(void*)>
-	static c_callback from(t_class* instance)
+	static_member_function c_callback from(t_class* instance)
 	{
 		return c_callback{ instance, &invoke_with_arg<t_class, t_function> };
 	}
 
 	template <class t_class, class t_arg, void (t_class::* t_function)(t_arg*)>
-	static c_callback from(t_class* instance)
+	static_member_function c_callback from(t_class* instance)
 	{
 		return c_callback{
 			instance,
@@ -56,20 +58,20 @@ public:
 
 	// static, no arg
 	template <void (*t_function)()>
-	static c_callback from()
+	static_member_function c_callback from()
 	{
 		return c_callback{ &invoke_static_no_arg<t_function> };
 	}
 
 	// static, with arg
 	template <void (*t_function)(void*)>
-	static c_callback from()
+	static_member_function c_callback from()
 	{
 		return c_callback{ &invoke_static_with_arg<t_function> };
 	}
 
 	template <class t_arg, void (*t_function)(t_arg*)>
-	static c_callback from()
+	static_member_function c_callback from()
 	{
 		return c_callback{
 			//nullptr,
@@ -92,31 +94,31 @@ private:
 	c_callback(void* object, t_callback_function function) : m_instance(object), m_function(function) {}
 
 	template <class t_class, void (t_class::* t_function)()>
-	static void invoke_no_arg(void* obj, void*)
+	static_member_function void invoke_no_arg(void* obj, void*)
 	{
 		(static_cast<t_class*>(obj)->*t_function)();
 	}
 
 	template <class t_class, void (t_class::* t_function)(void*)>
-	static void invoke_with_arg(void* obj, void* arg)
+	static_member_function void invoke_with_arg(void* obj, void* arg)
 	{
 		(static_cast<t_class*>(obj)->*t_function)(arg);
 	}
 
 	template <void (*t_function)()>
-	static void invoke_static_no_arg(void*, void*)
+	static_member_function void invoke_static_no_arg(void*, void*)
 	{
 		t_function();
 	}
 
 	template <void (*t_function)(void*)>
-	static void invoke_static_with_arg(void*, void* arg)
+	static_member_function void invoke_static_with_arg(void*, void* arg)
 	{
 		t_function(arg);
 	}
 
 	template <class t_class, class t_arg, void (t_class::* t_function)(t_arg*)>
-	static void invoke_with_typed_arg(void* obj, void* arg)
+	static_member_function void invoke_with_typed_arg(void* obj, void* arg)
 	{
 		(static_cast<t_class*>(obj)->*t_function)(
 			static_cast<t_arg*>(arg)
@@ -124,7 +126,7 @@ private:
 	}
 
 	template <class t_arg, void (*t_function)(t_arg*)>
-	static void invoke_static_with_typed_arg(void*, void* arg)
+	static_member_function void invoke_static_with_typed_arg(void*, void* arg)
 	{
 		t_function(static_cast<t_arg*>(arg));
 	}

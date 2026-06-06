@@ -16,7 +16,7 @@ public:
 
 	~c_file_path() {}
 
-	static c_file_path invalid()
+	static_member_function c_file_path invalid()
 	{
 		return c_file_path();
 	}

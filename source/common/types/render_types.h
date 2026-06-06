@@ -43,13 +43,13 @@ public:
 		return data;
 	}
 
-	static c_color from_uint32(uint32 color)
+	static_member_function c_color from_uint32(uint32 color)
 	{
 		c_color new_color(color);
 		return new_color;
 	}
 
-	static c_color from_rgba(real32 r, real32 g, real32 b, real32 a)
+	static_member_function c_color from_rgba(real32 r, real32 g, real32 b, real32 a)
 	{
 		c_color new_color(r,g,b,a);
 		return new_color;

@@ -116,12 +116,12 @@ void c_perf_system::generate_report()
 		const char* name = set.unique_id.measurement_id.get_debug_string();
 
 		// all times in microseconds
-		c_time_span span(0, set.total_time_microseconds);
+		c_engine_time_span span(0, set.total_time_microseconds);
 		real64 total_time = span.get_duration_microseconds();
 		real64 avg_time = total_time / set.count;
 
-		real64 max_time = c_time_span(0, set.max_duration).get_duration_microseconds();
-		real64 min_time = c_time_span(0, set.min_duration).get_duration_microseconds();
+		real64 max_time = c_engine_time_span(0, set.max_duration).get_duration_microseconds();
+		real64 min_time = c_engine_time_span(0, set.min_duration).get_duration_microseconds();
 
 		int32 calls_per_tick = 0.5f + set.count / (real32)g_ticks;
 

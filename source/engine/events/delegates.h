@@ -2,6 +2,8 @@
 #define __DELEGATES_H__
 #pragma once
 
+#include "types/types.h"
+
 #define MAKE_DELEGATE(signature, object, method) \
 	c_delegate<signature>::bind<decltype(object), &decltype(object)::method>(&object)
 
@@ -21,7 +23,7 @@ public:
 
 	// instanced member function
 	template<class t_class, t_return(t_class::*t_method)(t_args...)>
-	static c_delegate bind(t_class* object)
+	static_member_function c_delegate bind(t_class* object)
 	{
 		return c_delegate(object, &invoke<t_class, t_method>);
 	}
@@ -31,7 +33,7 @@ public:
 	static c_delegate bind(t_class* object) = delete;*/
 
 	template<t_return (*t_function)(t_args...)>
-	static c_delegate bind()
+	static_member_function c_delegate bind()
 	{
 		return c_delegate(nullptr, &invoke_static<t_function>);
 	}
@@ -55,13 +57,13 @@ private:
 	c_delegate(void* object, t_thunk thunk) : m_object(object), m_thunk(thunk) {}
 
 	template<class t_class, t_return(t_class::*t_method)(t_args...)>
-	static t_return invoke(void* object, t_args... args)
+	static_member_function t_return invoke(void* object, t_args... args)
 	{
 		return (static_cast<t_class*>(object)->*t_method)(args...);
 	}
 
 	template<t_return(*t_function)(t_args...)>
-	static t_return invoke_static(void*, t_args... args)
+	static_member_function t_return invoke_static(void*, t_args... args)
 	{
 		return (*t_function)(args...);
 	}

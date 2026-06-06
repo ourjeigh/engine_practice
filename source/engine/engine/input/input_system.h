@@ -109,7 +109,7 @@ public:
 	virtual void update() override;
 
 	template<typename... t_type>
-	static void add_key_combo_callback(c_delegate<t_key_combo_callback> callback, t_type... keys)
+	static_member_function void add_key_combo_callback(c_delegate<t_key_combo_callback> callback, t_type... keys)
 	{
 		ASSERT(!get().m_key_combo_callbacks.full());
 
@@ -130,8 +130,10 @@ void input_system_handle_event(s_event& event);
 s_key_state input_system_get_key_state(e_input_keycode key);
 const s_mouse_state* input_system_get_mouse_state();
 
+const s_input_state* input_system_get_current_input_state();
+
 template<typename... e_input_keycode>
-static void input_system_add_key_combo_callback(c_delegate<t_key_combo_callback> callback, e_input_keycode... keys)
+inline void input_system_add_key_combo_callback(c_delegate<t_key_combo_callback> callback, e_input_keycode... keys)
 {
 	c_input_system::get().add_key_combo_callback(callback, keys...);
 }

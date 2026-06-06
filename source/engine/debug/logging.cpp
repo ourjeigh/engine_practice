@@ -62,7 +62,7 @@ void c_logging_system::log_internal(
 {
 	// todo: get thread number & name  
 	t_timestamp current_time = get_high_precision_timestamp();
-	c_time_span time_since_start = get_session_time()->time_since_start(current_time);  
+	c_engine_time_span time_since_start = get_session_time()->time_since_start(current_time);  
 
 	c_static_string<k_max_log_string_length> output;
 

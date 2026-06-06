@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "events/delegates.h"
+#include "types/types.h"
 
 using t_delegate_no_args = void();
 using t_delegate_takes_int = void(int);
@@ -63,7 +64,7 @@ public:
 };
 
 
-static void static_delegate_test_no_args()
+static_global void static_delegate_test_no_args()
 {
 	g_handled = true;
 }
@@ -102,7 +103,7 @@ TEST(DELEGATES, DELEGATE_STATIC_NO_ARGS)
 
 TEST(DELEGATES, DELEGATE_LAMBDA)
 {
-	static bool handled = false;
+	static_local_variable bool handled = false;
 
 	//c_delegate<t_delegate_no_args> delegate = c_delegate<t_delegate_no_args>::bind <[](){ handled = true;}>();
 	auto delegate = MAKE_DELEGATE_STATIC(
@@ -134,7 +135,7 @@ TEST(DELEGATES, DELEGATE_MEMBER_INT_ARG)
 
 TEST(DELEGATES, DELEGATE_INT_ARG)
 {
-	static int result = 0;
+	static_local_variable int result = 0;
 
 	//c_delegate<t_delegate_takes_int> delegate = c_delegate<t_delegate_takes_int>::bind < [](int arg) { result = arg;} > ();
 

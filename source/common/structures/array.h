@@ -124,7 +124,7 @@ public:
 	
 	t_type* get_item(int32 index)
 	{
-		ASSERT(in_range(k_int32_zero, capacity(), index));
+		ASSERT(in_range_inclusive(k_int32_zero, capacity(), index));
 		return &data()[index];
 	}
 
@@ -472,7 +472,7 @@ public:
 
 private:
 	// size of 8 needs 1 char, size of 9 needs 2
-	static const int32 num_chars = (k_size / 9) + 1;
+	static_member_data const int32 num_chars = (k_size / 9) + 1;
 
 	// we use a char because that causes the least wasted
 	// storage for cases where the size is not perfectly

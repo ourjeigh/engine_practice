@@ -6,14 +6,20 @@
 #include "types/types.h"
 
 template<typename t_type>
-inline constexpr bool in_range(t_type min, t_type max, t_type value)
+inline constexpr bool in_range_inclusive(t_type min, t_type max, t_type value)
 {
 	return min <= value && value <= max;
 }
 
-inline constexpr bool in_range_int32(int32 min, int32 max, int32 value)
+inline constexpr bool in_range_inclusive_int32(int32 min, int32 max, int32 value)
 {
-	return in_range(min, max, value);
+	return in_range_inclusive(min, max, value);
+}
+
+template<typename t_type>
+inline constexpr bool in_range_exclusive(t_type min, t_type max, t_type value)
+{
+	return min < value && value < max;
 }
 
 inline constexpr uint8 int32_to_uint8(int32 in)
@@ -90,7 +96,7 @@ inline constexpr uint32 int64_to_uint32(int64 in)
 
 inline constexpr int32 real32_to_int32(real32 in)
 {
-	ASSERT(in_range(static_cast<real32>(k_int32_min), static_cast<real32>(k_int32_max), in));
+	ASSERT(in_range_inclusive(static_cast<real32>(k_int32_min), static_cast<real32>(k_int32_max), in));
 	return static_cast<int32>(in);
 }
 

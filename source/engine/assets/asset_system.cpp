@@ -51,7 +51,7 @@ public:
 	void term();
 
 private:
-	static_function void asset_loader_thread_entry_point(c_asset_loader_thread* thread);
+	static_member_function void asset_loader_thread_entry_point(c_asset_loader_thread* thread);
 	void process_asset_loads();
 
 	bool m_is_running;

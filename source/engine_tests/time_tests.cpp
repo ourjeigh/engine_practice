@@ -21,7 +21,7 @@ TEST(TIME, TIME_SPAN_DURATION)
 	}
 
 	uint64 end = get_high_precision_timestamp();
-	c_time_span time_span(start, end);
+	c_engine_time_span time_span(start, end);
 
 	real64 duration_millis = time_span.get_duration_milliseconds();
 	real64 duration_micros = time_span.get_duration_microseconds();
@@ -45,7 +45,7 @@ TEST(TIME, SLEEP)
 
 	// 25% tolerance since we can't guarantee sleep accuracy
 	real64 tolerance = sleep_duration_seconds * 0.25f; 
-	real64 diff = abs(timer.get_time_span()->get_duration_seconds() - sleep_duration_seconds);
+	real64 diff = abs(timer.get_time_span().get_duration_seconds() - sleep_duration_seconds);
 
 	EXPECT_LE(diff, tolerance);
 	//EXPECT_NEAR(timer.get_time_span()->get_duration_seconds(), sleep_duration_seconds, tolerance);

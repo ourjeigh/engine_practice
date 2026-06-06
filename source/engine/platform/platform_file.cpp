@@ -161,7 +161,7 @@ int32 read_file_internal(
 		length = out_buffer.capacity();
 	}
 
-	ASSERT(in_range_int32(0, out_buffer.capacity(), length));
+	ASSERT(in_range_inclusive_int32(0, out_buffer.capacity(), length));
 	ASSERT(flags.test(file_open_mode_read));
 
 

@@ -1015,7 +1015,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_char_invalid =
 
 using t_debug_render_char_array = c_array<real32>;
 
-static_function t_debug_render_char_array get_debug_char_array(const char letter)
+static_member_function t_debug_render_char_array get_debug_char_array(const char letter)
 {
 	switch (letter)
 	{

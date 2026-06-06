@@ -18,14 +18,14 @@ struct s_perf_measurement
 {
 	s_perf_measurement() {}
 
-	s_perf_measurement(c_string_id id, c_time_span span, uint32 thread_id) :
+	s_perf_measurement(c_string_id id, c_engine_time_span span, uint32 thread_id) :
 		id(id),
 		span(span),
 		thread_id(thread_id) {
 	}
 
 	c_string_id id;
-	c_time_span span;
+	c_engine_time_span span;
 	uint32 thread_id;
 };
 

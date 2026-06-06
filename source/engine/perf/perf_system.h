@@ -21,7 +21,7 @@ public:
 	void set_capture_state(bool active);
 
 	void generate_report();
-	static_function void report_perf_message(const s_perf_measurement& measurement);
+	static_member_function void report_perf_message(const s_perf_measurement& measurement);
 
 private:
 	bool m_is_capture_active;

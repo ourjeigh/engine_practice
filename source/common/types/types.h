@@ -5,8 +5,9 @@
 #define const_ptr *const
 
 #define static_global static
-#define static_function static
-#define static_local static
+#define static_member_function static
+#define static_member_data static
+#define static_local_variable static
 
 // TODO: move to platform types
 #define pure_virtual_class class __declspec(novtable)
