@@ -21,6 +21,14 @@ public:
 		return c_file_path();
 	}
 
+	static_member_function c_file_path combine(c_file_path left, c_file_path right)
+	{
+		t_string_128 string(left.get_full_path());
+		string.append("\\");
+		string.append(right.get_full_path());
+		return c_file_path(string.get_const_char());
+	}
+
 	bool is_valid() const { return !m_data.empty(); }
 
 	const char* get_full_path() const { return m_data.get_const_char(); }
@@ -35,6 +43,8 @@ public:
 		out_path.copy_from_range(m_data, 0, m_data.used());
 	}
 
+	bool contains(const c_string substring) const { return m_data.contains(substring); }
+	bool ends_with(const c_string substring) const { return m_data.ends_with(substring); }
 private:
 	void split_path(uint8& out_parent_directory_index, uint8& out_filename_index, uint8& out_ext_index) const;
 

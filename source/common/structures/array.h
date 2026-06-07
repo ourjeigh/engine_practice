@@ -128,9 +128,10 @@ public:
 		return &data()[index];
 	}
 
-	const t_type* get_item_const(int32 index)
+	const t_type* get_item_const(int32 index) const
 	{
-		return get_item(index);
+		ASSERT(in_range_inclusive(k_int32_zero, capacity(), index));
+		return &data()[index];
 	}
 
 	t_type* data()
@@ -200,9 +201,14 @@ public:
 		return c_array<t_type>(&data()[start], length);
 	}
 
-	const c_array<t_type> make_sub_array_const(int32 start, int32 end) const
+	const c_array<const t_type> make_sub_array_const(int32 start, int32 end) const
 	{
-		return make_sub_array(start, end);
+		assert_valid_index(start);
+		assert_valid_index(end);
+		ASSERT(end > start);
+
+		const int32 length = end - start;
+		return c_array<const t_type>(&data()[start], length);
 	}
 
 protected:
@@ -320,9 +326,10 @@ public:
 		return c_array<t_type>::get_item(index);
 	}
 
-	const t_type* get_item_const(int32 index)
+	const t_type* get_item_const(int32 index) const
 	{
-		return get_item(index);
+		ASSERT(index <= m_top);
+		return c_array<t_type>::get_item_const(index);
 	}
 
 	int32 used() const { return m_top + 1; }

@@ -147,7 +147,7 @@ void process_input_event_queue_internal()
 		{
 			s_input_event_key_data& data = event.key_data;
 			g_input_state.key_states[data.key].is_down = data.down;
-			g_input_state.key_states[data.key].time_in_state = c_engine_time_span::to_span(g_key_timestamps[data.key], current_time);
+			g_input_state.key_states[data.key].time_in_state = c_engine_time_span::to_time_span(g_key_timestamps[data.key], current_time);
 
 			log_message(verbose, "input system: key:{i} {s} repeat:{i}",
 				data.key, 

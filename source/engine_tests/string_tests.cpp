@@ -238,6 +238,26 @@ TEST(STRING, STRING_LENGTH)
 	COMPILE_ASSERT(string_length("hello") == 5);
 }
 
+TEST(STRING, STRING_CONTAINS)
+{
+	t_string_128 test("hello madam i'm adam");
+	t_string_128 match("mad");
+	t_string_128 miss("madan");
+
+	EXPECT_TRUE(test.contains(match));
+	EXPECT_FALSE(test.contains(miss));
+}
+
+TEST(STRING, STRING_ENDS_WITH)
+{
+	t_string_128 test("hello madam i'm adam");
+	t_string_128 match("adam");
+	t_string_128 miss("madan");
+
+	EXPECT_TRUE(test.ends_with(match));
+	EXPECT_FALSE(test.ends_with(miss));
+}
+
 TEST(STRING_ID, STRING_ID_COMPILED)
 {
 	DECLARE_STRING_ID(test, "test string");

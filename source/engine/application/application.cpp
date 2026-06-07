@@ -13,6 +13,7 @@
 #include "platform/platform_window.h"
 #include "rendering/render_system.h"
 #include "perf/perf.h"
+#include <platform/platform_file.h>
 
 const real32 k_max_fps = 60.0f;
 const real32 k_max_frame_interval_seconds = 1 / k_max_fps;
@@ -40,10 +41,14 @@ struct s_game_info_internal
 	c_platform_handle library;
 };
 
-bool check_game_dll_and_reload_if_newer();
-void load_game();
-void unload_game();
+static_global void load_game();
+static_global void unload_game();
+
+#ifdef HOT_RELOAD
+static_global bool check_game_dll_and_reload_if_newer();
 static_global void handle_game_reload(bool down);
+static_global void cleanup_temp_game_dlls();
+#endif //HOT_RELOAD
 
 s_game_info_internal g_game_info;
 bool g_interrupt_signalled = false;
@@ -90,6 +95,8 @@ void c_application::term()
 	engine_systems_term();
 	m_window.term();
 	g_game_info.library.invalidate();
+	unload_game();
+	cleanup_temp_game_dlls();
 }
 
 void c_application::run()
@@ -208,7 +215,7 @@ void c_application::handle_window_resize(int32 height, int32 width)
 	c_render_system::get().resize(width, height);
 }
 
-void load_game()
+static_global void load_game()
 {
 	bool success = false;
 	for (int32 retries = 10; !success && retries >= 0; retries--)
@@ -272,7 +279,7 @@ void load_game()
 	ASSERT(success);
 }
 
-void unload_game()
+static_global void unload_game()
 {
 	if (g_game_info.library.is_valid())
 	{
@@ -308,8 +315,6 @@ bool check_game_dll_and_reload_if_newer()
 
 	return reloaded;
 }
-#endif //HOT_RELOAD
-
 
 static_global void handle_game_reload(bool down)
 {
@@ -332,3 +337,22 @@ static_global void handle_game_reload(bool down)
 		}
 	}
 }
+
+static_global void cleanup_temp_game_dlls()
+{
+	c_file_path directory("C:\\Users\\RJ\\git\\simm_engine\\build");
+	c_static_stack<c_file_path, 128> files;
+	platform_file_directory_get_files(directory, &files);
+
+	const t_string_128 temp_string("temp");
+
+	for (auto& file : files)
+	{
+		if (file.contains(temp_string))
+		{
+			platform_file_delete(file);
+		}
+	}
+}
+
+#endif //HOT_RELOAD

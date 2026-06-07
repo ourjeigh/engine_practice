@@ -91,6 +91,59 @@ public:
 			this->push(k_null_char);
 		}
 	}
+	
+	bool contains(c_string substring) const
+	{
+		bool matched = false;
+		int32 string_index = 0;
+		int32 substring_index = 0;
+		int32 substring_length = substring.used();
+
+		if (substring.is_terminated())
+		{
+			substring_length--;
+		}
+
+		// hello madam i'm adam\0
+		// ----->mad\0--------->
+		while (!matched && string_index < this->used())
+		{
+			if (*get_item_const(string_index) == *substring.get_item_const(substring_index))
+			{ 
+				substring_index++;
+				matched = substring_index == substring_length;
+			}
+			else
+			{
+				substring_index = 0;
+			}
+
+			string_index++;
+		}
+
+		return matched;
+	}
+
+	bool ends_with(const c_string substring) const
+	{
+		if (empty()) return false;
+
+		int32 string_index = used() - (is_terminated() ? 2 : 1);
+		int32 substring_index = substring.used() - (substring.is_terminated() ? 2 : 1);
+
+		while (string_index >= 0 && substring_index >= 0)
+		{
+			if (*get_item_const(string_index) != *substring.get_item_const(substring_index))
+			{
+				return false;
+			}
+
+			string_index--;
+			substring_index--;
+		}
+
+		return true;
+	}
 
 private:
 
