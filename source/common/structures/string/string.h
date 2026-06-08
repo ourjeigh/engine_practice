@@ -104,8 +104,6 @@ public:
 			substring_length--;
 		}
 
-		// hello madam i'm adam\0
-		// ----->mad\0--------->
 		while (!matched && string_index < this->used())
 		{
 			if (*get_item_const(string_index) == *substring.get_item_const(substring_index))

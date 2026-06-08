@@ -13,7 +13,7 @@
 #include "platform/platform_window.h"
 #include "rendering/render_system.h"
 #include "perf/perf.h"
-#include <platform/platform_file.h>
+#include "platform/platform_file.h"
 
 const real32 k_max_fps = 60.0f;
 const real32 k_max_frame_interval_seconds = 1 / k_max_fps;

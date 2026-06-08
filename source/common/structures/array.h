@@ -20,8 +20,6 @@ public:
 		iterator& operator--() { --m_ptr; return *this; }
 		iterator operator--(int) { iterator temp = *this; --(*this); return temp; }
 
-		// todo: make const interators
-
 		bool operator== (const iterator& other) const { return m_ptr == other.m_ptr; }
 		bool operator!= (const iterator& other) const { return !(*this == other); }
 
@@ -38,8 +36,6 @@ public:
 		const_iterator operator++(int) { const_iterator temp = *this; ++(*this); return temp; }
 		const_iterator& operator--() { --m_ptr; return *this; }
 		const_iterator operator--(int) { const_iterator temp = *this; --(*this); return temp; }
-
-		// todo: make const interators
 
 		bool operator== (const const_iterator& other) const { return m_ptr == other.m_ptr; }
 		bool operator!= (const const_iterator& other) const { return !(*this == other); }
@@ -219,7 +215,7 @@ protected:
 		ASSERT(index < capacity());
 	}
 
-private:
+protected:
 	t_type* m_data_ref;
 
 	// would like this to be const, but it breaks copy assignment
@@ -250,6 +246,12 @@ public:
 
 	~c_static_array<t_type, k_max_size>() {}
 
+	void HACK_init()
+	{
+		this->m_data_ref = m_data;
+		this->m_size = k_max_size;
+	}
+
 	c_static_array<t_type, k_max_size>& operator=(const c_static_array<t_type, k_max_size>& other)
 	{
 		if (this != &other)
@@ -263,7 +265,10 @@ public:
 		return *this;
 	}
 
-	int32 capacity() const { return k_max_size; }
+	int32 capacity() const 
+	{
+		return k_max_size; 
+	}
 
 	t_type* data() { return m_data; }
 	const t_type* const_data() const { return m_data; }

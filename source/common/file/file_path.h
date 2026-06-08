@@ -45,6 +45,7 @@ public:
 
 	bool contains(const c_string substring) const { return m_data.contains(substring); }
 	bool ends_with(const c_string substring) const { return m_data.ends_with(substring); }
+
 private:
 	void split_path(uint8& out_parent_directory_index, uint8& out_filename_index, uint8& out_ext_index) const;
 

@@ -2,14 +2,22 @@
 #include "engine_api.h"
 #include "types/render_types.h"
 #include "types/asset_types.h"
+#include "structures/vector.h"
 
 const s_asset_definition k_click_audio_asset_def = { "sound_click_01", asset_scope_global, asset_type_wav, "C:\\Users\\RJ\\git\\simm_engine\\assets\\click_16_44k.wav" };
 const s_asset_definition k_test_bmp_asset_def = { "test_bmp", asset_scope_global, asset_type_bitmap, R"(C:\Users\RJ\git\simm_engine\assets\test\dude.bmp)" };
 
+class c_player
+{
+public:
+	t_vector_2d_int32 position;
+
+private:
+};
+
 struct s_game_state
 {
-	int32 player_x;
-	int32 player_y;
+	c_player player;
 
 	s_bitmap_asset* g_test_bmp;
 	s_wav_asset* g_test_sound;
@@ -95,8 +103,9 @@ extern "C"
 		engine_load_asset(&k_test_bmp_asset_def, asset_loaded_callback, nullptr);
 
 		s_render_shape_point center = engine_get_screen_center();
-		g_game_state->player_x = center.x;
-		g_game_state->player_y = center.y;
+		g_game_state->player.position.set(center.x, center.y);
+		//g_game_state->player.position.x() = center.x;
+		//g_game_state->player.position.y() = center.y;
 
 		engine_log_verbose("game: game initialized");
 	}
@@ -109,28 +118,28 @@ extern "C"
 
 		if (input_state->get_key_state(input_key_arrow_up).is_down)
 		{
-			g_game_state->player_y -= player_speed_pixels_hack * player_speed_shift_modifier;
+			g_game_state->player.position.y() -= player_speed_pixels_hack * player_speed_shift_modifier;
 		}
 
 		if (input_state->get_key_state(input_key_arrow_down).is_down)
 		{
-			g_game_state->player_y += player_speed_pixels_hack * player_speed_shift_modifier;
+			g_game_state->player.position.y() += player_speed_pixels_hack * player_speed_shift_modifier;
 		}
 
 		if (input_state->get_key_state(input_key_arrow_left).is_down)
 		{
-			g_game_state->player_x -= player_speed_pixels_hack * player_speed_shift_modifier;
+			g_game_state->player.position.x() -= player_speed_pixels_hack * player_speed_shift_modifier;
 		}
 
 		if (input_state->get_key_state(input_key_arrow_right).is_down)
 		{
-			g_game_state->player_x += player_speed_pixels_hack * player_speed_shift_modifier;
+			g_game_state->player.position.x() += player_speed_pixels_hack * player_speed_shift_modifier;
 		}
 
 		if (g_game_state->g_test_bmp != nullptr)
 		{
-			int32 x = g_game_state->player_x - g_game_state->g_test_bmp->width / 2;
-			int32 y = g_game_state->player_y - g_game_state->g_test_bmp->height / 2;
+			int32 x = g_game_state->player.position.x() - g_game_state->g_test_bmp->width / 2;
+			int32 y = g_game_state->player.position.y() - g_game_state->g_test_bmp->height / 2;
 			engine_render_bitmap(
 				*g_game_state->g_test_bmp, 
 				x, 

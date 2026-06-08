@@ -1,4 +1,5 @@
 #include "audio_system.h"
+#include "assets/asset_system.h"
 #include "debug/logging.h"
 #include "debug/asserts.h"
 #include "threads/threads.h"
@@ -6,7 +7,6 @@
 #include "platform/platform.h"
 #include "memory/allocator.h"
 #include "memory/memory_system.h"
-#include <assets/asset_system.h>
 #include "engine/audio/audio_threadsafe_buffer.h"
 #include "rendering/render_system.h"
 
