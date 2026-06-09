@@ -6,12 +6,26 @@
 #include "types/types.h"
 #include "memory/memory.h"
 
+#define ARRAY_DECLARE_STORAGE_MEMBERS \
+	public: \
+		t_type* data() { return m_data; } \
+		const t_type* data() const { return m_data; } \
+		int32 capacity() const { return k_max_size; } \
+	private: \
+		t_type m_data[k_max_size];
+
+#define ARRAY_DECLARE_REFERENCE_MEMBERS \
+	public: \
+		t_type* data() { return m_data_reference; } \
+		const t_type* data() const { return m_data_reference; } \
+		int32 capacity() const { return m_size; } \
+	private: \
+		t_type* m_data_reference; \
+		int32 m_size; \
+
 // forward declare
 template<class t_type>
 class c_array;
-
-template<class t_type, class t_derived>
-class c_stack_mixin;
 
 template<class t_type>
 struct iterator
@@ -38,9 +52,6 @@ template<class t_type, class t_derived>
 class c_array_base
 {
 public:
-	using iterator = iterator<t_type>;
-	using const_iterator = const_iterator<t_type>;
-
 	c_array_base()
 	{ 
 	}
@@ -78,14 +89,14 @@ public:
 		return !(operator==(other));
 	}
 
-	iterator begin() { return iterator(&data()[0]); }
-	iterator end() { return iterator(&data()[capacity()]); }
-	iterator begin_reverse() { return iterator(&data()[capacity() - 1]); }
-	iterator end_reverse() { return iterator(&data()[-1]); }
-	const_iterator begin_const() const { return const_iterator(data()); }
-	const_iterator end_const() const { return const_iterator(&data()[capacity()]); }
-	const_iterator begin_reverse_const() const { return const_iterator(&data()[capacity() - 1]); }
-	const_iterator end_reverse_const() const { return const_iterator(&data()[-1]); }
+	iterator<t_type> begin() { return iterator<t_type>(&data()[0]); }
+	iterator<t_type> end() { return iterator<t_type>(&data()[capacity()]); }
+	iterator<t_type> begin_reverse() { return iterator<t_type>(&data()[capacity() - 1]); }
+	iterator<t_type> end_reverse() { return iterator<t_type>(&data()[-1]); }
+	const_iterator<t_type> begin_const() const { return const_iterator<t_type>(data()); }
+	const_iterator<t_type> end_const() const { return const_iterator<t_type>(&data()[capacity()]); }
+	const_iterator<t_type> begin_reverse_const() const { return const_iterator<t_type>(&data()[capacity() - 1]); }
+	const_iterator<t_type> end_reverse_const() const { return const_iterator<t_type>(&data()[-1]); }
 	
 	t_type* get_item(int32 index)
 	{
@@ -173,8 +184,6 @@ protected:
 	}
 
 private:
-	friend class c_stack_mixin<t_type, t_derived>;
-
 	t_derived& self() { return *static_cast<t_derived*>(this); }
 	const t_derived& self() const { return *static_cast<const t_derived*>(this); }
 };
@@ -182,32 +191,27 @@ private:
 template<class t_type>
 class c_array : public c_array_base<t_type, c_array<t_type>>
 {
+	ARRAY_DECLARE_REFERENCE_MEMBERS
+
 public:
-	c_array() : m_data_ref(nullptr), m_size(k_invalid) {}
-	c_array(t_type* data, int32 size) : m_data_ref(data), m_size(size) {}
+	c_array() : m_data_reference(nullptr), m_size(k_invalid) {}
+	c_array(t_type* data, int32 size) : m_data_reference(data), m_size(size) {}
 
 	c_array& operator=(const c_array& other)
 	{
 		ASSERT(other.is_valid());
 
-		m_data_ref = other.m_data_ref;
+		m_data_reference = other.m_data_reference;
 		m_size = other.m_size;
 		return *this;
 	}
-
-
-	t_type* data() { return m_data_ref; }
-	const t_type* data() const { return m_data_ref; }
-	int32 capacity() const { return m_size; }
-
-private:
-	t_type* m_data_ref;
-	int32 m_size;
 };
 
 template<class t_type, int32 k_max_size>
 class c_static_array : public c_array_base<t_type, c_static_array<t_type, k_max_size>>
 {
+	ARRAY_DECLARE_STORAGE_MEMBERS
+
 public:
 	constexpr c_static_array<t_type, k_max_size>() {}
 	explicit c_static_array<t_type, k_max_size>(const c_static_array<t_type, k_max_size>& other)
@@ -235,7 +239,7 @@ public:
 		{
 			for (int32 i = 0; i < k_max_size; ++i)
 			{
-				this->data()[i] = other.m_data[i];
+				this->data()[i] = other.data()[i];
 			}
 		}
 
@@ -245,28 +249,32 @@ public:
 	c_array<t_type> as_array() { return c_array<t_type>(data(), capacity()); }
 	operator c_array<t_type>() { return c_array<t_type>(data(), capacity()); }
 	operator const c_array<const t_type>() const { return c_array<const t_type>(data(), capacity()); }
-
-	t_type* data() { return m_data; }
-	const t_type* data() const { return m_data; }
-	int32 capacity() const { return k_max_size; }
-
-protected:
-	t_type m_data[k_max_size];
 };
 
 template<class t_type, class t_derived>
-class c_stack_mixin
+class c_stack_base : public c_array_base<t_type, t_derived>
 {
-	// requires data() and capacity() to be implemented in whatever this is mixed in with
-
 public:
-	using iterator = iterator<t_type>;
-	using const_iterator = const_iterator<t_type>;
+	iterator<t_type> end() { return iterator<t_type>(&self().data()[m_top + 1]); }
+	iterator<t_type> begin_reverse() { return iterator<t_type>(&self().data()[m_top]); }
+	const_iterator<t_type> end_const() const { return const_iterator<t_type>(&self().data()[m_top + 1]); }
+	const_iterator<t_type> begin_reverse_const() const { return const_iterator<t_type>(&self().data()[m_top]); }
 
-	iterator end() { return iterator(&self().data()[m_top + 1]); }
-	iterator begin_reverse() { return iterator(&self().data()[m_top]); }
-	const_iterator end_const() const { return const_iterator(&self().data()[m_top + 1]); }
-	const_iterator begin_reverse_const() const { return const_iterator(&self().data()[m_top]); }
+	bool operator==(const c_stack_base<t_type, t_derived>& other) const
+	{
+		bool equal = false;
+		if (used() == other.used())
+		{
+			equal = true;
+
+			for (int32 i = 0; equal && i < self().used(); i++)
+			{
+				equal = self().data()[i] == other.self().data()[i];
+			}
+		}
+
+		return equal;
+	}
 
 	void push(t_type item)
 	{
@@ -307,17 +315,17 @@ public:
 		return self().data()[m_top];
 	}
 
-	//t_type* get_item(int32 index)
-	//{
-	//	ASSERT(index <= m_top);
-	//	return this->c_array_base<t_type, t_derived>::get_item(index);
-	//}
+	t_type* get_item(int32 index)
+	{
+		ASSERT(index <= m_top);
+		return c_array_base<t_type, t_derived>::get_item(index);
+	}
 
-	//const t_type* get_item_const(int32 index) const
-	//{
-	//	ASSERT(index <= m_top);
-	//	return this->c_array_base<t_type, t_derived>::get_item_const(index);
-	//}
+	const t_type* get_item_const(int32 index) const
+	{
+		ASSERT(index <= m_top);
+		return c_array_base<t_type, t_derived>::get_item_const(index);
+	}
 
 	int32 used() const { return m_top + 1; }
 	int32 free() const { return self().capacity() - used(); }
@@ -325,10 +333,10 @@ public:
 	bool full() const { return m_top == self().capacity() - 1; }
 	void clear() { m_top = k_index_empty; }
 
-	//iterator end() { return iterator(&this->data()[m_top + 1]); }
-	//iterator begin_reverse() { return iterator(&this->data()[m_top]); }
+	operator c_array<t_type>() { return c_array<t_type>(this->data(), this->used()); }
+	c_array<t_type> as_array_full() { return c_array<t_type>(this->data(), this->capacity()); }
 
-	void copy_from(const c_stack_mixin<t_type, t_derived>& other)
+	void copy_from(const c_stack_base<t_type, t_derived>& other)
 	{
 		{
 			int32 count = math_min(self().capacity(), other.self().capacity());
@@ -338,7 +346,7 @@ public:
 		m_top = other.m_top;
 	}
 
-	void copy_from_range(const c_stack_mixin<t_type, t_derived>& other, int32 start, int32 end)
+	void copy_from_range(const c_stack_base<t_type, t_derived>& other, int32 start, int32 end)
 	{
 		{
 			ASSERT(start >= 0);
@@ -346,7 +354,6 @@ public:
 			ASSERT(start < end);
 
 			int32 count = (end - start);
-			//assert_valid_index(count - 1);
 
 			memory_copy(self().data(), &other.self().data()[start], sizeof(t_type) * count);
 		}
@@ -371,41 +378,36 @@ private:
 
 
 template<class t_type>
-class c_stack : 
-	public c_array<t_type>,
-	public c_stack_mixin<t_type, c_stack<t_type>>
+class c_stack : public c_stack_base<t_type, c_stack<t_type>>
 {
+	ARRAY_DECLARE_REFERENCE_MEMBERS
+
 public:
-	c_stack() : c_array<t_type>() {}
-	c_stack(t_type* data, int32 size) : c_array<t_type>(data, size) {}
+	c_stack() : m_data_reference(nullptr), m_size(k_invalid) {}
+	c_stack(t_type* data, int32 size) : m_data_reference(data), m_size(size) {}
 
-	using c_stack_mixin<t_type, c_stack<t_type>>::end;
-	using c_stack_mixin<t_type, c_stack<t_type>>::end_const;
-	using c_stack_mixin<t_type, c_stack<t_type>>::begin_reverse;
-	using c_stack_mixin<t_type, c_stack<t_type>>::begin_reverse_const;
-	using c_stack_mixin<t_type, c_stack<t_type>>::copy_from;
-	using c_stack_mixin<t_type, c_stack<t_type>>::copy_from_range;
+	c_stack& operator=(const c_stack& other)
+	{
+		ASSERT(other.is_valid());
 
-protected:
+		m_data_reference = other.m_data_reference;
+		m_size = other.m_size;
+		return *this;
+	}
 };
 
 template<class t_type, int32 k_max_size>
-class c_static_stack : 
-	public c_static_array<t_type, k_max_size>,
-	public c_stack_mixin<t_type, c_static_stack<t_type, k_max_size>>
+class c_static_stack : public c_stack_base<t_type, c_static_stack<t_type, k_max_size>>
 {
+	ARRAY_DECLARE_STORAGE_MEMBERS
+
 public:
-	using c_stack_mixin<t_type, c_static_stack<t_type, k_max_size>>::end;
-	using c_stack_mixin<t_type, c_static_stack<t_type, k_max_size>>::end_const;
-	using c_stack_mixin<t_type, c_static_stack<t_type, k_max_size>>::begin_reverse;
-	using c_stack_mixin<t_type, c_static_stack<t_type, k_max_size>>::begin_reverse_const;
-	using c_stack_mixin<t_type, c_static_stack<t_type, k_max_size>>::copy_from;
-	using c_stack_mixin<t_type, c_static_stack<t_type, k_max_size>>::copy_from_range;
-
-
 	c_stack<t_type> as_stack() { return c_stack<t_type>(this->data(), this->capacity()); }
 	operator c_stack<t_type>() { return c_stack<t_type>(this->data(), this->capacity()); }
 };
+
+#undef ARRAY_DECLARE_STORAGE_MEMBERS
+#undef ARRAY_DECLARE_REFERENCE_MEMBERS
 
 template <size_t k_size>
 class c_bit_array

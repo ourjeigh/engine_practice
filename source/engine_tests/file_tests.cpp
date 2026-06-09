@@ -179,7 +179,7 @@ TEST(C_FILE_BUFFERED, READ_BYTES)
 	t_file_open_mode_flags flags;
 
 	c_file_buffered file;
-	c_static_stack<byte, 200> file_buffer;
+	c_static_array<byte, 200> file_buffer;
 	file.set_buffer(file_buffer);
 
 	flags.set(file_open_mode_read, true);
@@ -270,7 +270,7 @@ TEST(C_FILE_BUFFERED, UNBUFFERED_COMPARISON)
 	t_file_open_mode_flags flags;
 
 	c_file_buffered file;
-	c_static_stack<byte, 200> file_buffer;
+	c_static_array<byte, 200> file_buffer;
 	file.set_buffer(file_buffer);
 
 	flags.set(file_open_mode_read, true);
@@ -311,7 +311,7 @@ TEST(C_FILE_BUFFERED, READ_ALL_BYTES)
 	t_file_open_mode_flags flags;
 
 	c_file_buffered file;
-	c_static_stack<byte, 1024> file_buffer;
+	c_static_array<byte, 1024> file_buffer;
 	file.set_buffer(file_buffer);
 
 	flags.set(file_open_mode_read, true);
