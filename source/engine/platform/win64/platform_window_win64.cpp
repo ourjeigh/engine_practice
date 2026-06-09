@@ -136,7 +136,7 @@ void c_window_thread::render()
 		hdc,
 		dest_rect.x, dest_rect.y, dest_rect.width, dest_rect.height, // dest
 		source_rect.x, source_rect.y, source_rect.width, source_rect.height, // src
-		backbuffer->memory.const_data(),
+		backbuffer->memory.data(),
 		&g_window_info.bmi,
 		DIB_RGB_COLORS,
 		SRCCOPY

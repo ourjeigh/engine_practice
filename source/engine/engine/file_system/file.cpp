@@ -43,7 +43,7 @@ bool c_file::close()
 	return result;
 }
 
-int32 c_file::read_bytes(int32 start, int32 length, c_array<byte>& out_buffer)
+int32 c_file::read_bytes(int32 start, int32 length, c_array<byte> out_buffer)
 {
 	ASSERT(is_open());
 
@@ -86,7 +86,7 @@ bool c_file_buffered::open(const c_file_path& file_path, t_file_open_mode_flags 
 	return result;
 }
 
-int32 c_file_buffered::read_bytes(int32 length, c_array<byte>& out_buffer)
+int32 c_file_buffered::read_bytes(int32 length, c_array<byte> out_buffer)
 {
 	ASSERT(is_open());
 

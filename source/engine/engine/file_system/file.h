@@ -39,7 +39,7 @@ public:
 
 	bool is_open() const { return m_file_handle.is_valid(); }
 
-	int32 read_bytes(int32 start, int32 length, c_array<byte>& out_buffer);
+	int32 read_bytes(int32 start, int32 length, c_array<byte> out_buffer);
 
 	// todo: the default writes should be append (start = k_invalid), make new write_at_position or something for explicit start
 	int32 write_bytes(int32 start, const c_array<byte>& buffer);
@@ -58,7 +58,7 @@ public:
 	c_file_buffered() { reset(); }
 	c_file_buffered(c_array<byte>& buffer) : m_buffer(buffer) { reset(); }
 
-	void set_buffer(c_array<byte>& buffer) 
+	void set_buffer(c_array<byte> buffer) 
 	{ 
 		m_buffer = buffer; 
 	}
@@ -80,8 +80,8 @@ public:
 		return c_file::close(); 
 	}
 
-	int32 read_bytes(int32 length, c_array<byte>& out_buffer);
-	int32 read_bytes_unbuffered(int32 start, int32 length, c_array<byte>& out_buffer) 
+	int32 read_bytes(int32 length, c_array<byte> out_buffer);
+	int32 read_bytes_unbuffered(int32 start, int32 length, c_array<byte> out_buffer) 
 	{
 		return c_file::read_bytes(start, length, out_buffer);
 	}

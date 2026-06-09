@@ -97,8 +97,9 @@ static_global c_static_stack_allocator<k_byte_kib>* g_render_commands_allocator;
 
 // if render system moves of the main thread it needs to be made safe
 // TBD if each layer needs the same number (thinking about _background)
-using t_render_message_stack = c_static_array<c_static_stack<s_render_message, 128>, k_render_layer_count>;
-static_global t_render_message_stack* g_render_messages;
+using t_render_message_layer_stack = c_static_stack<s_render_message, 128>;
+using t_render_message_stack_array = c_static_array<t_render_message_layer_stack, k_render_layer_count>;
+static_global t_render_message_stack_array* g_render_messages;
 
 void c_render_system::init()
 {
@@ -108,7 +109,7 @@ void c_render_system::init()
 	m_buffers[1].height = 720;
 
 	g_render_commands_allocator = ALLOCATE_NEW_GLOBAL(c_static_stack_allocator<k_byte_kib>, memory_arena_system);
-	g_render_messages = ALLOCATE_NEW_GLOBAL(t_render_message_stack, memory_arena_system);
+	g_render_messages = ALLOCATE_NEW_GLOBAL(t_render_message_stack_array, memory_arena_system);
 }
 
 void c_render_system::term()
@@ -126,12 +127,12 @@ void c_render_system::update()
 	// process the messages starting from the bottom layer so that we draw higher layers on top of lower
 	for (int32 layer_index = 0; layer_index < g_render_messages->capacity(); layer_index++)
 	{
-		c_stack<s_render_message>& layer_messages = *g_render_messages->get_item(layer_index);
+		t_render_message_layer_stack* layer_messages = g_render_messages->get_item(layer_index);
 
-		while (!layer_messages.empty())
+		while (!layer_messages->empty())
 		{
-			const s_render_message& message = layer_messages.top();
-			layer_messages.pop();
+			const s_render_message& message = layer_messages->top();
+			layer_messages->pop();
 
 			switch (message.type)
 			{

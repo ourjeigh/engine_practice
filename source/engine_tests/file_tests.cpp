@@ -209,7 +209,8 @@ TEST(C_FILE_BUFFERED, READ_BYTES)
 	read_buffer.zero_data();
 
 	EXPECT_EQ(read_buffer.capacity(), file.read_bytes(read_buffer.capacity(), read_buffer));
-	EXPECT_TRUE(array_has_non_zero_data(read_buffer));
+	bool non_zero_data = array_has_non_zero_data(read_buffer.as_array());
+	EXPECT_TRUE(non_zero_data);
 
 	{
 		const char* file_string = reinterpret_cast<const char*>(read_buffer.data());
@@ -219,7 +220,7 @@ TEST(C_FILE_BUFFERED, READ_BYTES)
 	read_buffer.zero_data();
 
 	EXPECT_EQ(read_buffer.capacity(), file.read_bytes(read_buffer.capacity(), read_buffer));
-	EXPECT_TRUE(array_has_non_zero_data(read_buffer));
+	EXPECT_TRUE(array_has_non_zero_data(read_buffer.as_array()));
 
 	{
 		const char* file_string = reinterpret_cast<const char*>(read_buffer.data());
@@ -229,7 +230,7 @@ TEST(C_FILE_BUFFERED, READ_BYTES)
 	read_buffer.zero_data();
 
 	EXPECT_EQ(read_buffer.capacity(), file.read_bytes(read_buffer.capacity(), read_buffer));
-	EXPECT_TRUE(array_has_non_zero_data(read_buffer));
+	EXPECT_TRUE(array_has_non_zero_data(read_buffer.as_array()));
 
 	{
 		const char* file_string = reinterpret_cast<const char*>(read_buffer.data());
@@ -240,7 +241,7 @@ TEST(C_FILE_BUFFERED, READ_BYTES)
 
 	// we're at the EOF, we expect a partial fill, still with valid data
 	EXPECT_LE(file.read_bytes(read_buffer.capacity(), read_buffer), read_buffer.capacity());
-	EXPECT_TRUE(array_has_non_zero_data(read_buffer));
+	EXPECT_TRUE(array_has_non_zero_data(read_buffer.as_array()));
 
 	{
 		const char* file_string = reinterpret_cast<const char*>(read_buffer.data());
@@ -251,7 +252,7 @@ TEST(C_FILE_BUFFERED, READ_BYTES)
 
 	// we're past EOF, new reads should return 0 bytes and not fill the output
 	EXPECT_EQ(file.read_bytes(read_buffer.capacity(), read_buffer), 0);
-	EXPECT_FALSE(array_has_non_zero_data(read_buffer));
+	EXPECT_FALSE(array_has_non_zero_data(read_buffer.as_array()));
 
 	{
 		const char* file_string = reinterpret_cast<const char*>(read_buffer.data());

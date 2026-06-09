@@ -60,7 +60,6 @@ public:
 
 	void set(t_type x, t_type y)
 	{
-		this->m_data.HACK_init();
 		this->m_data[vector_coordinate_x] = x;
 		this->m_data[vector_coordinate_y] = y;
 	}
