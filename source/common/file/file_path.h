@@ -40,7 +40,7 @@ public:
 
 	void get_path_string(c_string& out_path) const
 	{
-		out_path.copy_from_range(m_data, 0, m_data.used());
+		out_path.copy_from(m_data);
 	}
 
 	bool contains(const c_string substring) const { return m_data.contains(substring); }

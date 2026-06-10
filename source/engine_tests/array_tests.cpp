@@ -77,31 +77,7 @@ TEST(C_ARRAY, C_ARRAY_ASSERTS)
 	EXPECT_DEATH({ array[12] = 5.0f; }, ".*");
 }
 
-TEST(C_ARRAY_REF, MAKE_REFERENCE)
-{
-
-	c_static_array<int32, 5> array1 = { 1, 2, 3, 4, 5 };
-
-	/*c_array<int32> ref(array1);
-
-	for (int32 i = 0; i < 5; i++)
-	{
-		EXPECT_EQ(ref[i], i + 1);
-	}*/
-}
-
-//TEST(C_ARRAY_REF, MAKE_REFERENCE_CONST)
-//{
-//	c_static_array<int32, 5> array1 = { 1, 2, 3, 4, 5};
-//	c_array<int32> ref = array1;
-//
-//	for (int32 i = 0; i < 5; i++)
-//	{
-//		EXPECT_EQ(ref[i], i + 1);
-//	}
-//}
-
-TEST(I_ARRAY, COPY_FROM_SAME_TYPE)
+TEST(ARRAY, COPY_FROM_SAME_TYPE)
 {
 	c_static_array<int32, 10> array1 = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
 
@@ -115,7 +91,7 @@ TEST(I_ARRAY, COPY_FROM_SAME_TYPE)
 	}
 }
 
-TEST(I_ARRAY, COPY_FROM_DIFF_TYPE)
+TEST(ARRAY, COPY_FROM_DIFF_TYPE)
 {
 	c_static_array<int32, 10> array1 = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
 
@@ -129,7 +105,7 @@ TEST(I_ARRAY, COPY_FROM_DIFF_TYPE)
 	}
 }
 
-TEST(I_ARRAY, COPY_FROM_REF)
+TEST(ARRAY, COPY_FROM_REF)
 {
 	c_static_array<int32, 10> array1 = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
 	c_static_array<int32, 5> array2;
@@ -142,7 +118,7 @@ TEST(I_ARRAY, COPY_FROM_REF)
 	}
 }
 
-TEST(I_ARRAY, COPY_FROM_OFFSET)
+TEST(ARRAY, COPY_FROM_OFFSET)
 {
 	c_static_array<int32, 10> array1 = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
 
@@ -156,7 +132,7 @@ TEST(I_ARRAY, COPY_FROM_OFFSET)
 	}
 }
 
-TEST(I_ARRAY, COPY_FROM_BAD_RANGE)
+TEST(ARRAY, COPY_FROM_BAD_RANGE)
 {
 	c_static_array<int32, 10> array1 = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
@@ -165,7 +141,7 @@ TEST(I_ARRAY, COPY_FROM_BAD_RANGE)
 	EXPECT_DEATH(array2.copy_from_range(array1, 2, 8), ".*");
 }
 
-TEST(I_ARRAY, COPY_FROM_RANGE_OFFSET)
+TEST(ARRAY, COPY_FROM_RANGE_OFFSET)
 {
 	c_static_array<int32, 10> array1 = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 	c_static_array<int32, 10> array2;
@@ -185,7 +161,7 @@ TEST(I_ARRAY, COPY_FROM_RANGE_OFFSET)
 	}
 }
 
-TEST(I_ARRAY, EQUALS_OPERATOR)
+TEST(ARRAY, EQUALS_OPERATOR)
 {
 	const c_static_array<int32, 10> array_match_1 = { 1, 2, 3, 4 , 5, 6, 7, 8, 9, 10 };
 	const c_static_array<int32, 10> array_match_2 = { 1, 2, 3, 4 , 5, 6, 7, 8, 9, 10 };
@@ -258,6 +234,122 @@ TEST(C_STACK, C_STACK_ASSERTS)
 	stack.push(0);
 
 	EXPECT_DEATH(stack.push(0), ".*");
+}
+
+TEST(C_STACK, ASSIGNMENT_PRESERVES_TOP)
+{
+	int32 source_buffer[8];
+	int32 target_buffer[8];
+	c_stack<int32> source(source_buffer, 8);
+	c_stack<int32> target(target_buffer, 8);
+
+	source.push(10);
+	source.push(20);
+	source.push(30);
+
+	target = source;
+
+	EXPECT_EQ(target.used(), 3);
+	EXPECT_EQ(target.top(), 30);
+	target.pop();
+	EXPECT_EQ(target.top(), 20);
+	target.pop();
+	EXPECT_EQ(target.top(), 10);
+	target.pop();
+	EXPECT_TRUE(target.empty());
+}
+
+TEST(C_STATIC_STACK, TO_C_STACK_PRESERVES_TOP)
+{
+	c_static_stack<int32, 8> source;
+	source.push(1);
+	source.push(2);
+	source.push(3);
+
+	c_stack<int32> target = source;
+
+	EXPECT_EQ(target.used(), source.used());
+	EXPECT_FALSE(target.empty());
+	EXPECT_EQ(target.top(), 3);
+	target.pop();
+	EXPECT_EQ(target.top(), 2);
+	target.pop();
+	EXPECT_EQ(target.top(), 1);
+	target.pop();
+	EXPECT_TRUE(target.empty());
+}
+
+TEST(C_STACK, COPY_BETWEEN_TYPES)
+{
+	c_static_stack<int32, 8> source;
+	source.push(100);
+	source.push(200);
+	source.push(300);
+
+	int32 target_buffer[8];
+	c_stack<int32> target(target_buffer, 8);
+	target.copy_from(source);
+
+	EXPECT_EQ(target.used(), source.used());
+	EXPECT_EQ(target.top(), 300);
+	target.pop();
+	EXPECT_EQ(target.top(), 200);
+	target.pop();
+	EXPECT_EQ(target.top(), 100);
+}
+
+TEST(C_STACK, PUSH_FROM_ARRAY)
+{
+	c_static_array<int32, 3> source(10, 20, 30);
+	c_static_stack<int32, 8> target;
+
+	target.push_from(source);
+
+	EXPECT_EQ(target.used(), 3);
+	EXPECT_EQ(target.top(), 30);
+	target.pop();
+	EXPECT_EQ(target.top(), 20);
+	target.pop();
+	EXPECT_EQ(target.top(), 10);
+}
+
+TEST(C_STACK, PUSH_FROM_APPEND)
+{
+	c_static_array<int32, 3> source(4, 5, 6);
+	c_static_stack<int32, 8> target;
+
+	target.push(1);
+	target.push(2);
+	target.push(3);
+	target.push_from(source);
+
+	EXPECT_EQ(target.used(), 6);
+	EXPECT_EQ(target.top(), 6);
+	target.pop();
+	EXPECT_EQ(target.top(), 5);
+	target.pop();
+	EXPECT_EQ(target.top(), 4);
+	target.pop();
+	EXPECT_EQ(target.top(), 3);
+}
+
+TEST(C_STACK, COPY_FROM_RANGE)
+{
+	c_static_stack<int32, 8> source;
+	source.push(10);
+	source.push(20);
+	source.push(30);
+	source.push(40);
+	source.push(50);
+
+	int32 target_buffer[8];
+	c_stack<int32> target(target_buffer, 8);
+	target.copy_from_range(source, 1, 4);
+
+	EXPECT_EQ(target.used(), 3);
+	EXPECT_EQ(target[0], 20);
+	EXPECT_EQ(target[1], 30);
+	EXPECT_EQ(target.top(), 40);
 }
 
 TEST(C_BIT_ARRAY, SET_TEST)

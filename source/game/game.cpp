@@ -146,6 +146,20 @@ extern "C"
 				y,
 				render_layer_main);
 		}
+
+		static_local_variable bool bad = false;
+		if (input_state->get_key_state(input_key_special_tab).is_down)
+		{
+			if (!bad && g_game_state->g_test_sound != nullptr)
+			{
+				bad = true;
+				engine_audio_play_sound(*g_game_state->g_test_sound);
+			}
+		}
+		else
+		{
+			bad = false;
+		}
 	}
 
 #ifdef HOT_RELOAD

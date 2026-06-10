@@ -9,15 +9,39 @@
 
 const char k_null_char = '\0';
 
+// TODO: create a c_string_base which imherits c_stack_base and
+// make c_string and c_satic_string inherit that
 class c_string : public c_stack<char>
 {
 public:
+	using c_stack<char>::empty;
+
 	c_string() { this->clear(); }
 
-	explicit c_string(char* data, int32 size) : c_stack<char>(data, size)
+	explicit c_string(char* data, int32 size) : c_stack<char>(data, size) {}
+
+	void clear()
+	{
+		c_stack::clear();
+	}
+
+	int32 used() const 
 	{ 
-		// todo: remove, we shouldn't need this if we're properly terminating everywhere
-		memory_set(this->data(), k_null_char, this->capacity());
+		return c_stack::used(); 
+	}
+
+	void copy_from(const c_string& other)
+	{
+		ASSERT(other.is_terminated());
+		c_stack<char>::copy_from(other);
+		ASSERT(is_terminated());
+	}
+
+	void copy_from_range(const c_string& other, int32 start, int32 end)
+	{
+		ASSERT(other.is_terminated());
+		c_stack::copy_from_range(other, start, end);
+		terminate();
 	}
 
 	void print(const char* string)
@@ -49,6 +73,7 @@ public:
 	{
 		clear();
 		appendf(format, args...);
+		terminate();
 	}
 
 	template<typename... t_args>
@@ -81,12 +106,12 @@ public:
 	void assert_valid()
 	{
 		assert_valid_index(this->m_top);
-		ASSERT(this->top() == k_null_char);
+		ASSERT(is_terminated());
 	}
 
 	void terminate()
 	{
-		if (this->top() != k_null_char)
+		if (!is_terminated())
 		{
 			this->push(k_null_char);
 		}
