@@ -7,177 +7,176 @@
 #include "memory/memory.h"
 #include "structures/array.h"
 
-enum e_vector_coordinates
-{
-	vector_coordinate_x,
-	vector_coordinate_y,
-	vector_coordinate_z,
-	vector_coordinate_w,
-
-	k_vector_coordinate_count,
-};
-
-// we'll likely want to specialize all these implementations for speed later
-// but for now this makes standing up different types and testing them easy.
-template<typename t_type, int32 k_dimensions>
-class c_vector_base
+template<typename t_type, typename t_scalar_type>
+class c_vector_2d
 {
 public:
-	c_vector_base() : m_data() {}
-	
-	c_vector_base& operator+(const c_vector_base& other)
+	c_vector_2d() 
 	{
-		return add(other);
+		set(0, 0);
 	}
 
-	c_vector_base& operator-(const c_vector_base& other)
-	{
-		return subtract(other);
-	}
-
-	c_vector_base& operator*(const t_type value)
-	{
-		return multiply_scalar(value);
-	}
-	
-	c_vector_base& operator/(const t_type value)
-	{
-		return divide_scalar(value);
-	}
-
-	c_vector_base& operator-()
-	{
-		return flip();
-	}
-
-	void invalidate()
-	{
-		memory_set(m_data.data(), k_invalid, sizeof(t_type) * m_data.capacity());
-	}
-
-	bool is_valid() const
-	{
-		for (auto it = m_data.begin_const(); it != m_data.end_const(); ++it)
-		{
-			if (*it == k_invalid)
-			{
-				return false;
-			}
-		}
-
-		return true;
-	}
-
-	bool is_unit() const
-	{
-		HALT_UNIMPLEMENTED();
-	}
-
-	c_vector_base get_unit() const
-	{
-		c_vector_base out;
-		HALT_UNIMPLEMENTED();
-		return out;
-	}
-
-
-
-	c_vector_base& add(const c_vector_base& other)
-	{
-		ASSERT(m_data.capacity() == other.m_data.capacity());
-
-		for (int32 i = 0; i < m_data.capacity(); i++)
-		{
-			m_data[i] += other.m_data[i];
-		}
-
-		return *this;
-	}
-
-	c_vector_base& subtract(const c_vector_base& other)
-	{
-		ASSERT(m_data.capacity() == other.m_data.capacity());
-
-		for (int32 i = 0; i < m_data.capacity(); i++)
-		{
-			m_data[i] -= other.m_data[i];
-		}
-
-		return *this;
-	}
-
-	c_vector_base& multiply_scalar(const t_type value)
-	{
-		return multiply_scalar_real(value);
-	}
-
-	c_vector_base& multiply_scalar_real(const real64 value)
-	{
-		for (int32 i = 0; i < m_data.capacity(); i++)
-		{
-			m_data[i] *= value;
-		}
-
-		return *this;
-	}
-
-	c_vector_base& divide_scalar(const t_type value)
-	{
-		const real64 inv = 1 / static_cast<real64>(value);
-		return multiply_scalar_real(inv);
-	}
-
-	c_vector_base& flip()
-	{
-		return multiply_scalar(-1);
-	}
-
-protected:
-	c_static_array<t_type, k_dimensions> m_data;
-};
-
-template<typename t_type>
-class c_vector_2d : public c_vector_base<t_type, 2>
-{
-public:
-	c_vector_2d() { this->invalidate(); }
-	c_vector_2d(t_type x, t_type y) : c_vector_base<t_type, 2>()
+	c_vector_2d(t_type x, t_type y)
 	{
 		set(x, y);
 	}
 
-	t_type& x() { return this->m_data[vector_coordinate_x]; }
-	t_type& y() { return this->m_data[vector_coordinate_y]; }
+	t_type& x() { return m_x; }
+	t_type& y() { return m_y; }
+
+	const t_type& x() const { return m_x; }
+	const t_type& y() const { return m_y; }
 
 	void set(t_type x, t_type y)
 	{
-		this->m_data[vector_coordinate_x] = x;
-		this->m_data[vector_coordinate_y] = y;
+		m_x = x;
+		m_y = y;
 	}
+
+	c_vector_2d& zero()
+	{
+		set(0, 0);
+		return *this;
+	}
+
+	c_vector_2d operator+(const c_vector_2d& other) const
+	{
+		c_vector_2d out = *this;
+		return out.add(other);
+	}
+
+	c_vector_2d operator-(const c_vector_2d& other) const
+	{
+		c_vector_2d out = *this;
+		return out.subtract(other);
+	}
+
+	c_vector_2d operator*(const t_type value) const
+	{
+		c_vector_2d out = *this;
+		return out.multiply_scalar(value);
+	}
+
+	c_vector_2d operator/(const t_type value) const
+	{
+		c_vector_2d out = *this;
+		return out.divide_scalar(value);
+	}
+
+	c_vector_2d operator-() const
+	{
+		c_vector_2d out = *this;
+		out.flip();
+		return out;
+	}
+
+	c_vector_2d& operator+=(const c_vector_2d& other)
+	{
+		return add(other);
+	}
+
+	c_vector_2d& operator-=(const c_vector_2d& other)
+	{
+		return subtract(other);
+	}
+
+	c_vector_2d& operator*=(const t_type value)
+	{
+		return multiply_scalar(value);
+	}
+
+	c_vector_2d& operator/=(const t_type value)
+	{
+		return divide_scalar(value);
+	}
+
+	bool is_zero(t_type epsilon = 0) const
+	{
+		return math_abs(m_x) <= epsilon && math_abs(m_y) <= epsilon;
+	}
+
+	c_vector_2d& add(const c_vector_2d& other)
+	{
+		m_x += other.m_x;
+		m_y += other.m_y;
+		return *this;
+	}
+
+	c_vector_2d& subtract(const c_vector_2d& other)
+	{
+		m_x -= other.m_x;
+		m_y -= other.m_y;
+		return *this;
+	}
+
+	c_vector_2d& multiply_scalar(const t_type value)
+	{
+		return multiply_scalar_real(value);
+	}
+
+	c_vector_2d& divide_scalar(const t_type value)
+	{
+		ASSERT(value != 0.0f);
+		const t_scalar_type inv = 1 / static_cast<t_scalar_type>(value);
+		return multiply_scalar_real(inv);
+	}
+
+	c_vector_2d& flip()
+	{
+		return multiply_scalar(-1);
+	}
+
+	t_scalar_type magnitude_squared() const
+	{
+		t_scalar_type x = static_cast<t_scalar_type>(m_x);
+		t_scalar_type y = static_cast<t_scalar_type>(m_y);
+		t_scalar_type out = (x * x) + (y * y);
+
+		return out;
+	}
+
+	t_scalar_type magnitude() const
+	{
+		return math_sqrt(magnitude_squared());
+	}
+
+	c_vector_2d normal() const
+	{
+		c_vector_2d out = *this;
+		out.normalize();
+		return out;
+	}
+
+	c_vector_2d& normalize()
+	{
+		if (is_zero())
+		{
+			return *this;
+		}
+
+		return divide_scalar(magnitude());
+	}
+
+	t_scalar_type* dot(const c_vector_2d& other)
+	{
+		t_scalar_type x = static_cast<t_scalar_type>(m_x);
+		t_scalar_type y = static_cast<t_scalar_type>(m_y);
+		return (x * other.m_x) + (y * other.m_y);
+	}
+
+private:
+	c_vector_2d& multiply_scalar_real(const t_scalar_type value)
+	{
+		m_x *= value;
+		m_y *= value;
+
+		return *this;
+	}
+
+	t_type m_x;
+	t_type m_y;
 };
 
-template<typename t_type>
-class c_vector_3d : public c_vector_base<t_type, 3>
-{
-public:
-	c_vector_3d() { this->invalidate(); }
-	c_vector_3d(t_type x, t_type y) : c_vector_base<t_type, 3>()
-	{
-		set(x, y, z);
-	}
-
-	t_type& x() { return this->m_data[vector_coordinate_x]; }
-	t_type& y() { return this->m_data[vector_coordinate_y]; }
-	t_type& z() { return this->m_data[vector_coordinate_z]; }
-
-	void set(t_type x, t_type y, t_type z)
-	{
-		this->m_data[vector_coordinate_x] = x;
-		this->m_data[vector_coordinate_y] = y;
-		this->m_data[vector_coordinate_z] = z;
-	}
-};
-
-using t_vector_2d_int32 = c_vector_2d<int32>;
-using t_vector_2d_real32 = c_vector_2d<real32>;
+using t_vector_2d_int32 = c_vector_2d<int32, real32>;
+using t_vector_2d_real32 = c_vector_2d<real32, real32>;
 #endif //__VECTOR_H__

@@ -2,13 +2,6 @@
 #include "types/types.h"
 #include "structures/vector.h"
 
-TEST(VECTOR, VECTOR_IS_VALID)
-{
-	c_vector_base<int32, 2> vector;
-	vector.invalidate();
-	EXPECT_FALSE(vector.is_valid());
-}
-
 TEST(VECTOR, VECTOR_2D_SET)
 {
 	const int32 x = 2;
@@ -30,6 +23,8 @@ TEST(VECTOR, ADD)
 
 	EXPECT_EQ(vector_1.x(), 7);
 	EXPECT_EQ(vector_1.y(), 10);
+
+	t_vector_2d_int32 v3 = vector_1 + vector_2;
 }
 
 TEST(VECTOR, SUBTRACT)

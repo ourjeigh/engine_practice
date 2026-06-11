@@ -10,7 +10,7 @@ const s_asset_definition k_test_bmp_asset_def = { "test_bmp", asset_scope_global
 class c_player
 {
 public:
-	t_vector_2d_int32 position;
+	t_vector_2d_real32 position;
 
 private:
 };
@@ -113,28 +113,36 @@ extern "C"
 	GAME_API void game_update(const s_input_state const_ptr input_state, real32 dt)
 	{
 		engine_render_fill_screen(0xFF202020);
-		const int32 player_speed_pixels_hack = 5;
+		const real32 player_speed_pixels_hack = 5.0f;
 		const int32 player_speed_shift_modifier = input_state->get_key_state(input_key_special_shift).is_down ? 2 : 1;
+
+		t_vector_2d_real32 player_delta;
+		player_delta.zero();
 
 		if (input_state->get_key_state(input_key_arrow_up).is_down)
 		{
-			g_game_state->player.position.y() -= player_speed_pixels_hack * player_speed_shift_modifier;
+			player_delta.y() -= 1;
 		}
 
 		if (input_state->get_key_state(input_key_arrow_down).is_down)
 		{
-			g_game_state->player.position.y() += player_speed_pixels_hack * player_speed_shift_modifier;
+			player_delta.y() += 1;
 		}
 
 		if (input_state->get_key_state(input_key_arrow_left).is_down)
 		{
-			g_game_state->player.position.x() -= player_speed_pixels_hack * player_speed_shift_modifier;
+			player_delta.x() -= 1;
 		}
 
 		if (input_state->get_key_state(input_key_arrow_right).is_down)
 		{
-			g_game_state->player.position.x() += player_speed_pixels_hack * player_speed_shift_modifier;
+			player_delta.x() += 1;
 		}
+
+		player_delta.normalize();
+		player_delta *= player_speed_pixels_hack * player_speed_shift_modifier;
+		g_game_state->player.position += player_delta;
+
 
 		if (g_game_state->g_test_bmp != nullptr)
 		{

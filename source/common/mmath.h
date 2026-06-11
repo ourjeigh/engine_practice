@@ -48,6 +48,12 @@ constexpr t_type math_abs(t_type in)
 	return in > 0 ? in : -in;
 }
 
+template<typename t_type>
+constexpr t_type math_square(t_type in)
+{
+	return in * in;
+}
+
 constexpr real64 math_sqrt(real64 in)
 {
 	/* make sure x is not negative .. no math crimes allowed! */
