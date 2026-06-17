@@ -7,7 +7,10 @@
 #include "memory/memory.h"
 #include "structures/array.h"
 
-template<typename t_type, typename t_scalar_type>
+const real32 k_default_epsilon_real32 = 1e-5f;
+const int32 k_default_epsilon_int32 = 0;
+
+template<typename t_type, typename t_scalar_type, t_type k_default_epsilon>
 class c_vector_2d
 {
 public:
@@ -37,6 +40,16 @@ public:
 	{
 		set(0, 0);
 		return *this;
+	}
+
+	bool operator==(const c_vector_2d& other) const
+	{
+		return equals(other);
+	}
+
+	bool equals(const c_vector_2d& other, t_type epsilon = k_default_epsilon) const
+	{
+		return math_abs(other.m_x - m_x) <= k_default_epsilon && math_abs(other.m_y - m_y) <= k_default_epsilon;
 	}
 
 	c_vector_2d operator+(const c_vector_2d& other) const
@@ -90,7 +103,7 @@ public:
 		return divide_scalar(value);
 	}
 
-	bool is_zero(t_type epsilon = 0) const
+	bool is_zero(t_type epsilon = k_default_epsilon) const
 	{
 		return math_abs(m_x) <= epsilon && math_abs(m_y) <= epsilon;
 	}
@@ -177,6 +190,6 @@ private:
 	t_type m_y;
 };
 
-using t_vector_2d_int32 = c_vector_2d<int32, real32>;
-using t_vector_2d_real32 = c_vector_2d<real32, real32>;
+using t_vector_2d_int32 = c_vector_2d<int32, real32, k_default_epsilon_int32>;
+using t_vector_2d_real32 = c_vector_2d<real32, real32, k_default_epsilon_real32>;
 #endif //__VECTOR_H__
