@@ -3,6 +3,7 @@
 #pragma once
 
 #include "types/types.h"
+#include "structures/vector.h"
 
 enum e_render_layer
 {
@@ -15,8 +16,6 @@ enum e_render_layer
 
 	k_render_layer_count
 };
-
-
 
 class c_color
 {
@@ -70,11 +69,7 @@ constexpr uint32 k_color_red_uint32 = k_color_red.to_uint32();
 constexpr uint32 k_color_blue_uint32 = k_color_blue.to_uint32();
 constexpr uint32 k_color_green_uint32 = k_color_green.to_uint32();
 
-struct s_render_shape_point
-{
-	int32 x;
-	int32 y;
-};
+using t_render_shape_point = t_vector_2d_int32;
 
 struct s_render_shape_rect
 {
@@ -86,7 +81,7 @@ struct s_render_shape_rect
 
 struct s_render_shape_circle
 {
-	s_render_shape_point center;
+	t_render_shape_point center;
 	int32 radius;
 };
 

@@ -67,7 +67,7 @@ void c_engine::render_draw_rect(const s_render_shape_rect rect, const uint32 col
 	render_system_draw_rect(rect, color);
 }
 
-void c_engine::render_draw_line(const s_render_shape_point start, const s_render_shape_point end, const uint32 color)
+void c_engine::render_draw_line(const t_render_shape_point start, const t_render_shape_point end, const uint32 color)
 {
 	render_system_draw_line(start, end, color);
 }
@@ -82,7 +82,7 @@ void c_engine::render_draw_bitmap(const s_bitmap_asset bitmap, int32 x, int32 y,
 	render_system_draw_bitmap(bitmap, x, y, layer);
 }
 
-s_render_shape_point c_engine::get_screen_center()
+t_render_shape_point c_engine::get_screen_center()
 {
 	return render_system_get_screen_center();
 }

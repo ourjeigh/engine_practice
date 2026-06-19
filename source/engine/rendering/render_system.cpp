@@ -43,8 +43,8 @@ struct s_render_message_data_draw_rect : s_render_message_data
 
 struct s_render_message_data_draw_line : s_render_message_data
 {
-	s_render_shape_point start;
-	s_render_shape_point end;
+	t_render_shape_point start;
+	t_render_shape_point end;
 	uint32 color;
 };
 
@@ -226,7 +226,7 @@ void c_render_system::draw_rect(const s_render_shape_rect rect, const uint32 col
 	new_message.data = message_data;
 }
 
-void c_render_system::draw_line(const s_render_shape_point start, const s_render_shape_point end, const uint32 color)
+void c_render_system::draw_line(const t_render_shape_point start, const t_render_shape_point end, const uint32 color)
 {
 	s_render_message_data_draw_line* message_data = ALLOCATE_NEW(s_render_message_data_draw_line, *g_render_commands_allocator);
 	
@@ -302,9 +302,9 @@ void c_render_system::resize(int32 width, int32 height)
 	m_buffers[1].height = height;
 }
 
-s_render_shape_point c_render_system::get_screen_center() const
+t_render_shape_point c_render_system::get_screen_center() const
 {
-	return s_render_shape_point(m_buffers[0].width / 2, m_buffers[0].height / 2);
+	return t_render_shape_point(m_buffers[0].width / 2, m_buffers[0].height / 2);
 }
 
 void process_fill_screen_message_internal(const s_render_message_data_fill_screen const_ptr message, s_backbuffer const_ptr buffer)
@@ -341,10 +341,10 @@ void process_draw_rect_message_internal(const s_render_message_data_draw_rect co
 	}
 }
 
-void move_point_within_buffer_space(s_render_shape_point& point, const s_backbuffer const_ptr buffer)
+void move_point_within_buffer_space(t_render_shape_point& point, const s_backbuffer const_ptr buffer)
 {
-	point.x = math_pin(k_int32_zero, buffer->width - 1, point.x);
-	point.y = math_pin(k_int32_zero, buffer->height - 1, point.y);
+	point.x() = math_pin(k_int32_zero, buffer->width - 1, point.x());
+	point.y() = math_pin(k_int32_zero, buffer->height - 1, point.y());
 }
 
 void process_draw_line_message_internal(const s_render_message_data_draw_line const_ptr message, s_backbuffer const_ptr buffer)
@@ -355,21 +355,21 @@ void process_draw_line_message_internal(const s_render_message_data_draw_line co
 	// Bresenham's line algorithm
 	// https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
 
-	s_render_shape_point start = message->start;
-	s_render_shape_point end= message->end;
+	t_render_shape_point start = message->start;
+	t_render_shape_point end= message->end;
 
 	move_point_within_buffer_space(start, buffer);
 	move_point_within_buffer_space(end, buffer);
 
-	if (math_abs(end.y - start.y) < math_abs(end.x - start.x))
+	if (math_abs(end.y() - start.y()) < math_abs(end.x() - start.x()))
 	{
-		if (start.x > end.x)
+		if (start.x() > end.x())
 		{
 			memory_swap(&start, &end);
 		}
 
-		int32 delta_x = end.x - start.x;
-		int32 delta_y = end.y - start.y;
+		int32 delta_x = end.x() - start.x();
+		int32 delta_y = end.y() - start.y();
 		int32 y_direction = 1;
 
 		if (delta_y < 0)
@@ -379,9 +379,9 @@ void process_draw_line_message_internal(const s_render_message_data_draw_line co
 		}
 
 		int32 difference = (2 * delta_y) - delta_x;
-		int32 y = start.y;
+		int32 y = start.y();
 
-		for (int32 x = start.x; x <= end.x; x++)
+		for (int32 x = start.x(); x <= end.x(); x++)
 		{
 			draw_pixel_to_buffer_internal(x, y, message->color, buffer);
 
@@ -398,13 +398,13 @@ void process_draw_line_message_internal(const s_render_message_data_draw_line co
 	}
 	else
 	{
-		if (start.y > end.y)
+		if (start.y() > end.y())
 		{
 			memory_swap(&start, &end);
 		}
 
-		int32 delta_x = end.x - start.x;
-		int32 delta_y = end.y - start.y;
+		int32 delta_x = end.x() - start.x();
+		int32 delta_y = end.y() - start.y();
 		int32 x_direction = 1;
 
 		if (delta_x < 0)
@@ -414,9 +414,9 @@ void process_draw_line_message_internal(const s_render_message_data_draw_line co
 		}
 
 		int32 difference = (2 * delta_x) - delta_y;
-		int32 x = start.x;
+		int32 x = start.x();
 
-		for (int32 y = start.y; y <= end.y; y++)
+		for (int32 y = start.y(); y <= end.y(); y++)
 		{
 			draw_pixel_to_buffer_internal(x, y, message->color, buffer);
 
@@ -441,8 +441,8 @@ void process_draw_circle_outline_message_internal(const s_render_message_data_dr
 	
 	for (real32 degree = 0; degree <= k_math_real64_two_pi; degree += degree_delta)
 	{
-		int32 x = math_round_real32_to_int32(radius * math_cos(degree)) + message->circle.center.x;
-		int32 y = math_round_real32_to_int32(radius * math_sin(degree)) + message->circle.center.y;
+		int32 x = math_round_real32_to_int32(radius * math_cos(degree)) + message->circle.center.x();
+		int32 y = math_round_real32_to_int32(radius * math_sin(degree)) + message->circle.center.y();
 		
 		if (in_range_inclusive(k_int32_zero, buffer->width, x) && in_range_inclusive(k_int32_zero, buffer->height, y))
 		{
@@ -457,8 +457,8 @@ void process_draw_circle_message_internal(const s_render_message_data_draw_circl
 	//https://en.wikipedia.org/wiki/Midpoint_circle_algorithm
 	
 	const int32 radius = message->circle.radius;
-	const int32 center_x = message->circle.center.x;
-	const int32 center_y = message->circle.center.y;
+	const int32 center_x = message->circle.center.x();
+	const int32 center_y = message->circle.center.y();
 
 	int32 r_squared = radius * radius;
 	

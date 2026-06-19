@@ -3,21 +3,67 @@
 #include "types/render_types.h"
 #include "types/asset_types.h"
 #include "structures/vector.h"
+#include "structures/matrix.h"
 
 const s_asset_definition k_click_audio_asset_def = { "sound_click_01", asset_scope_global, asset_type_wav, "C:\\Users\\RJ\\git\\simm_engine\\assets\\click_16_44k.wav" };
 const s_asset_definition k_test_bmp_asset_def = { "test_bmp", asset_scope_global, asset_type_bitmap, R"(C:\Users\RJ\git\simm_engine\assets\test\dude.bmp)" };
 
+struct s_rect_2d
+{
+	t_vector_2d_real32 bottom_left;
+	t_vector_2d_real32 top_right;
+
+	real32 width() const
+	{
+		return top_right.x() - bottom_left.x();
+	}
+
+	real32 height() const
+	{
+		return top_right.y() - bottom_left.y();
+	}
+};
+
 class c_player
 {
 public:
-	t_vector_2d_real32 position;
+	t_vector_4d_real32 position;
 
 private:
+};
+
+class c_camera_2d
+{
+public:
+	t_vector_4d_real32 position;
+	s_rect_2d bounds;
+	s_render_shape_rect render_space;
+
+	t_vector_4d_real32 get_inverse() const
+	{
+		t_vector_4d_real32 out = position;
+		out.flip();
+		return out;
+	}
+
+	t_render_shape_point get_render_point_from_position(const t_vector_4d_real32& position) const
+	{
+		t_render_shape_point out;
+
+		real32 percent_x = (position.x() - bounds.bottom_left.x()) / bounds.width();
+		real32 percent_y = (position.y() - bounds.bottom_left.y()) / bounds.height();
+
+
+		out.set(render_space.width * percent_x, render_space.height * percent_y);
+
+		return out;
+	}
 };
 
 struct s_game_state
 {
 	c_player player;
+	c_camera_2d camera;
 
 	s_bitmap_asset* g_test_bmp;
 	s_wav_asset* g_test_sound;
@@ -55,10 +101,10 @@ void HACK_old_demo_update(const s_input_state const_ptr input_state, real32 dt)
 		k_color_blue_uint32;
 
 	s_render_shape_rect mouse_box(mouse_x - 25, mouse_y - 25, 50, 50);
-	engine_render_draw_line(engine_get_screen_center(), s_render_shape_point(mouse_x, mouse_y), k_color_green_uint32);
+	engine_render_draw_line(engine_get_screen_center(), t_render_shape_point(mouse_x, mouse_y), k_color_green_uint32);
 
 	s_render_shape_circle circle;
-	circle.center = s_render_shape_point(mouse_x, mouse_y);
+	circle.center = t_render_shape_point(mouse_x, mouse_y);
 	circle.radius = 38;
 
 	if (g_game_state->g_test_bmp)
@@ -102,10 +148,14 @@ extern "C"
 		engine_load_asset(&k_click_audio_asset_def, asset_loaded_callback, nullptr);
 		engine_load_asset(&k_test_bmp_asset_def, asset_loaded_callback, nullptr);
 
-		s_render_shape_point center = engine_get_screen_center();
-		g_game_state->player.position.set(center.x, center.y);
-		//g_game_state->player.position.x() = center.x;
-		//g_game_state->player.position.y() = center.y;
+		g_game_state->player.position.zero();
+		g_game_state->camera.position.zero();
+		g_game_state->camera.bounds.bottom_left.set(-720, -360);
+		g_game_state->camera.bounds.top_right.set(720, 360);
+		g_game_state->camera.render_space.x = 0;
+		g_game_state->camera.render_space.y = 0;
+		g_game_state->camera.render_space.width = 1440;
+		g_game_state->camera.render_space.height = 720;
 
 		engine_log_verbose("game: game initialized");
 	}
@@ -116,7 +166,7 @@ extern "C"
 		const real32 player_speed_pixels_hack = 5.0f;
 		const int32 player_speed_shift_modifier = input_state->get_key_state(input_key_special_shift).is_down ? 2 : 1;
 
-		t_vector_2d_real32 player_delta;
+		t_vector_4d_real32 player_delta;
 		player_delta.zero();
 
 		if (input_state->get_key_state(input_key_arrow_up).is_down)
@@ -146,12 +196,16 @@ extern "C"
 
 		if (g_game_state->g_test_bmp != nullptr)
 		{
-			int32 x = g_game_state->player.position.x() - g_game_state->g_test_bmp->width / 2;
-			int32 y = g_game_state->player.position.y() - g_game_state->g_test_bmp->height / 2;
+			t_vector_4d_real32 world_position(
+				g_game_state->player.position.x() - g_game_state->g_test_bmp->width / 2,
+				g_game_state->player.position.y() - g_game_state->g_test_bmp->height / 2,
+				0, 0);
+
+			t_render_shape_point render_pos = g_game_state->camera.get_render_point_from_position(world_position);
 			engine_render_bitmap(
 				*g_game_state->g_test_bmp, 
-				x, 
-				y,
+				render_pos.x(),
+				render_pos.y(),
 				render_layer_main);
 		}
 
