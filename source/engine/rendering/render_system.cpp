@@ -36,7 +36,7 @@ struct s_render_message_data_fill_screen : s_render_message_data
 
 struct s_render_message_data_draw_rect : s_render_message_data
 {
-	s_render_shape_rect rect;
+	t_render_shape_rect rect;
 	uint32 fill_color;
 	uint32 outline_color; // TODO;
 };
@@ -58,7 +58,7 @@ struct s_render_message_data_draw_circle : s_render_message_data
 struct s_render_message_data_draw_bitmap : s_render_message_data
 {
 	s_bitmap_asset bitmap;
-	s_render_shape_rect rect;
+	t_render_shape_rect rect;
 };
 
 #ifdef CONFIG_DEBUG
@@ -211,7 +211,7 @@ void c_render_system::fill_screen(const uint32 color)
 	new_message.data = message_data;
 }
 
-void c_render_system::draw_rect(const s_render_shape_rect rect, const uint32 color)
+void c_render_system::draw_rect(const t_render_shape_rect rect, const uint32 color)
 {
 	s_render_message_data_draw_rect* message_data = ALLOCATE_NEW(s_render_message_data_draw_rect, *g_render_commands_allocator);
 
@@ -255,7 +255,7 @@ void c_render_system::draw_circle(const s_render_shape_circle circle, uint32 col
 	new_message.data = message_data;
 }
 
-void c_render_system::draw_bitmap(const s_bitmap_asset& bitmap, const s_render_shape_rect& rect, e_render_layer layer)
+void c_render_system::draw_bitmap(const s_bitmap_asset& bitmap, const t_render_shape_rect& rect, e_render_layer layer)
 {
 	s_render_message_data_draw_bitmap* message_data = ALLOCATE_NO_CONSTRUCTOR(s_render_message_data_draw_bitmap, *g_render_commands_allocator);
 	ASSERT(message_data != nullptr);

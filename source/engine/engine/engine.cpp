@@ -62,7 +62,7 @@ void c_engine::render_fill_screen(const uint32 color)
 	render_system_fill_screen(color);
 }
 
-void c_engine::render_draw_rect(const s_render_shape_rect rect, const uint32 color)
+void c_engine::render_draw_rect(const t_render_shape_rect rect, const uint32 color)
 {
 	render_system_draw_rect(rect, color);
 }
@@ -77,7 +77,7 @@ void c_engine::render_draw_circle(const s_render_shape_circle circle, uint32 col
 	render_system_draw_circle(circle, color, fill);
 }
 
-void c_engine::render_draw_bitmap(const s_bitmap_asset& bitmap, const s_render_shape_rect& rect, e_render_layer layer)
+void c_engine::render_draw_bitmap(const s_bitmap_asset& bitmap, const t_render_shape_rect& rect, e_render_layer layer)
 {
 	render_system_draw_bitmap(bitmap, rect, layer);
 }

@@ -4,6 +4,7 @@
 
 #include "types/types.h"
 #include "structures/vector.h"
+#include "structures/shapes.h"
 
 enum e_render_layer
 {
@@ -70,22 +71,7 @@ constexpr uint32 k_color_blue_uint32 = k_color_blue.to_uint32();
 constexpr uint32 k_color_green_uint32 = k_color_green.to_uint32();
 
 using t_render_shape_point = t_vector_2d_int32;
-
-struct s_render_shape_rect
-{
-	int32 x;
-	int32 y;
-	int32 width;
-	int32 height;
-
-	void set(int32 x, int32 y, int32 width, int32 height)
-	{
-		this->x = x;
-		this->y = y;
-		this->width = width;
-		this->height = height;
-	}
-};
+using t_render_shape_rect = t_rect_2d_int32;
 
 struct s_render_shape_circle
 {
