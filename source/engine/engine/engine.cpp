@@ -77,9 +77,9 @@ void c_engine::render_draw_circle(const s_render_shape_circle circle, uint32 col
 	render_system_draw_circle(circle, color, fill);
 }
 
-void c_engine::render_draw_bitmap(const s_bitmap_asset bitmap, int32 x, int32 y, e_render_layer layer)
+void c_engine::render_draw_bitmap(const s_bitmap_asset& bitmap, const s_render_shape_rect& rect, e_render_layer layer)
 {
-	render_system_draw_bitmap(bitmap, x, y, layer);
+	render_system_draw_bitmap(bitmap, rect, layer);
 }
 
 t_render_shape_point c_engine::get_screen_center()

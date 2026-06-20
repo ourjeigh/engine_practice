@@ -111,7 +111,12 @@ void HACK_old_demo_update(const s_input_state const_ptr input_state, real32 dt)
 	{
 		int32 x = mouse_x - (g_game_state->g_test_bmp->width / 2);
 		int32 y = mouse_y - (g_game_state->g_test_bmp->height / 2);
-		engine_render_bitmap(*g_game_state->g_test_bmp, x, y, render_layer_main);
+		s_render_shape_rect rect;
+		rect.x = x;
+		rect.y = y;
+		rect.width = g_game_state->g_test_bmp->width;
+		rect.height = g_game_state->g_test_bmp->height;
+		engine_render_bitmap(*g_game_state->g_test_bmp, rect, render_layer_main);
 	}
 
 	if (mouse_down)
@@ -202,10 +207,15 @@ extern "C"
 				0, 0);
 
 			t_render_shape_point render_pos = g_game_state->camera.get_render_point_from_position(world_position);
+
+			s_render_shape_rect rect;
+			rect.x = render_pos.x();
+			rect.y = render_pos.y();
+			rect.width = 50;// g_game_state->g_test_bmp->width;
+			rect.height = 50; // g_game_state->g_test_bmp->height;
 			engine_render_bitmap(
 				*g_game_state->g_test_bmp, 
-				render_pos.x(),
-				render_pos.y(),
+				rect,
 				render_layer_main);
 		}
 

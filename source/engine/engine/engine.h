@@ -24,7 +24,7 @@ public:
 	void render_draw_rect(const s_render_shape_rect rect, const uint32 color);
 	void render_draw_line(const t_render_shape_point start, const t_render_shape_point end, const uint32 color);
 	void render_draw_circle(const s_render_shape_circle circle, uint32 color, bool fill);
-	void render_draw_bitmap(const s_bitmap_asset bitmap, int32 x, int32 y, e_render_layer layer);
+	void render_draw_bitmap(const s_bitmap_asset& bitmap, const s_render_shape_rect& rect, e_render_layer layer);
 
 	t_render_shape_point get_screen_center();
 

@@ -58,8 +58,7 @@ struct s_render_message_data_draw_circle : s_render_message_data
 struct s_render_message_data_draw_bitmap : s_render_message_data
 {
 	s_bitmap_asset bitmap;
-	int32 x;
-	int32 y;
+	s_render_shape_rect rect;
 };
 
 #ifdef CONFIG_DEBUG
@@ -256,14 +255,13 @@ void c_render_system::draw_circle(const s_render_shape_circle circle, uint32 col
 	new_message.data = message_data;
 }
 
-void c_render_system::draw_bitmap(const s_bitmap_asset bitmap, int32 x, int32 y, e_render_layer layer)
+void c_render_system::draw_bitmap(const s_bitmap_asset& bitmap, const s_render_shape_rect& rect, e_render_layer layer)
 {
 	s_render_message_data_draw_bitmap* message_data = ALLOCATE_NO_CONSTRUCTOR(s_render_message_data_draw_bitmap, *g_render_commands_allocator);
 	ASSERT(message_data != nullptr);
 
 	message_data->bitmap = bitmap;
-	message_data->x = x;
-	message_data->y = y;
+	message_data->rect = rect;
 
 	s_render_message& new_message = g_render_messages->get_item(layer)->push();
 	new_message.type = render_message_type_draw_bitmap;
@@ -486,17 +484,26 @@ inline void process_draw_bitmap_message_internal(const s_render_message_data_dra
 {
 	PERF_MEASURE_FUNCTION();
 
-	int32 dest_y = message->y;
-	for (int32 source_y = 0; source_y < message->bitmap.height; source_y++, dest_y++)
+	const real32 width_scale = static_cast<real32>(message->bitmap.width) / message->rect.width;
+	const real32 height_scale = static_cast<real32>(message->bitmap.height) / message->rect.height;
+	
+	const int32 x_start = message->rect.x;
+	const int32 y_start = message->rect.y;
+	const int32 x_end = x_start + message->rect.width;
+	const int32 y_end = y_start + message->rect.height;
+
+	for (int32 dest_y = y_start; dest_y < y_end; dest_y++)
 	{
 		if (in_range_inclusive_int32(0, buffer->height - 1, dest_y))
 		{
-			int32 dest_x = message->x;
+			int32 source_y = (dest_y - message->rect.y) * height_scale;
 
-			for (int32 source_x = 0; source_x < message->bitmap.width; source_x++, dest_x++)
+			for (int32 dest_x = x_start; dest_x < x_end; dest_x++)
 			{
 				if (in_range_inclusive_int32(0, buffer->width - 1, dest_x))
 				{
+					int32 source_x = (dest_x - message->rect.x) * width_scale;
+					
 					uint32 index = source_y * message->bitmap.width + source_x;
 					uint32 pixel = message->bitmap.pixels[index];
 
