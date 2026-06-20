@@ -77,6 +77,14 @@ struct s_render_shape_rect
 	int32 y;
 	int32 width;
 	int32 height;
+
+	void set(int32 x, int32 y, int32 width, int32 height)
+	{
+		this->x = x;
+		this->y = y;
+		this->width = width;
+		this->height = height;
+	}
 };
 
 struct s_render_shape_circle

@@ -13,6 +13,12 @@ struct s_rect_2d
 	t_vector_2d_real32 bottom_left;
 	t_vector_2d_real32 top_right;
 
+	void set(real32 left, real32 right, real32 bottom, real32 top)
+	{
+		bottom_left.set(left, bottom);
+		top_right.set(right, top);
+	}
+
 	real32 width() const
 	{
 		return top_right.x() - bottom_left.x();
@@ -21,6 +27,11 @@ struct s_rect_2d
 	real32 height() const
 	{
 		return top_right.y() - bottom_left.y();
+	}
+
+	t_vector_2d_real32 wh() const
+	{
+		return t_vector_2d_real32(width(), height());
 	}
 };
 
@@ -35,27 +46,21 @@ private:
 class c_camera_2d
 {
 public:
-	t_vector_4d_real32 position;
+	t_vector_4d_real32 m_position;
 	s_rect_2d bounds;
 	s_render_shape_rect render_space;
 
-	t_vector_4d_real32 get_inverse() const
+	t_render_shape_point world_to_screen_space(const t_vector_4d_real32& position) const
 	{
-		t_vector_4d_real32 out = position;
-		out.flip();
-		return out;
-	}
+		const real32 camera_zoom = 2.0f;
 
-	t_render_shape_point get_render_point_from_position(const t_vector_4d_real32& position) const
-	{
-		t_render_shape_point out;
+		t_vector_2d_real32 world_xy = position.xy();
+		t_vector_2d_real32 cam_xy = m_position.xy();
+		t_vector_2d_real32 view = world_xy - cam_xy;
+		t_vector_2d_real32 projected = view * camera_zoom;
+		t_vector_2d_real32 screen_position = projected + (bounds.wh() * 0.5f);
 
-		real32 percent_x = (position.x() - bounds.bottom_left.x()) / bounds.width();
-		real32 percent_y = (position.y() - bounds.bottom_left.y()) / bounds.height();
-
-
-		out.set(render_space.width * percent_x, render_space.height * percent_y);
-
+		t_render_shape_point out(screen_position.x(), screen_position.y());
 		return out;
 	}
 };
@@ -154,13 +159,9 @@ extern "C"
 		engine_load_asset(&k_test_bmp_asset_def, asset_loaded_callback, nullptr);
 
 		g_game_state->player.position.zero();
-		g_game_state->camera.position.zero();
-		g_game_state->camera.bounds.bottom_left.set(-720, -360);
-		g_game_state->camera.bounds.top_right.set(720, 360);
-		g_game_state->camera.render_space.x = 0;
-		g_game_state->camera.render_space.y = 0;
-		g_game_state->camera.render_space.width = 1440;
-		g_game_state->camera.render_space.height = 720;
+		g_game_state->camera.m_position.zero();
+		g_game_state->camera.bounds.set(-720, 720, -360, 360);
+		g_game_state->camera.render_space.set(0, 0, 1440, 720);
 
 		engine_log_verbose("game: game initialized");
 	}
@@ -198,7 +199,6 @@ extern "C"
 		player_delta *= player_speed_pixels_hack * player_speed_shift_modifier;
 		g_game_state->player.position += player_delta;
 
-
 		if (g_game_state->g_test_bmp != nullptr)
 		{
 			t_vector_4d_real32 world_position(
@@ -206,13 +206,14 @@ extern "C"
 				g_game_state->player.position.y() - g_game_state->g_test_bmp->height / 2,
 				0, 0);
 
-			t_render_shape_point render_pos = g_game_state->camera.get_render_point_from_position(world_position);
+			//t_render_shape_point render_pos = g_game_state->camera.get_render_point_from_position(world_position);
+			t_render_shape_point render_pos = g_game_state->camera.world_to_screen_space(world_position);
 
 			s_render_shape_rect rect;
 			rect.x = render_pos.x();
 			rect.y = render_pos.y();
-			rect.width = 50;// g_game_state->g_test_bmp->width;
-			rect.height = 50; // g_game_state->g_test_bmp->height;
+			rect.width = g_game_state->g_test_bmp->width;
+			rect.height = g_game_state->g_test_bmp->height;
 			engine_render_bitmap(
 				*g_game_state->g_test_bmp, 
 				rect,
