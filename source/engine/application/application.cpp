@@ -149,7 +149,7 @@ void c_application::run()
 #ifdef CONFIG_DEBUG
 		t_string_128 string;
 		string.printf("Frame Time: {f.2}ms", span.get_duration_milliseconds());
-		render_system_draw_debug_string(string, 5, 5, 1, k_color_white);
+		render_system_draw_string(string, 5, 5, 1, k_color_white);
 #endif //CONFIG_DEBUG
 	}
 }

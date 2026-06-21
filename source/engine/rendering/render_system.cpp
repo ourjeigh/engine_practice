@@ -6,10 +6,7 @@
 #include "types/types.h"
 #include "perf/perf.h"
 #include "platform/platform.h"
-
-#ifdef CONFIG_DEBUG
 #include "debug/debug_letters.h"
-#endif //CONFIG_DEBUG
 
 enum e_render_message_type
 {
@@ -20,7 +17,7 @@ enum e_render_message_type
 	render_message_type_draw_line,
 	render_message_type_draw_circle,
 	render_message_type_draw_bitmap,
-	render_message_type_draw_debug_string,
+	render_message_type_draw_string,
 
 	k_render_message_type_count
 };
@@ -61,8 +58,7 @@ struct s_render_message_data_draw_bitmap : s_render_message_data
 	t_render_shape_rect rect;
 };
 
-#ifdef CONFIG_DEBUG
-struct s_render_message_data_draw_debug_string : s_render_message_data
+struct s_render_message_data_draw_string : s_render_message_data
 {
 	t_string_256 string;
 	int32 x;
@@ -70,7 +66,6 @@ struct s_render_message_data_draw_debug_string : s_render_message_data
 	int32 scale;
 	c_color color;
 };
-#endif //CONFIG_DEBUG
 
 struct s_render_message
 {
@@ -84,10 +79,7 @@ void process_draw_line_message_internal(const s_render_message_data_draw_line co
 void process_draw_circle_message_internal(const s_render_message_data_draw_circle const_ptr message, s_backbuffer const_ptr buffer);
 void process_draw_circle_outline_message_internal(const s_render_message_data_draw_circle const_ptr message, s_backbuffer const_ptr buffer);
 void process_draw_bitmap_message_internal(const s_render_message_data_draw_bitmap const_ptr message, s_backbuffer const_ptr buffer);
-
-#ifdef CONFIG_DEBUG
-void process_draw_debug_string_message_internal(const s_render_message_data_draw_debug_string const_ptr message, s_backbuffer const_ptr buffer);
-#endif //CONFIG_DEBUG
+void process_draw_string_message_internal(const s_render_message_data_draw_string const_ptr message, s_backbuffer const_ptr buffer);
 
 inline void draw_pixel_to_buffer_internal(int32 x, int32 y, uint32 color, s_backbuffer const_ptr buffer);
 void draw_horizontal_line_internal(int32 start_x, int32 end_x, int32 y, uint32 color, s_backbuffer const_ptr buffer);
@@ -178,11 +170,11 @@ void c_render_system::update()
 				break;
 			}
 #ifdef CONFIG_DEBUG
-			case render_message_type_draw_debug_string:
+			case render_message_type_draw_string:
 			{
-				const s_render_message_data_draw_debug_string* message_data = static_cast<s_render_message_data_draw_debug_string*>(message.data);
+				const s_render_message_data_draw_string* message_data = static_cast<s_render_message_data_draw_string*>(message.data);
 				ASSERT(message_data != nullptr);
-				process_draw_debug_string_message_internal(message_data, &current_backbuffer);
+				process_draw_string_message_internal(message_data, &current_backbuffer);
 				break;
 			}
 #endif //CONFIG_DEBUG
@@ -268,10 +260,9 @@ void c_render_system::draw_bitmap(const s_bitmap_asset& bitmap, const t_render_s
 	new_message.data = message_data;
 }
 
-#ifdef CONFIG_DEBUG
-void c_render_system::draw_debug_string(const c_string string, int32 x, int32 y, int32 scale, c_color color)
+void c_render_system::draw_string(const c_string string, int32 x, int32 y, int32 scale, c_color color)
 {
-	s_render_message_data_draw_debug_string* message_data = ALLOCATE_NEW(s_render_message_data_draw_debug_string, *g_render_commands_allocator);
+	s_render_message_data_draw_string* message_data = ALLOCATE_NEW(s_render_message_data_draw_string, *g_render_commands_allocator);
 	ASSERT(message_data != nullptr);
 
 	message_data->string.copy_from(string);
@@ -281,10 +272,10 @@ void c_render_system::draw_debug_string(const c_string string, int32 x, int32 y,
 	message_data->color = color;
 
 	s_render_message& new_message = g_render_messages->get_item(render_layer_debug)->push();
-	new_message.type = render_message_type_draw_debug_string;
+	new_message.type = render_message_type_draw_string;
 	new_message.data = message_data;
 }
-#endif //CONFIG_DEBUG
+
 const s_backbuffer* c_render_system::get_backbuffer()
 {
 	const int32 write_index = m_write_buffer_index.load();
@@ -514,8 +505,7 @@ inline void process_draw_bitmap_message_internal(const s_render_message_data_dra
 	}
 }
 
-#ifdef CONFIG_DEBUG
-inline void process_draw_debug_string_message_internal(const s_render_message_data_draw_debug_string const_ptr message, s_backbuffer const_ptr buffer)
+inline void process_draw_string_message_internal(const s_render_message_data_draw_string const_ptr message, s_backbuffer const_ptr buffer)
 {
 	const int32 scale = message->scale;
 	int32 x = message->x;
@@ -559,7 +549,6 @@ inline void process_draw_debug_string_message_internal(const s_render_message_da
 		x += k_debug_char_pixel_width * scale;
 	}
 }
-#endif //CONFIG_DEBUG
 
 inline void draw_pixel_to_buffer_internal(int32 x, int32 y, uint32 color, s_backbuffer const_ptr buffer)
 {

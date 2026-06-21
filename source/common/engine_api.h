@@ -27,6 +27,8 @@ struct i_engine
 	virtual void render_draw_line(const t_render_shape_point start, const t_render_shape_point end, const uint32 color) = 0;
 	virtual void render_draw_circle(const s_render_shape_circle circle, uint32 color, bool fill) = 0;
 	virtual void render_draw_bitmap(const s_bitmap_asset& bitmap, const t_render_shape_rect& rect, e_render_layer layer) = 0;
+	virtual void render_draw_string(const c_string string, int32 x, int32 y, int32 scale, c_color color) = 0;
+	
 	virtual t_render_shape_point get_screen_center() = 0;
 
 	virtual t_sound_playback_id play_sound(s_sound_info& info) = 0;
@@ -78,6 +80,8 @@ inline void engine_render_draw_rect(const t_render_shape_rect rect, const uint32
 inline void engine_render_draw_line(const t_render_shape_point start, const t_render_shape_point end, const uint32 color) { g_engine_ptr->render_draw_line(start, end, color); }
 inline void engine_render_draw_circle(const s_render_shape_circle circle, uint32 color, bool fill) { g_engine_ptr->render_draw_circle(circle, color, fill); }
 inline void engine_render_bitmap(const s_bitmap_asset& bitmap, const t_render_shape_rect& rect, e_render_layer layer) { g_engine_ptr->render_draw_bitmap(bitmap, rect, layer); }
+inline void engine_render_draw_string(const c_string string, int32 x, int32 y, int32 scale, c_color color) { g_engine_ptr->render_draw_string(string, x, y, scale, color); }
+
 inline t_render_shape_point engine_get_screen_center() { return g_engine_ptr->get_screen_center(); }
 
 inline t_sound_playback_id engine_audio_play_sound(const s_wav_asset& asset) { return g_engine_ptr->play_sound(asset); }

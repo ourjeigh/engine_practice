@@ -56,6 +56,33 @@ void asset_loaded_callback(c_string_id asset_id, s_asset* asset, void* object)
 	}
 }
 
+void get_arrow_key_move_delta(const s_input_state const_ptr input_state, t_vector_4d_real32& out_move_delta)
+{
+	out_move_delta.zero();
+
+	if (input_state->get_key_state(input_key_arrow_up).is_down)
+	{
+		out_move_delta.y() -= 1;
+	}
+
+	if (input_state->get_key_state(input_key_arrow_down).is_down)
+	{
+		out_move_delta.y() += 1;
+	}
+
+	if (input_state->get_key_state(input_key_arrow_left).is_down)
+	{
+		out_move_delta.x() -= 1;
+	}
+
+	if (input_state->get_key_state(input_key_arrow_right).is_down)
+	{
+		out_move_delta.x() += 1;
+	}
+
+	out_move_delta.normalize();
+}
+
 extern "C"
 {
 	GAME_API void game_init(s_game_engine_context& engine_context)
@@ -82,35 +109,20 @@ extern "C"
 	GAME_API void game_update(const s_input_state const_ptr input_state, real32 dt)
 	{
 		engine_render_fill_screen(0xFF202020);
-		const real32 player_speed_pixels_hack = 5.0f;
-		const int32 player_speed_shift_modifier = input_state->get_key_state(input_key_special_shift).is_down ? 2 : 1;
 
-		t_vector_4d_real32 player_delta;
-		player_delta.zero();
+		t_vector_4d_real32 move_delta;
+		get_arrow_key_move_delta(input_state, move_delta);
 
-		if (input_state->get_key_state(input_key_arrow_up).is_down)
+		if (input_state->get_key_state(input_key_special_shift).is_down)
 		{
-			player_delta.y() -= 1;
+			g_game_state->camera.m_position += move_delta;
 		}
-
-		if (input_state->get_key_state(input_key_arrow_down).is_down)
+		else
 		{
-			player_delta.y() += 1;
+			const real32 player_speed_pixels_hack = 5.0f;
+			move_delta *= player_speed_pixels_hack;
+			g_game_state->player.m_transform.position += move_delta;
 		}
-
-		if (input_state->get_key_state(input_key_arrow_left).is_down)
-		{
-			player_delta.x() -= 1;
-		}
-
-		if (input_state->get_key_state(input_key_arrow_right).is_down)
-		{
-			player_delta.x() += 1;
-		}
-
-		player_delta.normalize();
-		player_delta *= player_speed_pixels_hack * player_speed_shift_modifier;
-		g_game_state->player.m_transform.position += player_delta;
 
 		const s_bitmap_asset* player_bitmap = static_cast<const s_bitmap_asset*>(engine_get_asset(g_game_state->player.m_bitmap_asset_id));
 		if (player_bitmap != nullptr)
@@ -131,6 +143,26 @@ extern "C"
 				*player_bitmap,
 				rect,
 				render_layer_main);
+		}
+
+		const int32 align_x = 1170;
+		{
+			t_string_128 player_position_string;
+			player_position_string.printf("Player: {f6.2}, {f6.2}, {f6.2}",
+				g_game_state->player.m_transform.position.x(),
+				g_game_state->player.m_transform.position.y(),
+				g_game_state->player.m_transform.position.z());
+
+			engine_render_draw_string(player_position_string, align_x, 5, 1, k_color_white);
+		}
+		{
+			t_string_128 camera_position_string;
+			camera_position_string.printf("Camera: {f6.2}, {f6.2}, {f6.2}",
+				g_game_state->camera.m_position.x(),
+				g_game_state->camera.m_position.y(),
+				g_game_state->camera.m_position.z());
+
+			engine_render_draw_string(camera_position_string, align_x, 15, 1, k_color_white);
 		}
 	}
 

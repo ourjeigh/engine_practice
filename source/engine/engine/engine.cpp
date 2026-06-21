@@ -82,6 +82,12 @@ void c_engine::render_draw_bitmap(const s_bitmap_asset& bitmap, const t_render_s
 	render_system_draw_bitmap(bitmap, rect, layer);
 }
 
+void c_engine::render_draw_string(const c_string string, int32 x, int32 y, int32 scale, c_color color) 
+{
+	render_system_draw_string(string, x, y, scale, color);
+}
+
+
 t_render_shape_point c_engine::get_screen_center()
 {
 	return render_system_get_screen_center();

@@ -91,7 +91,7 @@ void c_audio_system::update()
 #ifdef CONFIG_DEBUG
 		t_string_128 string;
 		string.printf("Active Sounds: {i}", active_sounds);
-		render_system_draw_debug_string(string, 5, 5, 1, k_color_white);
+		render_system_draw_string(string, 5, 5, 1, k_color_white);
 #endif //CONFIG_DEBUG
 	}
 }
