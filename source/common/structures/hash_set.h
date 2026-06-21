@@ -138,10 +138,24 @@ public:
 		return m_data[index].data;
 	}
 
+	bool try_find(const t_key& key, t_type** out_value)
+	{
+		bool found = false;
+		int32 index = find_index(key, found);
+
+		if (found)
+		{
+			ASSERT(m_data[index].state == cell_state_occupied);
+			*out_value = &m_data[index].data;
+		}
+
+		return found;
+	}
+
 	// returns true if found, out_value will be nullptr if couldn't find or insert
 	bool try_find_or_insert(const t_key& key, t_type** out_value)
 	{
-		bool found;
+		bool found = false;
 		int32 index = find_index(key, found);
 
 		if (found)
@@ -387,6 +401,19 @@ public:
 	t_value& find(const t_key& key)
 	{
 		return m_table.find(key).value;
+	}
+
+	bool try_find(const t_key& key, t_value** out_value)
+	{
+		t_kvp* out_kvp;
+		bool result = m_table.try_find(key, &out_kvp);
+		
+		if (result)
+		{
+			*out_value = &out_kvp->value;
+		}
+
+		return result;
 	}
 
 	bool contains(const t_key& key)

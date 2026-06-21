@@ -123,11 +123,11 @@ t_sound_playback_id c_audio_system::play_sound(s_sound_info& info)
 	// the playrequest to a queue that we'll process in update()
 	c_audio_source_file* source =  ALLOCATE_NEW(c_audio_source_file, *g_audio_source_allocator);
 	
-	const c_array<byte>* sound_data = c_asset_system::get_asset_data(info.asset_id);
-	
-	if (sound_data != nullptr && sound_data->is_valid())
+	const s_wav_asset* asset = static_cast<const s_wav_asset*>(c_asset_system::get_asset(info.asset_id));
+
+	if (asset != nullptr)
 	{
-		source->set_memory(sound_data);
+		source->set_buffer(asset->buffer);
 	
 		for (auto it = g_audio_playbacks.begin(); it != g_audio_playbacks.end(); ++it)
 		{

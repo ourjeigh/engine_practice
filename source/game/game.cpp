@@ -29,11 +29,12 @@ class c_object
 {
 public:
 	s_transform m_transform;
-	s_bitmap_asset* bitmap;
 };
 
 class c_player : public c_object
 {
+public:
+	c_string_id m_bitmap_asset_id;
 };
 
 struct s_game_state
@@ -48,12 +49,7 @@ s_game_state* g_game_state;
 
 void asset_loaded_callback(c_string_id asset_id, s_asset* asset, void* object)
 {
-	if (asset_id == k_test_bmp_asset_def.id)
-	{
-		g_game_state->player.bitmap = static_cast<s_bitmap_asset*>(asset);
-		ASSERT(g_game_state->player.bitmap != nullptr);
-	}
-	else if (asset_id == k_click_audio_asset_def.id)
+	if (asset_id == k_click_audio_asset_def.id)
 	{
 		g_game_state->g_test_sound = static_cast<s_wav_asset*>(asset);
 		ASSERT(g_game_state->g_test_sound != nullptr);
@@ -66,6 +62,7 @@ extern "C"
 	{
 		g_engine_ptr = engine_context.engine;
 		g_assert_handler = engine_context.assert_hook;
+		ASSERT(engine_context.memory.size >= sizeof(s_game_state));
 		g_game_state = reinterpret_cast<s_game_state*>(engine_context.memory.data);
 		ASSERT(g_game_state != nullptr);
 
@@ -73,6 +70,7 @@ extern "C"
 		engine_load_asset(&k_test_bmp_asset_def, asset_loaded_callback, nullptr);
 
 		g_game_state->player.m_transform.position.zero();
+		g_game_state->player.m_bitmap_asset_id = k_test_bmp_asset_def.id;
 		g_game_state->camera.m_position.zero();
 		g_game_state->camera.m_zoom = 1;
 		g_game_state->camera.m_bounds.set(-720, -360, 1440, 720);
@@ -114,11 +112,12 @@ extern "C"
 		player_delta *= player_speed_pixels_hack * player_speed_shift_modifier;
 		g_game_state->player.m_transform.position += player_delta;
 
-		if (g_game_state->player.bitmap != nullptr)
+		const s_bitmap_asset* player_bitmap = static_cast<const s_bitmap_asset*>(engine_get_asset(g_game_state->player.m_bitmap_asset_id));
+		if (player_bitmap != nullptr)
 		{
 			t_vector_4d_real32 world_position(
-				g_game_state->player.m_transform.position.x() - g_game_state->player.bitmap->width / 2,
-				g_game_state->player.m_transform.position.y() - g_game_state->player.bitmap->height / 2,
+				g_game_state->player.m_transform.position.x() - player_bitmap->width / 2,
+				g_game_state->player.m_transform.position.y() - player_bitmap->height / 2,
 				0, 0);
 
 			t_render_shape_point render_pos = g_game_state->camera.world_to_screen_space(world_position);
@@ -126,10 +125,10 @@ extern "C"
 			t_render_shape_rect rect;
 			rect.x = render_pos.x();
 			rect.y = render_pos.y();
-			rect.width = g_game_state->player.bitmap->width * g_game_state->camera.m_zoom;
-			rect.height = g_game_state->player.bitmap->height * g_game_state->camera.m_zoom;
+			rect.width = player_bitmap->width * g_game_state->camera.m_zoom;
+			rect.height = player_bitmap->height * g_game_state->camera.m_zoom;
 			engine_render_bitmap(
-				*g_game_state->player.bitmap,
+				*player_bitmap,
 				rect,
 				render_layer_main);
 		}

@@ -8,6 +8,7 @@
 #include "structures/hash_set.h"
 #include "threads/threadsafe_queue.h"
 #include "engine/audio/audio_system.h"
+#include "time/time.h"
 
 const int32 k_max_asset_load_requests = 32;
 const int32 k_max_active_assets = 128;
@@ -112,33 +113,18 @@ bool c_asset_system::load_asset(const s_asset_definition* asset_def, f_asset_loa
 	return success;
 }
 
-// returning a non-const pointer to the memory so that things like
-// bitmap loading can re-arrange pixel masks if needed. In the long-term
-// maybe the asset system is responsible for processing things like that
-// so we can go back to just returning read-only memory
-c_array<byte>* c_asset_system::get_asset_data(c_string_id asset_id)
-{
-	ASSERT(get_current_thread_id() != g_asset_loader_thread.get_thread_id());
-
-	s_asset_internal& asset = g_active_assets->find(asset_id.get_id());
-	
-	if (asset.memory.is_valid())
-	{
-		return &asset.memory;
-	}
-
-	return nullptr;
-}
-
 const s_asset* c_asset_system::get_asset(c_string_id asset_id)
 {
 	ASSERT(get_current_thread_id() != g_asset_loader_thread.get_thread_id());
 
-	s_asset_internal& asset = g_active_assets->find(asset_id.get_id());
-
-	if (asset.memory.is_valid())
+	s_asset_internal* asset;
+	
+	if (g_active_assets->try_find(asset_id.get_id(), &asset))
 	{
-		return asset.asset;
+		if (asset->memory.is_valid())
+		{
+			return asset->asset;
+		}
 	}
 
 	return nullptr;
@@ -176,6 +162,9 @@ void c_asset_loader_thread::asset_loader_thread_entry_point(c_asset_loader_threa
 	while (thread->m_is_running)
 	{
 		thread->process_asset_loads();
+		
+		// todo: turn this into a signal
+		sleep_for_milliseconds(10);
 	}
 }
 
