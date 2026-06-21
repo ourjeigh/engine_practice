@@ -21,26 +21,26 @@ enum e_render_layer
 class c_color
 {
 public:
-	c_color() : data(k_invalid) {}
-	constexpr c_color(uint32 data) : data(data) {}
+	c_color() : m_data(k_invalid) {}
+	constexpr c_color(uint32 data) : m_data(data) {}
 	
 	constexpr c_color(real32 r, real32 g, real32 b, real32 a) 
 	{
-		data = 
+		m_data = 
 			(static_cast<uint32>(a * k_uint8_max) << 24) |
 			(static_cast<uint32>(r * k_uint8_max) << 16) |
 			(static_cast<uint32>(g * k_uint8_max) << 8)  |
 			(static_cast<uint32>(b * k_uint8_max) << 0);
 	}
 
-	real32 alpha() { return ((data & 0xFF000000) >> 24) / static_cast<real32>(k_uint8_max); }
-	real32 red() { return ((data & 0x00FF0000) >> 16) / static_cast<real32>(k_uint8_max); }
-	real32 green() { return ((data & 0x0000FF00) >> 8) / static_cast<real32>(k_uint8_max); }
-	real32 blue() { return ((data & 0x000000FF) >> 0) / static_cast<real32>(k_uint8_max); }
+	real32 alpha() { return ((m_data & 0xFF000000) >> 24) / static_cast<real32>(k_uint8_max); }
+	real32 red() { return ((m_data & 0x00FF0000) >> 16) / static_cast<real32>(k_uint8_max); }
+	real32 green() { return ((m_data & 0x0000FF00) >> 8) / static_cast<real32>(k_uint8_max); }
+	real32 blue() { return ((m_data & 0x000000FF) >> 0) / static_cast<real32>(k_uint8_max); }
 
 	constexpr uint32 to_uint32() const
 	{
-		return data;
+		return m_data;
 	}
 
 	static_member_function c_color from_uint32(uint32 color)
@@ -56,7 +56,7 @@ public:
 	}
 
 private:
-	uint32 data;
+	uint32 m_data;
 };
 
 constexpr c_color k_color_red(1.0f, 0.0f, 0.0f, 1.0f);
