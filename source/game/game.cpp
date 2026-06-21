@@ -62,12 +62,12 @@ void get_arrow_key_move_delta(const s_input_state const_ptr input_state, t_vecto
 
 	if (input_state->get_key_state(input_key_arrow_up).is_down)
 	{
-		out_move_delta.y() -= 1;
+		out_move_delta.y() += 1;
 	}
 
 	if (input_state->get_key_state(input_key_arrow_down).is_down)
 	{
-		out_move_delta.y() += 1;
+		out_move_delta.y() -= 1;
 	}
 
 	if (input_state->get_key_state(input_key_arrow_left).is_down)
@@ -100,7 +100,7 @@ extern "C"
 		g_game_state->player.m_bitmap_asset_id = k_test_bmp_asset_def.id;
 		g_game_state->camera.m_position.zero();
 		g_game_state->camera.m_zoom = 1;
-		g_game_state->camera.m_bounds.set(-720, -360, 1440, 720);
+		//g_game_state->camera.m_bounds.set(-720, -360, 1440, 720);
 		g_game_state->camera.m_render_space.set(0, 0, 1440, 720);
 
 		engine_log_verbose("game: game initialized");

@@ -23,6 +23,11 @@ public:
 		set(x, y);
 	}
 
+	c_vector_2d(const c_vector_2d& other)
+	{
+		set(other.x(), other.y());
+	}
+
 	t_type& x() { return m_x; }
 	t_type& y() { return m_y; }
 
@@ -43,15 +48,22 @@ public:
 
 	bool operator==(const c_vector_2d& other) const
 	{
-		return equals(other);
+		return is_equal(other);
 	}
 
-	bool equals(const c_vector_2d& other, t_type epsilon = k_default_epsilon) const
+	bool is_equal(const c_vector_2d& other, t_type epsilon = k_default_epsilon) const
 	{
 		return math_abs(other.m_x - m_x) <= k_default_epsilon && math_abs(other.m_y - m_y) <= k_default_epsilon;
 	}
 
-	c_vector_2d operator+(const c_vector_2d& other) const
+	c_vector_2d& operator=(const c_vector_2d& other)
+	{
+		set(other.x(), other.y());
+		return *this;
+	}
+	
+	template<typename t_other, typename t_other_scalar, t_other other_epsilon>
+	c_vector_2d operator+(const c_vector_2d<t_other, t_other_scalar, other_epsilon>& other) const
 	{
 		c_vector_2d out = *this;
 		return out.add(other);
@@ -107,10 +119,11 @@ public:
 		return math_abs(m_x) <= epsilon && math_abs(m_y) <= epsilon;
 	}
 
-	c_vector_2d& add(const c_vector_2d& other)
+	template<typename t_other, typename t_other_scalar, t_other other_epsilon>
+	c_vector_2d& add(const c_vector_2d<t_other, t_other_scalar, other_epsilon>& other)
 	{
-		m_x += other.m_x;
-		m_y += other.m_y;
+		m_x += other.x();
+		m_y += other.y();
 		return *this;
 	}
 
@@ -136,6 +149,18 @@ public:
 	c_vector_2d& flip()
 	{
 		return multiply_scalar(-1);
+	}
+
+	c_vector_2d& flip_x()
+	{
+		m_x *= -1;
+		return *this;
+	}
+
+	c_vector_2d& flip_y()
+	{
+		m_y *= -1;
+		return *this;
 	}
 
 	t_scalar_type magnitude_squared() const

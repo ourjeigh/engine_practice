@@ -23,12 +23,12 @@ struct s_rect_2d
 
 	c_vector_2d<t_type, t_scalar, k_default_epsilon> xy() const
 	{
-		return t_vector_2d_real32(x, y);
+		return c_vector_2d<t_type, t_scalar, k_default_epsilon>(x, y);
 	}
 
 	c_vector_2d<t_type, t_scalar, k_default_epsilon> wh() const
 	{
-		return t_vector_2d_real32(width, height);
+		return c_vector_2d<t_type, t_scalar, k_default_epsilon>(width, height);
 	}
 };
 
