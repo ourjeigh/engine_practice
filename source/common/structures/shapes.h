@@ -33,6 +33,6 @@ struct s_rect_2d
 };
 
 using t_rect_2d_real32 = s_rect_2d<real32, real32, k_default_epsilon_real32>;
-using t_rect_2d_int32 = s_rect_2d<int32, int32, k_default_epsilon_int32>;
+using t_rect_2d_int32 = s_rect_2d<int32, real32, k_default_epsilon_int32>;
 
 #endif //__SHAPES_H__

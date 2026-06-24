@@ -69,19 +69,20 @@ public:
 		return out.add(other);
 	}
 
-	c_vector_2d operator-(const c_vector_2d& other) const
+	template<typename t_other, typename t_other_scalar, t_other other_epsilon>
+	c_vector_2d operator-(const c_vector_2d<t_other, t_other_scalar, other_epsilon>& other) const
 	{
 		c_vector_2d out = *this;
 		return out.subtract(other);
 	}
 
-	c_vector_2d operator*(const t_type value) const
+	c_vector_2d operator*(const t_scalar_type value) const
 	{
 		c_vector_2d out = *this;
 		return out.multiply_scalar(value);
 	}
 
-	c_vector_2d operator/(const t_type value) const
+	c_vector_2d operator/(const t_scalar_type value) const
 	{
 		c_vector_2d out = *this;
 		return out.divide_scalar(value);
@@ -94,22 +95,24 @@ public:
 		return out;
 	}
 
-	c_vector_2d& operator+=(const c_vector_2d& other)
+	template<typename t_other, typename t_other_scalar, t_other other_epsilon>
+	c_vector_2d& operator+=(const c_vector_2d<t_other, t_other_scalar, other_epsilon>& other)
 	{
 		return add(other);
 	}
 
-	c_vector_2d& operator-=(const c_vector_2d& other)
+	template<typename t_other, typename t_other_scalar, t_other other_epsilon>
+	c_vector_2d& operator-=(const c_vector_2d<t_other, t_other_scalar, other_epsilon>& other)
 	{
 		return subtract(other);
 	}
 
-	c_vector_2d& operator*=(const t_type value)
+	c_vector_2d& operator*=(const t_scalar_type value)
 	{
 		return multiply_scalar(value);
 	}
 
-	c_vector_2d& operator/=(const t_type value)
+	c_vector_2d& operator/=(const t_scalar_type value)
 	{
 		return divide_scalar(value);
 	}
@@ -127,22 +130,23 @@ public:
 		return *this;
 	}
 
-	c_vector_2d& subtract(const c_vector_2d& other)
+	template<typename t_other, typename t_other_scalar, t_other other_epsilon>
+	c_vector_2d& subtract(const c_vector_2d<t_other, t_other_scalar, other_epsilon>& other)
 	{
 		m_x -= other.m_x;
 		m_y -= other.m_y;
 		return *this;
 	}
 
-	c_vector_2d& multiply_scalar(const t_type value)
+	c_vector_2d& multiply_scalar(const t_scalar_type value)
 	{
 		return multiply_scalar_real(value);
 	}
 
-	c_vector_2d& divide_scalar(const t_type value)
+	c_vector_2d& divide_scalar(const t_scalar_type value)
 	{
 		ASSERT(value != 0.0f);
-		const t_scalar_type inv = 1 / static_cast<t_scalar_type>(value);
+		const t_scalar_type inv = 1 / (value);
 		return multiply_scalar_real(inv);
 	}
 

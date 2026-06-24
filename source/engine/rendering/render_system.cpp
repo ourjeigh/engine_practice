@@ -84,7 +84,8 @@ void process_draw_string_message_internal(const s_render_message_data_draw_strin
 inline void draw_pixel_to_buffer_internal(int32 x, int32 y, uint32 color, s_backbuffer const_ptr buffer);
 void draw_horizontal_line_internal(int32 start_x, int32 end_x, int32 y, uint32 color, s_backbuffer const_ptr buffer);
 
-static_global c_static_stack_allocator<k_byte_kib>* g_render_commands_allocator;
+const int32 k_render_commands_size_kb = k_byte_mib;
+static_global c_static_stack_allocator<k_render_commands_size_kb>* g_render_commands_allocator;
 
 // if render system moves of the main thread it needs to be made safe
 // TBD if each layer needs the same number (thinking about _background)
@@ -99,7 +100,7 @@ void c_render_system::init()
 	m_buffers[0].height = 720;
 	m_buffers[1].height = 720;
 
-	g_render_commands_allocator = ALLOCATE_NEW_GLOBAL(c_static_stack_allocator<k_byte_kib>, memory_arena_system);
+	g_render_commands_allocator = ALLOCATE_NEW_GLOBAL(c_static_stack_allocator<k_render_commands_size_kb>, memory_arena_system);
 	g_render_messages = ALLOCATE_NEW_GLOBAL(t_render_message_stack_array, memory_arena_system);
 }
 

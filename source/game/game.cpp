@@ -8,22 +8,6 @@
 const s_asset_definition k_click_audio_asset_def = { "sound_click_01", asset_scope_global, asset_type_wav, "C:\\Users\\RJ\\git\\simm_engine\\assets\\click_16_44k.wav" };
 const s_asset_definition k_test_bmp_asset_def = { "test_bmp", asset_scope_global, asset_type_bitmap, R"(C:\Users\RJ\git\simm_engine\assets\test\dude.bmp)" };
 
-struct s_transform
-{
-	t_vector_4d_real32 position;
-	t_vector_4d_real32 rotation;
-	t_vector_4d_real32 scale;
-
-	void set(
-		real32 position_x, real32 position_y, real32 position_z,
-		real32 rotation_x, real32 rotation_y, real32 rotation_z,
-		real32 scale_x, real32 scale_y, real32 scale_z)
-	{
-		position.set(position_x, position_y, position_z, 1);
-		rotation.set(rotation_x, rotation_y, rotation_z, 0);
-		scale.set(scale_x, scale_y, scale_z, 0);
-	}
-};
 
 class c_object
 {
@@ -96,12 +80,11 @@ extern "C"
 		engine_load_asset(&k_click_audio_asset_def, asset_loaded_callback, nullptr);
 		engine_load_asset(&k_test_bmp_asset_def, asset_loaded_callback, nullptr);
 
-		g_game_state->player.m_transform.position.zero();
+		g_game_state->player.m_transform.reset();
 		g_game_state->player.m_bitmap_asset_id = k_test_bmp_asset_def.id;
-		g_game_state->camera.m_position.zero();
-		g_game_state->camera.m_zoom = 1;
-		//g_game_state->camera.m_bounds.set(-720, -360, 1440, 720);
-		g_game_state->camera.m_render_space.set(0, 0, 1440, 720);
+		g_game_state->camera.set_transform(s_transform::default_values());
+		g_game_state->camera.set_zoom(1);
+		g_game_state->camera.set_screen_dimensions(1440, 720);
 
 		engine_log_verbose("game: game initialized");
 	}
@@ -115,12 +98,16 @@ extern "C"
 
 		if (input_state->get_key_state(input_key_special_shift).is_down)
 		{
-			g_game_state->camera.m_position += move_delta;
+			const real32 camera_speed_meters_per_second = 50.0f;
+			move_delta *= camera_speed_meters_per_second * dt;
+			s_transform camera_transfom = g_game_state->camera.get_transform();
+			camera_transfom.position += move_delta;
+			g_game_state->camera.set_transform(camera_transfom);
 		}
 		else
 		{
-			const real32 player_speed_pixels_hack = 5.0f;
-			move_delta *= player_speed_pixels_hack;
+			const real32 player_speed_meters_per_second = 50.0f;
+			move_delta *= player_speed_meters_per_second * dt;
 			g_game_state->player.m_transform.position += move_delta;
 		}
 
@@ -128,17 +115,16 @@ extern "C"
 		if (player_bitmap != nullptr)
 		{
 			t_vector_4d_real32 world_position(
-				g_game_state->player.m_transform.position.x() - player_bitmap->width / 2,
-				g_game_state->player.m_transform.position.y() - player_bitmap->height / 2,
+				g_game_state->player.m_transform.position.x(),
+				g_game_state->player.m_transform.position.y(),
 				0, 0);
 
-			t_render_shape_point render_pos = g_game_state->camera.world_to_screen_space(world_position);
-
+			t_render_shape_point render_pos2 = g_game_state->camera.world_to_screen_space2(world_position);
 			t_render_shape_rect rect;
-			rect.x = render_pos.x();
-			rect.y = render_pos.y();
-			rect.width = player_bitmap->width * g_game_state->camera.m_zoom;
-			rect.height = player_bitmap->height * g_game_state->camera.m_zoom;
+			rect.x = render_pos2.x() - player_bitmap->width / 2;
+			rect.y = render_pos2.y() - player_bitmap->height / 2;
+			rect.width = player_bitmap->width * g_game_state->camera.get_zoom();
+			rect.height = player_bitmap->height * g_game_state->camera.get_zoom();
 			engine_render_bitmap(
 				*player_bitmap,
 				rect,
@@ -158,12 +144,28 @@ extern "C"
 		{
 			t_string_128 camera_position_string;
 			camera_position_string.printf("Camera: {f6.2}, {f6.2}, {f6.2}",
-				g_game_state->camera.m_position.x(),
-				g_game_state->camera.m_position.y(),
-				g_game_state->camera.m_position.z());
+				g_game_state->camera.get_transform().position.x(),
+				g_game_state->camera.get_transform().position.y(),
+				g_game_state->camera.get_transform().position.z());
 
 			engine_render_draw_string(camera_position_string, align_x, 15, 1, k_color_white);
 		}
+		{
+			t_string_128 camera_viewport_title("Camera Viewport");
+			engine_render_draw_string(camera_viewport_title, align_x, 25, 1, k_color_white);
+			const int32 view_align_x = align_x + 65;
+			s_matrix_3x3_real32 viewport = g_game_state->camera.get_viewport();
+			t_string_128 camera_viewport_string;
+			camera_viewport_string.printf("{f6.2}, {f6.2}, {f6.2}", viewport[0][0], viewport[0][1], viewport[0][2]);
+			engine_render_draw_string(camera_viewport_string, view_align_x, 35, 1, k_color_white);
+			camera_viewport_string.clear();
+			camera_viewport_string.printf("{f6.2}, {f6.2}, {f6.2}", viewport[1][0], viewport[1][1], viewport[1][2]);
+			engine_render_draw_string(camera_viewport_string, view_align_x, 45, 1, k_color_white);
+			camera_viewport_string.clear();
+			camera_viewport_string.printf("{f6.2}, {f6.2}, {f6.2}", viewport[2][0], viewport[2][1], viewport[2][2]);
+			engine_render_draw_string(camera_viewport_string, view_align_x, 55, 1, k_color_white);
+		}
+
 	}
 
 #ifdef HOT_RELOAD
