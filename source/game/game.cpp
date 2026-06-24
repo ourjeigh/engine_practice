@@ -156,16 +156,15 @@ extern "C"
 			const int32 view_align_x = align_x + 65;
 			s_matrix_3x3_real32 viewport = g_game_state->camera.get_viewport();
 			t_string_128 camera_viewport_string;
-			camera_viewport_string.printf("{f6.2}, {f6.2}, {f6.2}", viewport[0][0], viewport[0][1], viewport[0][2]);
+			camera_viewport_string.printf(
+				"{f6.2}, {f6.2}, {f6.2}\n"
+				"{f6.2}, {f6.2}, {f6.2}\n"
+				"{f6.2}, {f6.2}, {f6.2}", 
+				viewport[0][0], viewport[0][1], viewport[0][2],
+				viewport[1][0], viewport[1][1], viewport[1][2],
+				viewport[2][0], viewport[2][1], viewport[2][2]);
 			engine_render_draw_string(camera_viewport_string, view_align_x, 35, 1, k_color_white);
-			camera_viewport_string.clear();
-			camera_viewport_string.printf("{f6.2}, {f6.2}, {f6.2}", viewport[1][0], viewport[1][1], viewport[1][2]);
-			engine_render_draw_string(camera_viewport_string, view_align_x, 45, 1, k_color_white);
-			camera_viewport_string.clear();
-			camera_viewport_string.printf("{f6.2}, {f6.2}, {f6.2}", viewport[2][0], viewport[2][1], viewport[2][2]);
-			engine_render_draw_string(camera_viewport_string, view_align_x, 55, 1, k_color_white);
 		}
-
 	}
 
 #ifdef HOT_RELOAD

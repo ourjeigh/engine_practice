@@ -509,18 +509,26 @@ inline void process_draw_bitmap_message_internal(const s_render_message_data_dra
 inline void process_draw_string_message_internal(const s_render_message_data_draw_string const_ptr message, s_backbuffer const_ptr buffer)
 {
 	const int32 scale = message->scale;
-	int32 x = message->x;
+	int32 current_x = message->x;
+	int32 current_y = message->y;
 	
 	for (auto it = message->string.begin_const(); it != message->string.end_const(); ++it)
 	{
-		t_debug_render_char_array letter_pixels = get_debug_char_array(*it);
-		
+		if (*it == '\n' || *it == '\r')
+		{
+			current_y += 10;
+			current_x = message->x;
+			continue;
+		}
+
 		// TODO: update string iterators to stop before null term
 		if (*it == k_null_char) break;
 
+		t_debug_render_char_array letter_pixels = get_debug_char_array(*it);
+
 		int i = 0;
-		int32 start_x = x;
-		int32 start_y = message->y;
+		int32 start_x = current_x;
+		int32 start_y = current_y;
 		for (int y = start_y; y < start_y + k_debug_char_pixel_height * scale; y+=scale)
 		{
 			for (int x = start_x; x < start_x + k_debug_char_pixel_width * scale; x+=scale)
@@ -547,7 +555,7 @@ inline void process_draw_string_message_internal(const s_render_message_data_dra
 			}
 		}
 
-		x += k_debug_char_pixel_width * scale;
+		current_x += k_debug_char_pixel_width * scale;
 	}
 }
 
