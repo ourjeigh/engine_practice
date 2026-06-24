@@ -95,10 +95,10 @@ static_global t_render_message_stack_array* g_render_messages;
 
 void c_render_system::init()
 {
-	m_buffers[0].width = 1440;
-	m_buffers[1].width = 1440;
-	m_buffers[0].height = 720;
-	m_buffers[1].height = 720;
+	m_buffers[0].dimensions.width = 1440;
+	m_buffers[1].dimensions.width = 1440;
+	m_buffers[0].dimensions.height = 720;
+	m_buffers[1].dimensions.height = 720;
 
 	g_render_commands_allocator = ALLOCATE_NEW_GLOBAL(c_static_stack_allocator<k_render_commands_size_kb>, memory_arena_system);
 	g_render_messages = ALLOCATE_NEW_GLOBAL(t_render_message_stack_array, memory_arena_system);
@@ -286,23 +286,29 @@ const s_backbuffer* c_render_system::get_backbuffer()
 // BUG: this gets called too early, before c_render_system's global initializes, which resets it back to 0 :(
 void c_render_system::resize(int32 width, int32 height)
 {
-	m_buffers[0].width = width;
-	m_buffers[0].height = height;
-	m_buffers[1].width = width;
-	m_buffers[1].height = height;
+	m_buffers[0].dimensions.width = width;
+	m_buffers[0].dimensions.height = height;
+	m_buffers[1].dimensions.width = width;
+	m_buffers[1].dimensions.height = height;
+}
+
+s_screen_dimensions c_render_system::get_screen_dimensions() const
+{
+	s_screen_dimensions out = { m_buffers[0].dimensions.width, m_buffers[0].dimensions.height };
+	return out;
 }
 
 t_render_shape_point c_render_system::get_screen_center() const
 {
-	return t_render_shape_point(m_buffers[0].width / 2, m_buffers[0].height / 2);
+	return t_render_shape_point(m_buffers[0].dimensions.width / 2, m_buffers[0].dimensions.height / 2);
 }
 
 void process_fill_screen_message_internal(const s_render_message_data_fill_screen const_ptr message, s_backbuffer const_ptr buffer)
 {
 	PERF_MEASURE_FUNCTION();
-	ASSERT(buffer->width && buffer->height);
+	ASSERT(buffer->dimensions.width && buffer->dimensions.height);
 
-	uint64 pixel_count = buffer->height * buffer->width;
+	uint64 pixel_count = buffer->dimensions.height * buffer->dimensions.width;
 	ASSERT(pixel_count % 2 == 0);
 
 	// pack 2 pixels together for a faster memset
@@ -313,12 +319,12 @@ void process_fill_screen_message_internal(const s_render_message_data_fill_scree
 void process_draw_rect_message_internal(const s_render_message_data_draw_rect const_ptr message, s_backbuffer const_ptr buffer)
 {
 	PERF_MEASURE_FUNCTION();
-	ASSERT(buffer->width && buffer->height);
+	ASSERT(buffer->dimensions.width && buffer->dimensions.height);
 
 	const int32 start_x = math_max(k_int32_zero, message->rect.x);
-	const int32 end_x = math_min(buffer->width - 1, message->rect.x + message->rect.width);
+	const int32 end_x = math_min(buffer->dimensions.width - 1, message->rect.x + message->rect.width);
 	const int32 start_y = math_max(k_int32_zero, message->rect.y);
-	const int32 end_y = math_min(buffer->height - 1, message->rect.y + message->rect.width);
+	const int32 end_y = math_min(buffer->dimensions.height - 1, message->rect.y + message->rect.width);
 
 	for (int32 y = start_y;	y <= end_y; y++)
 	{
@@ -333,14 +339,14 @@ void process_draw_rect_message_internal(const s_render_message_data_draw_rect co
 
 void move_point_within_buffer_space(t_render_shape_point& point, const s_backbuffer const_ptr buffer)
 {
-	point.x() = math_pin(k_int32_zero, buffer->width - 1, point.x());
-	point.y() = math_pin(k_int32_zero, buffer->height - 1, point.y());
+	point.x() = math_pin(k_int32_zero, buffer->dimensions.width - 1, point.x());
+	point.y() = math_pin(k_int32_zero, buffer->dimensions.height - 1, point.y());
 }
 
 void process_draw_line_message_internal(const s_render_message_data_draw_line const_ptr message, s_backbuffer const_ptr buffer)
 {
 	PERF_MEASURE_FUNCTION();
-	ASSERT(buffer->width && buffer->height);
+	ASSERT(buffer->dimensions.width && buffer->dimensions.height);
 	
 	// Bresenham's line algorithm
 	// https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
@@ -434,7 +440,7 @@ void process_draw_circle_outline_message_internal(const s_render_message_data_dr
 		int32 x = math_round_real32_to_int32(radius * math_cos(degree)) + message->circle.center.x();
 		int32 y = math_round_real32_to_int32(radius * math_sin(degree)) + message->circle.center.y();
 		
-		if (in_range_inclusive(k_int32_zero, buffer->width, x) && in_range_inclusive(k_int32_zero, buffer->height, y))
+		if (in_range_inclusive(k_int32_zero, buffer->dimensions.width, x) && in_range_inclusive(k_int32_zero, buffer->dimensions.height, y))
 		{
 			draw_pixel_to_buffer_internal(x, y, message->color, buffer);
 		}
@@ -456,7 +462,7 @@ void process_draw_circle_message_internal(const s_render_message_data_draw_circl
 	for (int32 y = -radius; y <= radius; ++y)
 	{
 		int32 y_pos = center_y + y;
-		if (in_range_inclusive(k_int32_zero, buffer->height, y_pos))
+		if (in_range_inclusive(k_int32_zero, buffer->dimensions.height, y_pos))
 		{
 			int32 y_squared = y * y;
 
@@ -464,8 +470,8 @@ void process_draw_circle_message_internal(const s_render_message_data_draw_circl
 			// x^2 + y^2 = r^2  => x^2 = r^2 - y^2
 			int32 delta_x = static_cast<int>(math_sqrt(r_squared - y_squared));
 
-			int32 x_start = math_pin(k_int32_zero, buffer->width - 1, center_x - delta_x);
-			int32 x_end = math_pin(k_int32_zero, buffer->width - 1, center_x + delta_x);
+			int32 x_start = math_pin(k_int32_zero, buffer->dimensions.width - 1, center_x - delta_x);
+			int32 x_end = math_pin(k_int32_zero, buffer->dimensions.width - 1, center_x + delta_x);
 
 			draw_horizontal_line_internal(x_start, x_end, y_pos, message->color, buffer);
 		}
@@ -486,13 +492,13 @@ inline void process_draw_bitmap_message_internal(const s_render_message_data_dra
 
 	for (int32 dest_y = y_start; dest_y < y_end; dest_y++)
 	{
-		if (in_range_inclusive_int32(0, buffer->height - 1, dest_y))
+		if (in_range_inclusive_int32(0, buffer->dimensions.height - 1, dest_y))
 		{
 			int32 source_y = (dest_y - message->rect.y) * height_scale;
 
 			for (int32 dest_x = x_start; dest_x < x_end; dest_x++)
 			{
-				if (in_range_inclusive_int32(0, buffer->width - 1, dest_x))
+				if (in_range_inclusive_int32(0, buffer->dimensions.width - 1, dest_x))
 				{
 					int32 source_x = (dest_x - message->rect.x) * width_scale;
 					
@@ -539,11 +545,11 @@ inline void process_draw_string_message_internal(const s_render_message_data_dra
 
 				for (int32 sy = y; sy < y + scale; sy++)
 				{
-					if (in_range_inclusive_int32(0, buffer->height - 1, sy))
+					if (in_range_inclusive_int32(0, buffer->dimensions.height - 1, sy))
 					{
 						for (int32 sx = x; sx < x + scale; sx++)
 						{
-							if (in_range_inclusive_int32(0, buffer->width - 1, sx))
+							if (in_range_inclusive_int32(0, buffer->dimensions.width - 1, sx))
 							{
 								draw_pixel_to_buffer_internal(sx, sy, pixel, buffer);
 							}
@@ -561,16 +567,16 @@ inline void process_draw_string_message_internal(const s_render_message_data_dra
 
 inline void draw_pixel_to_buffer_internal(int32 x, int32 y, uint32 color, s_backbuffer const_ptr buffer)
 {
-	ASSERT(in_range_inclusive(k_int32_zero, buffer->width, x) && in_range_inclusive(k_int32_zero, buffer->height, y));
+	ASSERT(in_range_inclusive(k_int32_zero, buffer->dimensions.width, x) && in_range_inclusive(k_int32_zero, buffer->dimensions.height, y));
 
 	uint32 alpha = (color >> 24) & 0xFF;
 	if (alpha == 0xFF)
 	{
-		buffer->memory[y * buffer->width + x] = color;
+		buffer->memory[y * buffer->dimensions.width + x] = color;
 	}
 	else if (alpha > 0)
 	{
-			uint32 buffer_pixel = buffer->memory[y * buffer->width + x];
+			uint32 buffer_pixel = buffer->memory[y * buffer->dimensions.width + x];
 			real32 buffer_red = ((buffer_pixel >> 16) & 0xFF) / 255.0f;
 			real32 buffer_green = ((buffer_pixel >> 8) & 0xFF) / 255.0f;
 			real32 buffer_blue = ((buffer_pixel >> 0) & 0xFF) / 255.0f;
@@ -591,7 +597,7 @@ inline void draw_pixel_to_buffer_internal(int32 x, int32 y, uint32 color, s_back
 			uint32 blue = fblue * 255;
 
 			uint32 final_pixel = (red << 16) | (green << 8) | (blue << 0);
-			buffer->memory[y * buffer->width + x] = final_pixel;
+			buffer->memory[y * buffer->dimensions.width + x] = final_pixel;
 			NOP();
 	}
 	else
@@ -603,9 +609,9 @@ inline void draw_pixel_to_buffer_internal(int32 x, int32 y, uint32 color, s_back
 
 void draw_horizontal_line_internal(int32 start_x, int32 end_x, int32 y, uint32 color, s_backbuffer const_ptr buffer)
 {
-	ASSERT(in_range_inclusive(k_int32_zero, buffer->width, start_x));
-	ASSERT(in_range_inclusive(k_int32_zero, buffer->width, end_x));
-	ASSERT(in_range_inclusive(k_int32_zero, buffer->height, y));
+	ASSERT(in_range_inclusive(k_int32_zero, buffer->dimensions.width, start_x));
+	ASSERT(in_range_inclusive(k_int32_zero, buffer->dimensions.width, end_x));
+	ASSERT(in_range_inclusive(k_int32_zero, buffer->dimensions.height, y));
 
 	if (start_x > end_x)
 	{
@@ -617,7 +623,7 @@ void draw_horizontal_line_internal(int32 start_x, int32 end_x, int32 y, uint32 c
 	const int32 first_chunk_count = count * 0.5f;
 	const uint64 packed_color = (static_cast<uint64>(color) << 32) | color;
 
-	memory_set(&buffer->memory[y * buffer->width + start_x], packed_color, sizeof(packed_color) * first_chunk_count);
+	memory_set(&buffer->memory[y * buffer->dimensions.width + start_x], packed_color, sizeof(packed_color) * first_chunk_count);
 
 	// if it was an odd number, set the last pixel manually
 	if (2 * first_chunk_count != count)

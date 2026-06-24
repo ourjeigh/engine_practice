@@ -87,6 +87,10 @@ void c_engine::render_draw_string(const c_string string, int32 x, int32 y, int32
 	render_system_draw_string(string, x, y, scale, color);
 }
 
+s_screen_dimensions c_engine::get_screen_dimensions()
+{
+	return render_system_get_screen_dimensions();
+}
 
 t_render_shape_point c_engine::get_screen_center()
 {

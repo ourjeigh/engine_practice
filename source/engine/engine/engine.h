@@ -27,6 +27,7 @@ public:
 	void render_draw_bitmap(const s_bitmap_asset& bitmap, const t_render_shape_rect& rect, e_render_layer layer);
 	void render_draw_string(const c_string string, int32 x, int32 y, int32 scale, c_color color);
 
+	s_screen_dimensions get_screen_dimensions();
 	t_render_shape_point get_screen_center();
 
 	t_sound_playback_id play_sound(s_sound_info& info);

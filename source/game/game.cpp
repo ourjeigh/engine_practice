@@ -83,8 +83,9 @@ extern "C"
 		g_game_state->player.m_transform.reset();
 		g_game_state->player.m_bitmap_asset_id = k_test_bmp_asset_def.id;
 		g_game_state->camera.set_transform(s_transform::default_values());
-		g_game_state->camera.set_zoom(1);
-		g_game_state->camera.set_screen_dimensions(1440, 720);
+		g_game_state->camera.set_zoom(1.0f);
+		g_game_state->camera.set_width(10.0f);
+		g_game_state->camera.set_screen_dimensions(engine_get_screen_dimensions());
 
 		engine_log_verbose("game: game initialized");
 	}
@@ -98,7 +99,14 @@ extern "C"
 
 		if (input_state->get_key_state(input_key_special_shift).is_down)
 		{
-			const real32 camera_speed_meters_per_second = 50.0f;
+			real32 zoom = g_game_state->camera.get_zoom();
+			if (zoom < 1.0f)
+			{
+				zoom *= 1.05f;
+				g_game_state->camera.set_zoom(zoom);
+			}
+
+			const real32 camera_speed_meters_per_second = 1.0f;
 			move_delta *= camera_speed_meters_per_second * dt;
 			s_transform camera_transfom = g_game_state->camera.get_transform();
 			camera_transfom.position += move_delta;
@@ -106,7 +114,7 @@ extern "C"
 		}
 		else
 		{
-			const real32 player_speed_meters_per_second = 50.0f;
+			const real32 player_speed_meters_per_second = 1.0f;
 			move_delta *= player_speed_meters_per_second * dt;
 			g_game_state->player.m_transform.position += move_delta;
 		}
@@ -121,8 +129,8 @@ extern "C"
 
 			t_render_shape_point render_pos2 = g_game_state->camera.world_to_screen_space2(world_position);
 			t_render_shape_rect rect;
-			rect.x = render_pos2.x() - player_bitmap->width / 2;
-			rect.y = render_pos2.y() - player_bitmap->height / 2;
+			rect.x = render_pos2.x() - player_bitmap->width * g_game_state->camera.get_zoom() / 2;
+			rect.y = render_pos2.y() - player_bitmap->height * g_game_state->camera.get_zoom() / 2;
 			rect.width = player_bitmap->width * g_game_state->camera.get_zoom();
 			rect.height = player_bitmap->height * g_game_state->camera.get_zoom();
 			engine_render_bitmap(

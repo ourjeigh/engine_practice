@@ -73,6 +73,12 @@ constexpr uint32 k_color_green_uint32 = k_color_green.to_uint32();
 using t_render_shape_point = t_vector_2d_int32;
 using t_render_shape_rect = t_rect_2d_int32;
 
+struct s_screen_dimensions
+{
+	int32 width;
+	int32 height;
+};
+
 struct s_render_shape_circle
 {
 	t_render_shape_point center;

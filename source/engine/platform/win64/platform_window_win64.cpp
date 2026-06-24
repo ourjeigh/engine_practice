@@ -129,7 +129,7 @@ void c_window_thread::render()
 
 	HDC hdc = GetDC(g_hwnd);
 
-	t_render_shape_rect source_rect(0, 0, backbuffer->width, backbuffer->height);
+	t_render_shape_rect source_rect(0, 0, backbuffer->dimensions.width, backbuffer->dimensions.height);
 	t_render_shape_rect dest_rect(0, 0, g_window_info.width, g_window_info.height);
 
 	StretchDIBits(
