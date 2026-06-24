@@ -48,7 +48,7 @@ public:
 		// temp, once we're using 4x4 matrices z will be real and w will be used to denote a point vector
 		t_vector_4d_real32 p_hack = position;
 		p_hack.z() = 1;
-		t_vector_4d_real32 world_space = m_viewport * p_hack;
+		t_vector_4d_real32 world_space = p_hack * m_viewport;
 		out.set(world_space.x(), world_space.y());
 		return out;
 	}
@@ -64,24 +64,20 @@ private:
 		if (!is_valid()) return;
 
 		s_matrix_3x3_real32 translation =
-		{
-			{
-				{1, 0, 0},
-				{0, 1, 0},
-				{-m_transform.position.x(), -m_transform.position.y(), 1}
-			}
-		};
+		{{
+			{1, 0, 0},
+			{0, 1, 0},
+			{-m_transform.position.x(), -m_transform.position.y(), 1}
+		}};
 
 		real32 sin_z = math_sin(m_transform.rotation.z());
 		real32 cos_z = math_cos(m_transform.rotation.z());
 		s_matrix_3x3_real32 rotation =
-		{
-			{
-				{cos_z, -sin_z, 0},
-				{sin_z, cos_z, 0},
-				{0, 0, 1}
-			}
-		};
+		{{
+			{cos_z, -sin_z, 0},
+			{sin_z, cos_z, 0},
+			{0, 0, 1}
+		}};
 
 		s_matrix_3x3_real32 view_matrix = translation * rotation;
 
@@ -90,25 +86,21 @@ private:
 		real32 world_height = world_width / view_ratio;
 
 		s_matrix_3x3_real32 projection_matrix =
-		{
-			{
-				{(m_zoom * 2 / world_width), 0, 0},
-				{0, (m_zoom * 2 / world_height), 0},
-				{0, 0, 1}
-			}
-		};
+		{{
+			{(m_zoom * 2 / world_width), 0, 0},
+			{0, (m_zoom * 2 / world_height), 0},
+			{0, 0, 1}
+		}};
 
 		real32 screen_width = m_screen_dimensions.width;
 		real32 screen_height = m_screen_dimensions.height;
 
 		s_matrix_3x3_real32 viewport_matrix =
-		{
-			{
-				{(screen_width / 2), 0, 0},
-				{0, (-screen_height / 2), 0},
-				{(screen_width / 2), (screen_height / 2), 1}
-			}
-		};
+		{{
+			{(screen_width / 2), 0, 0},
+			{0, (-screen_height / 2), 0},
+			{(screen_width / 2), (screen_height / 2), 1}
+		}};
 
 		m_viewport = view_matrix * projection_matrix * viewport_matrix;
 	}
