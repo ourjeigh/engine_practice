@@ -4,10 +4,10 @@
 #include "types/asset_types.h"
 #include "structures/vector.h"
 #include "camera.h"
+#include "../engine/platform/platform.h"
 
 const s_asset_definition k_click_audio_asset_def = { "sound_click_01", asset_scope_global, asset_type_wav, "C:\\Users\\RJ\\git\\simm_engine\\assets\\click_16_44k.wav" };
 const s_asset_definition k_test_bmp_asset_def = { "test_bmp", asset_scope_global, asset_type_bitmap, R"(C:\Users\RJ\git\simm_engine\assets\test\dude.bmp)" };
-
 
 class c_object
 {
@@ -67,6 +67,66 @@ void get_arrow_key_move_delta(const s_input_state const_ptr input_state, t_vecto
 	out_move_delta.normalize();
 }
 
+void get_wads_key_move_delta(const s_input_state const_ptr input_state, t_vector_4d_real32& out_move_delta)
+{
+	out_move_delta.zero();
+
+	if (input_state->get_key_state(input_key_char_w).is_down)
+	{
+		out_move_delta.y() += 1;
+	}
+
+	if (input_state->get_key_state(input_key_char_s).is_down)
+	{
+		out_move_delta.y() -= 1;
+	}
+
+	if (input_state->get_key_state(input_key_char_a).is_down)
+	{
+		out_move_delta.x() -= 1;
+	}
+
+	if (input_state->get_key_state(input_key_char_d).is_down)
+	{
+		out_move_delta.x() += 1;
+	}
+
+	out_move_delta.normalize();
+}
+
+void draw_debug_world_grid()
+{
+	const int32 grid_size = 20;
+	const int32 start_x = -grid_size/2;
+	const int32 end_x = grid_size / 2;
+	const int32 start_y = -grid_size / 2;
+	const int32 end_y = grid_size / 2;
+
+	for (int32 x = start_x; x <= end_x; x++)
+	{
+		t_vector_4d_real32 vertical_start(x, start_y, 0, 1);
+		t_vector_4d_real32 vertical_end(x, end_y, 0, 1);
+
+		engine_render_draw_line(
+			g_game_state->camera.world_to_screen_space(vertical_start),
+			g_game_state->camera.world_to_screen_space(vertical_end),
+			k_color_green_uint32,
+			render_layer_debug);
+	}
+
+	for (int32 y = start_y; y <= end_y; y++)
+	{
+		t_vector_4d_real32 horizontal_start(start_x, y, 0, 1);
+		t_vector_4d_real32 horizontal_end(end_x, y, 0, 1);
+
+		engine_render_draw_line(
+			g_game_state->camera.world_to_screen_space(horizontal_start),
+			g_game_state->camera.world_to_screen_space(horizontal_end),
+			k_color_green_uint32,
+			render_layer_debug);
+	}
+}
+
 extern "C"
 {
 	GAME_API void game_init(s_game_engine_context& engine_context)
@@ -94,10 +154,9 @@ extern "C"
 	{
 		engine_render_fill_screen(0xFF202020);
 
-		t_vector_4d_real32 move_delta;
-		get_arrow_key_move_delta(input_state, move_delta);
+		
 
-		if (input_state->get_key_state(input_key_special_shift).is_down)
+		//if (input_state->get_key_state(input_key_special_shift).is_down)
 		{
 			real32 zoom = g_game_state->camera.get_zoom();
 			if (zoom < 1.0f)
@@ -106,15 +165,19 @@ extern "C"
 				g_game_state->camera.set_zoom(zoom);
 			}
 
-			const real32 camera_speed_meters_per_second = 1.0f;
+			t_vector_4d_real32 move_delta;
+			get_wads_key_move_delta(input_state, move_delta);
+			const real32 camera_speed_meters_per_second = 1.5f;
 			move_delta *= camera_speed_meters_per_second * dt;
 			s_transform camera_transfom = g_game_state->camera.get_transform();
 			camera_transfom.position += move_delta;
 			g_game_state->camera.set_transform(camera_transfom);
 		}
-		else
+		//else
 		{
-			const real32 player_speed_meters_per_second = 1.0f;
+			t_vector_4d_real32 move_delta;
+			get_arrow_key_move_delta(input_state, move_delta);
+			const real32 player_speed_meters_per_second = 2.0f;
 			move_delta *= player_speed_meters_per_second * dt;
 			g_game_state->player.m_transform.position += move_delta;
 		}
@@ -122,15 +185,13 @@ extern "C"
 		const s_bitmap_asset* player_bitmap = static_cast<const s_bitmap_asset*>(engine_get_asset(g_game_state->player.m_bitmap_asset_id));
 		if (player_bitmap != nullptr)
 		{
-			t_vector_4d_real32 world_position(
-				g_game_state->player.m_transform.position.x(),
-				g_game_state->player.m_transform.position.y(),
-				0, 0);
+			// todo: make position a well defined type with w hardcoded to 1
+			g_game_state->player.m_transform.position.w() = 1.0f;
 
-			t_render_shape_point render_pos2 = g_game_state->camera.world_to_screen_space2(world_position);
+			t_render_shape_point render_pos = g_game_state->camera.world_to_screen_space(g_game_state->player.m_transform.position);
 			t_render_shape_rect rect;
-			rect.x = render_pos2.x() - player_bitmap->width * g_game_state->camera.get_zoom() / 2;
-			rect.y = render_pos2.y() - player_bitmap->height * g_game_state->camera.get_zoom() / 2;
+			rect.x = render_pos.x() - player_bitmap->width * g_game_state->camera.get_zoom() / 2;
+			rect.y = render_pos.y() - player_bitmap->height * g_game_state->camera.get_zoom() / 2;
 			rect.width = player_bitmap->width * g_game_state->camera.get_zoom();
 			rect.height = player_bitmap->height * g_game_state->camera.get_zoom();
 			engine_render_bitmap(
@@ -138,6 +199,9 @@ extern "C"
 				rect,
 				render_layer_main);
 		}
+
+#ifdef CONFIG_DEBUG
+		draw_debug_world_grid();
 
 		const int32 align_x = 1170;
 		{
@@ -162,17 +226,11 @@ extern "C"
 			t_string_128 camera_viewport_title("Camera Viewport");
 			engine_render_draw_string(camera_viewport_title, align_x, 25, 1, k_color_white);
 			const int32 view_align_x = align_x + 65;
-			s_matrix_3x3_real32 viewport = g_game_state->camera.get_viewport();
 			t_string_128 camera_viewport_string;
-			camera_viewport_string.printf(
-				"{f6.2}, {f6.2}, {f6.2}\n"
-				"{f6.2}, {f6.2}, {f6.2}\n"
-				"{f6.2}, {f6.2}, {f6.2}", 
-				viewport[0][0], viewport[0][1], viewport[0][2],
-				viewport[1][0], viewport[1][1], viewport[1][2],
-				viewport[2][0], viewport[2][1], viewport[2][2]);
+			g_game_state->camera.get_viewport_debug_string(camera_viewport_string);
 			engine_render_draw_string(camera_viewport_string, view_align_x, 35, 1, k_color_white);
 		}
+#endif // CONFIG_DEBUG
 	}
 
 #ifdef HOT_RELOAD

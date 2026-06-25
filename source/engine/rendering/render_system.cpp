@@ -87,9 +87,9 @@ void draw_horizontal_line_internal(int32 start_x, int32 end_x, int32 y, uint32 c
 const int32 k_render_commands_size_kb = k_byte_mib;
 static_global c_static_stack_allocator<k_render_commands_size_kb>* g_render_commands_allocator;
 
-// if render system moves of the main thread it needs to be made safe
+// if render system moves off the main thread it needs to be made safe
 // TBD if each layer needs the same number (thinking about _background)
-using t_render_message_layer_stack = c_static_stack<s_render_message, 128>;
+using t_render_message_layer_stack = c_static_stack<s_render_message, 256>;
 using t_render_message_stack_array = c_static_array<t_render_message_layer_stack, k_render_layer_count>;
 static_global t_render_message_stack_array* g_render_messages;
 
@@ -218,7 +218,7 @@ void c_render_system::draw_rect(const t_render_shape_rect rect, const uint32 col
 	new_message.data = message_data;
 }
 
-void c_render_system::draw_line(const t_render_shape_point start, const t_render_shape_point end, const uint32 color)
+void c_render_system::draw_line(const t_render_shape_point start, const t_render_shape_point end, const uint32 color, e_render_layer layer)
 {
 	s_render_message_data_draw_line* message_data = ALLOCATE_NEW(s_render_message_data_draw_line, *g_render_commands_allocator);
 	
@@ -228,7 +228,7 @@ void c_render_system::draw_line(const t_render_shape_point start, const t_render
 	message_data->end = end;
 	message_data->color = color;
 
-	s_render_message& new_message = g_render_messages->get_item(render_layer_main)->push();
+	s_render_message& new_message = g_render_messages->get_item(layer)->push();
 	new_message.type = render_message_type_draw_line;
 	new_message.data = message_data;
 }
