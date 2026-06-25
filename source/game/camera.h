@@ -2,12 +2,14 @@
 #define __CAMERA_H__
 #pragma once
 
+#include "config.h"
+#include "mmath.h"
+#include "structures/matrix.h"
 #include "structures/vector.h"
 #include "structures/shapes.h"
+#include "structures/string/string.h"
 #include "types/render_types.h"
 #include "transform.h"
-#include "structures/matrix.h"
-#include "mmath.h"
 
 class c_camera_2d
 {

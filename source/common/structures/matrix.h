@@ -53,7 +53,7 @@ struct s_matrix_3x3_real32
 
 // we ignore the w() component
 // vectors are 1xN row matrices!
-t_vector_4d_real32 operator*(const t_vector_4d_real32& vector, const s_matrix_3x3_real32& matrix)
+inline t_vector_4d_real32 operator*(const t_vector_4d_real32& vector, const s_matrix_3x3_real32& matrix)
 {
 	// 1x3*3x3
 	t_vector_4d_real32 out;
@@ -112,7 +112,7 @@ struct s_matrix_4x4_real32
 	void operator*(const t_vector_4d_real32& vector) = delete;
 };
 
-t_vector_4d_real32 operator*(const t_vector_4d_real32& vector, const s_matrix_4x4_real32& matrix)
+inline t_vector_4d_real32 operator*(const t_vector_4d_real32& vector, const s_matrix_4x4_real32& matrix)
 {
 	// 1x4*4x4
 	t_vector_4d_real32 out;

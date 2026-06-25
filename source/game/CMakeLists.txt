@@ -32,6 +32,7 @@ endif()
 target_include_directories(game 
 	PRIVATE 
 		${CMAKE_SOURCE_DIR}/src/common
+		.
 )
 
 target_link_libraries(game PRIVATE common)
