@@ -3,9 +3,13 @@
 #include "game/enhanced_game.h"
 #include "game/demo_game.h"
 
-//static_global c_demo_game g_game;
-static_global c_enhanced_game g_game;
+#define CONFIG_DEMO_GAME
 
+#ifdef CONFIG_DEMO_GAME
+static_global c_demo_game g_game;
+#else
+static_global c_enhanced_game g_game;
+#endif //CONFIG_DEMO_GAME
 extern "C"
 {
 	GAME_API void game_init(s_game_engine_context& engine_context)

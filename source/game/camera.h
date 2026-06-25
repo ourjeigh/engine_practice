@@ -79,36 +79,31 @@ private:
 	{
 		if (!is_valid()) return;
 
-		s_matrix_4x4_real32 translation =
+		const real32 pos_x = m_transform.position.x();
+		const real32 pos_y = m_transform.position.y();
+		const real32 pos_z = m_transform.position.z();
+		const real32 rot_sin_z = math_sin(m_transform.rotation.z());
+		const real32 rot_cos_z = math_cos(m_transform.rotation.z());
+
+		// combined translation and rotation matrices
+		s_matrix_4x4_real32 view_matrix =
 		{{
-			{1, 0, 0, 0},
-			{0, 1, 0, 0},
-			{0, 0, 1, 0},
-			{-m_transform.position.x(), -m_transform.position.y(), -m_transform.position.z(), 1 }
+			{ rot_cos_z, rot_sin_z, 0, 0 },
+			{ -rot_sin_z, rot_cos_z, 0, 0 },
+			{ 0, 0, 1, 0},
+			{ -pos_x, -pos_y, -pos_z, 1 },
 		}};
 
-		real32 sin_z = math_sin(m_transform.rotation.z());
-		real32 cos_z = math_cos(m_transform.rotation.z());
-		s_matrix_4x4_real32 rotation =
-		{{
-			{cos_z, sin_z, 0, 0},
-			{-sin_z, cos_z, 0, 0},
-			{0, 0, 1, 0},
-			{0, 0, 0, 1},
-		}};
+		const real32 view_ratio = m_screen_dimensions.width / m_screen_dimensions.height;
+		const real32 world_width = m_width;
+		const real32 world_height = world_width / view_ratio;
 
-		s_matrix_4x4_real32 view_matrix = translation * rotation;
-
-		real32 view_ratio = m_screen_dimensions.width / m_screen_dimensions.height;
-		real32 world_width = m_width;
-		real32 world_height = world_width / view_ratio;
-
-		real32 left = -world_width / 2;
-		real32 right = world_width / 2;
-		real32 top = world_height / 2;
-		real32 bottom = -world_height / 2;
-		real32 near = -1;
-		real32 far = 1;
+		const real32 left = -world_width / 2;
+		const real32 right = world_width / 2;
+		const real32 top = world_height / 2;
+		const real32 bottom = -world_height / 2;
+		const real32 near = -1;
+		const real32 far = 1;
 
 		s_matrix_4x4_real32 projection_matrix =
 		{{
@@ -118,8 +113,8 @@ private:
 			{-(right + left) / (right - left), -(top + bottom) / (top - bottom), -(far + near) / (far - near), 1}
 		}};
 
-		real32 screen_width = m_screen_dimensions.width;
-		real32 screen_height = m_screen_dimensions.height;
+		const real32 screen_width = m_screen_dimensions.width;
+		const real32 screen_height = m_screen_dimensions.height;
 
 		s_matrix_4x4_real32 viewport_matrix =
 		{{
