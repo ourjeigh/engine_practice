@@ -3,7 +3,7 @@
 #include "game/enhanced_game.h"
 #include "game/demo_game.h"
 
-#define CONFIG_DEMO_GAME
+//#define CONFIG_DEMO_GAME
 
 #ifdef CONFIG_DEMO_GAME
 static_global c_demo_game g_game;

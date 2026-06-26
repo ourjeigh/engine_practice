@@ -39,7 +39,7 @@ const c_static_array<int32, k_memory_arena_count> k_arena_sizes =
 	10 * k_byte_mb,									// memory_arena_system
 	 1 * k_byte_mb,									// memory_arena_engine_state
 	10 * k_byte_mb,									// memory_arena_game_state
-	 1 * k_byte_mb,									// memory_arena_frame
+	 10 * k_byte_mb,									// memory_arena_frame
 	DEBUG_ONLY_PARAM_RIGHT_COMMA(1 * k_byte_mb)		// memory_arena_debug
 };
 

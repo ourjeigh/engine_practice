@@ -173,6 +173,7 @@ e_input_keycode get_key_code_from_platform_key(uint64 platform_key)
 	case k_input_id_kbd_shift: return input_key_special_shift;
 	case k_input_id_kbd_tab: return input_key_special_tab;
 	case k_input_id_kbd_control: return input_key_special_control;
+	case k_input_id_kbd_return: return input_key_special_return;
 
 	case k_input_id_kbd_f5: return input_key_f5;
 	default:

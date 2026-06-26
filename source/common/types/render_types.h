@@ -26,17 +26,27 @@ public:
 	
 	constexpr c_color(real32 r, real32 g, real32 b, real32 a) 
 	{
-		m_data = 
-			(static_cast<uint32>(a * k_uint8_max) << 24) |
-			(static_cast<uint32>(r * k_uint8_max) << 16) |
-			(static_cast<uint32>(g * k_uint8_max) << 8)  |
-			(static_cast<uint32>(b * k_uint8_max) << 0);
+		set(r, g, b, a);
 	}
 
-	real32 alpha() { return ((m_data & 0xFF000000) >> 24) / static_cast<real32>(k_uint8_max); }
-	real32 red() { return ((m_data & 0x00FF0000) >> 16) / static_cast<real32>(k_uint8_max); }
-	real32 green() { return ((m_data & 0x0000FF00) >> 8) / static_cast<real32>(k_uint8_max); }
-	real32 blue() { return ((m_data & 0x000000FF) >> 0) / static_cast<real32>(k_uint8_max); }
+	real32 alpha() const { return ((m_data & 0xFF000000) >> 24) / static_cast<real32>(k_uint8_max); }
+	real32 red() const { return ((m_data & 0x00FF0000) >> 16) / static_cast<real32>(k_uint8_max); }
+	real32 green() const { return ((m_data & 0x0000FF00) >> 8) / static_cast<real32>(k_uint8_max); }
+	real32 blue() const { return ((m_data & 0x000000FF) >> 0) / static_cast<real32>(k_uint8_max); }
+
+	constexpr void set(real32 r, real32 g, real32 b, real32 a)
+	{
+		m_data =
+			(static_cast<uint32>(a * k_uint8_max) << 24) |
+			(static_cast<uint32>(r * k_uint8_max) << 16) |
+			(static_cast<uint32>(g * k_uint8_max) << 8) |
+			(static_cast<uint32>(b * k_uint8_max) << 0);
+	}
+	
+	void set_alpha(real32 alpha)
+	{
+		set(red(), green(), blue(), alpha);
+	}
 
 	constexpr uint32 to_uint32() const
 	{
@@ -62,7 +72,7 @@ private:
 constexpr c_color k_color_red(1.0f, 0.0f, 0.0f, 1.0f);
 constexpr c_color k_color_green(0.0f, 1.0f, 0.0f, 1.0f);
 constexpr c_color k_color_blue(0.0f, 0.0f, 1.0f, 1.0f);
-constexpr c_color k_color_black(1.0f, 1.0f, 1.0f, 1.0f);
+constexpr c_color k_color_black(0.0f, 0.0f, 0.0f, 1.0f);
 constexpr c_color k_color_white(1.0f, 1.0f, 1.0f, 1.0f);
 
 // remove

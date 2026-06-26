@@ -326,14 +326,34 @@ void process_draw_rect_message_internal(const s_render_message_data_draw_rect co
 	const int32 start_y = math_max(k_int32_zero, message->rect.y);
 	const int32 end_y = math_min(buffer->dimensions.height - 1, message->rect.y + message->rect.width);
 
-	for (int32 y = start_y;	y <= end_y; y++)
+	c_color color = message->fill_color;
+	if (color.alpha() == 1.0f)
 	{
-		draw_horizontal_line_internal(
-			start_x,
-			end_x,
-			y,
-			message->fill_color,
-			buffer);
+		for (int32 y = start_y;	y <= end_y; y++)
+		{
+			draw_horizontal_line_internal(
+				start_x,
+				end_x,
+				y,
+				message->fill_color,
+				buffer);
+		}
+	}
+	else
+	{
+		for (int32 y = start_y; y <= end_y; y++)
+		{
+			if (in_range_inclusive_int32(0, buffer->dimensions.height, y))
+			{
+				for (int32 x = start_x; x <= end_x; x++)
+				{
+					if (in_range_inclusive_int32(0, buffer->dimensions.width, x))
+					{
+						draw_pixel_to_buffer_internal(x, y, color.to_uint32(), buffer);
+					}
+				}
+			}
+		}
 	}
 }
 

@@ -335,6 +335,8 @@ void process_bitmap_asset(c_array<byte> const_ptr asset_data, s_bitmap_asset& ou
 	ASSERT(header->bfType[0] == 'B' && header->bfType[1] == 'M'); //remove
 	const s_bitmap_info_header* core = reinterpret_cast<const s_bitmap_info_header*> (asset_data->data() + sizeof(s_bitmap_file_header));
 
+	ASSERT(core->bits_per_pixel == sizeof(uint32) * 8);
+
 	uint32 red_mask = core->red_mask;
 	uint32 green_mask = core->green_mask;
 	uint32 blue_mask = core->blue_mask;
