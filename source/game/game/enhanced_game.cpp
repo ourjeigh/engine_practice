@@ -8,6 +8,10 @@
 
 const s_asset_definition k_simm_logo_bmp_asset_def = { "logo_bmp", asset_scope_global, asset_type_bitmap, R"(C:\Users\RJ\git\simm_engine\assets\simm_logo.bmp)" };
 
+#define DEBUG_RETRY_ABORT_AFTER_TICKS(ticks, fail_message) \
+	static_local_variable int32 current_tick_count = 0; \
+	if (current_tick_count++ > ticks) HALT(fail_message);
+
 /////////////////////////////////////////////////////
 // TEMP MOVE
 
@@ -37,6 +41,13 @@ public:
 	virtual real32 post_exit_wait_seconds() = 0;
 
 	virtual c_string_id state_id() const = 0;
+	virtual const char* debug_state_name() const = 0;
+
+	template<typename t_child_type>
+	bool is_type() const
+	{
+		return dynamic_cast<const t_child_type*>(this) != nullptr;
+	}
 };
 
 class c_game_flow_state_logo : public c_game_state_machine_state
@@ -58,6 +69,7 @@ public:
 		if (asset == nullptr)
 		{
 			out_continue = true;
+			DEBUG_RETRY_ABORT_AFTER_TICKS(50, "failed to get loaded logo asset after 50 ticks");
 			return;
 		}
 		else
@@ -98,14 +110,14 @@ public:
 		// unload asset
 	}
 
-	c_string_id state_id() const { return id; };
-	static_member_function c_string_id static_id() { return id; };
+	c_string_id state_id() const { return id; }
+	const char* debug_state_name() const { return id.get_debug_string(); };
+	static_member_data constexpr c_string_id id = "enhanced_game_flow_state::logo";
 
 private:
 	real32 m_fade_in_value;
 	bool m_fade_in;
 
-	static constexpr c_string_id id = "enhanced_game_flow_state::logo";
 };
 
 class c_game_flow_state_main_menu : public c_game_state_machine_state
@@ -137,11 +149,11 @@ public:
 	{
 	}
 
-	c_string_id state_id() const { return id; };
-	static_member_function c_string_id static_id() { return id; };
-
+	c_string_id state_id() const { return id; }
+	const char* debug_state_name() const { return id.get_debug_string(); };
+	static_member_data constexpr c_string_id id = "enhanced_game_flow_state::main_menu";
+	
 private:
-	static constexpr c_string_id id = "enhanced_game_flow_state::main_menu";
 };
 
 class c_game_flow_state_gameplay : public c_game_state_machine_state
@@ -171,11 +183,11 @@ public:
 	{
 	}
 
-	c_string_id state_id() const { return id; };
-	static_member_function c_string_id static_id() { return id; };
+	c_string_id state_id() const { return id; }
+	const char* debug_state_name() const { return id.get_debug_string(); };
+	static_member_data constexpr c_string_id id = "enhanced_game_flow_state::gameplay";
 
 private:
-	static constexpr c_string_id id = "enhanced_game_flow_state::gameplay";
 };
 
 enum e_state_machine_phase
@@ -225,17 +237,17 @@ public:
 			return &m_state_logo;
 		}
 
-		if (current_state->state_id() == c_game_flow_state_logo::static_id())
+		if (current_state->is_type<c_game_flow_state_logo>())
 		{
 			return &m_state_main_menu;
 		}
 
-		if (current_state->state_id() == c_game_flow_state_main_menu::static_id())
+		if (current_state->is_type<c_game_flow_state_main_menu>())
 		{
 			return &m_state_gameplay;
 		}
 
-		if (current_state->state_id() == c_game_flow_state_gameplay::static_id())
+		if (current_state->is_type<c_game_flow_state_gameplay>())
 		{
 			return &m_state_main_menu;
 		}
@@ -253,20 +265,7 @@ public:
 			{
 			case state_machine_phase_pre_enter:
 			{
-				real32 wait_time_seconds = m_current_state->pre_enter_wait_seconds();
-				
-				if (wait_time_seconds > 0)
-				{
-					real32 delta = dt / wait_time_seconds;
-					m_wait += delta;
-				}
-
-				if (m_wait >= wait_time_seconds)
-				{
-					m_wait = 0.0f;
-					m_phase = state_machine_phase_enter;
-				}
-
+				handle_wait_internal(m_current_state->pre_enter_wait_seconds(), dt, state_machine_phase_enter);
 				break;
 			}
 			case state_machine_phase_enter:
@@ -292,19 +291,7 @@ public:
 			}
 			case state_machine_phase_post_exit:
 			{
-				real32 wait_time_seconds = m_current_state->post_exit_wait_seconds();
-				
-				if (wait_time_seconds > 0)
-				{
-					real32 delta = dt / wait_time_seconds;
-					m_wait += delta;
-				}
-
-				if (m_wait >= wait_time_seconds)
-				{
-					m_wait = 0.0f;
-					m_phase = state_machine_phase_finished;
-				}
+				handle_wait_internal(m_current_state->post_exit_wait_seconds(), dt, state_machine_phase_finished);
 				break;
 			}
 			case state_machine_phase_finished:
@@ -326,6 +313,21 @@ public:
 	}
 
 private:
+	void handle_wait_internal(real32 wait_time_seconds, real32 dt, e_state_machine_phase wait_complete_phase)
+	{
+		if (wait_time_seconds > 0)
+		{
+			real32 delta = dt / wait_time_seconds;
+			m_wait += delta;
+		}
+
+		if (m_wait >= wait_time_seconds)
+		{
+			m_wait = 0.0f;
+			m_phase = wait_complete_phase;
+		}
+	}
+
 	c_game_state_machine_state* m_current_state;
 	e_state_machine_phase m_phase;
 	real32 m_wait;
@@ -361,8 +363,9 @@ void c_enhanced_game::init(const s_game_memory& game_memory)
 	g_game_state->camera.set_width(10.0f);
 	g_game_state->camera.set_screen_dimensions(engine_get_screen_dimensions());
 
-	g_game_flow.init();
-	//g_game_flow.init_with_state(c_game_flow_state_main_menu::state_id());
+	//g_game_flow.init();
+	// feels hacky
+	g_game_flow.init_with_state(c_game_flow_state_main_menu::id);
 }
 
 void c_enhanced_game::update(const s_input_state const_ptr input_state, real32 dt)
