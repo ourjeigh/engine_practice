@@ -1,0 +1,191 @@
+#ifndef __STATE_MACHINE_H__
+#define __STATE_MACHINE_H__
+#pragma once
+
+#include "types/types.h"
+#include "memory/memory.h"
+#include "structures/string/string_id.h"
+
+const int32 k_state_machine_state_data_size_bytes = k_byte_kib;
+
+enum e_state_machine_phase
+{
+	state_machine_phase_pre_enter,
+	state_machine_phase_enter,
+	state_machine_phase_in_state,
+	state_machine_phase_exit,
+	state_machine_phase_post_exit,
+	state_machine_phase_finished,
+
+	k_state_machine_phase_count
+};
+
+// state machine state
+class c_game_state_machine_state_base
+{
+public:
+	virtual real32 pre_enter_wait_seconds() = 0;
+	virtual void enter(byte* state_data) = 0;
+	virtual void update(byte* state_data, real32 dt, bool& out_continue) = 0;
+	virtual void exit(byte* state_data) = 0;
+	virtual real32 post_exit_wait_seconds() = 0;
+
+	virtual c_string_id state_id() const = 0;
+	virtual const char* debug_state_name() const = 0;
+
+	template<typename t_child_type>
+	bool is_type() const
+	{
+		return dynamic_cast<const t_child_type*>(this) != nullptr;
+	}
+};
+
+template<typename t_state_data_type>
+class c_game_state_machine_state : public c_game_state_machine_state_base
+{
+	COMPILE_ASSERT(sizeof(t_state_data_type) <= k_state_machine_state_data_size_bytes);
+
+	void enter(byte* state_data) final
+	{
+		on_enter(make_type_data(state_data));
+	}
+
+	void update(byte* state_data, real32 dt, bool& out_continue) final
+	{
+		on_update(make_type_data(state_data), dt, out_continue);
+	}
+
+	void exit(byte* state_data) final
+	{
+		on_exit(make_type_data(state_data));
+	}
+
+protected:
+	virtual void on_enter(t_state_data_type* state_data) = 0;
+	virtual void on_update(t_state_data_type* state_data, real32 dt, bool& out_continue) = 0;
+	virtual void on_exit(t_state_data_type* state_data) = 0;
+
+private:
+	t_state_data_type* make_type_data(byte* state_data)
+	{
+		return reinterpret_cast<t_state_data_type*>(state_data);
+	}
+};
+
+// state machine
+struct s_game_flow_state_machine_data
+{
+	c_game_state_machine_state_base* current_state;
+	e_state_machine_phase phase;
+	real32 pre_post_wait;
+	byte current_state_data[k_state_machine_state_data_size_bytes];
+};
+
+class c_state_machine_fsm
+{
+public:
+	void init(s_game_flow_state_machine_data* data)
+	{
+		data->phase = state_machine_phase_pre_enter;
+		data->pre_post_wait = 0.0f;
+		data->current_state = get_next_state(data->current_state);
+	}
+
+	void init_with_state(s_game_flow_state_machine_data* data, c_string_id state_id)
+	{
+		init(data);
+		set_state(data, state_id);
+	}
+
+	void update(s_game_flow_state_machine_data* data, real32 dt, bool& out_continue)
+	{
+		bool state_continue = true;
+		if (data->current_state)
+		{
+			switch (data->phase)
+			{
+			case state_machine_phase_pre_enter:
+			{
+				handle_wait_internal(
+					data,
+					data->current_state->pre_enter_wait_seconds(),
+					dt,
+					state_machine_phase_enter);
+				break;
+			}
+			case state_machine_phase_enter:
+			{
+				data->current_state->enter(data->current_state_data);
+				data->phase = state_machine_phase_in_state;
+				break;
+			}
+			case state_machine_phase_in_state:
+			{
+				data->current_state->update(data->current_state_data, dt, state_continue);
+				if (!state_continue)
+				{
+					data->phase = state_machine_phase_exit;
+				}
+				break;
+			}
+			case state_machine_phase_exit:
+			{
+				data->current_state->exit(data->current_state_data);
+				data->phase = state_machine_phase_post_exit;
+				break;
+			}
+			case state_machine_phase_post_exit:
+			{
+				handle_wait_internal(
+					data,
+					data->current_state->post_exit_wait_seconds(),
+					dt,
+					state_machine_phase_finished);
+				break;
+			}
+			case state_machine_phase_finished:
+			{
+				data->current_state = get_next_state(data->current_state);
+				data->phase = state_machine_phase_pre_enter;
+				break;
+			}
+			}
+		}
+		else
+		{
+			out_continue = false;
+		}
+	}
+
+	void term()
+	{
+	}
+
+	virtual void set_state(s_game_flow_state_machine_data* data, c_string_id state_id) = 0;
+	virtual c_game_state_machine_state_base* get_next_state(const c_game_state_machine_state_base* current_state) = 0;
+
+protected:
+
+private:
+	void handle_wait_internal(
+		s_game_flow_state_machine_data* data,
+		real32 wait_time_seconds,
+		real32 dt,
+		e_state_machine_phase wait_complete_phase)
+	{
+		if (wait_time_seconds > 0)
+		{
+			real32 delta = dt / wait_time_seconds;
+			data->pre_post_wait += delta;
+		}
+
+		if (data->pre_post_wait >= wait_time_seconds)
+		{
+			data->pre_post_wait = 0.0f;
+			data->phase = wait_complete_phase;
+		}
+	}
+};
+
+
+#endif // !__STATE_MACHINE_H__

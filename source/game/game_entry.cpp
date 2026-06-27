@@ -1,6 +1,6 @@
 #include "game_api.h"
 #include "engine_api.h"
-#include "game/enhanced_game.h"
+#include "enhanced_game/enhanced_game.h"
 #include "game/demo_game.h"
 
 //#define CONFIG_DEMO_GAME

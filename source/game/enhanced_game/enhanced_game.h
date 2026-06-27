@@ -2,7 +2,7 @@
 #define __ENHANCED_GAME_H__
 #pragma once
 
-#include "game.h"
+#include "game/game.h"
 
 class c_enhanced_game : public c_game
 {
