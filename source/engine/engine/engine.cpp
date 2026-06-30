@@ -63,22 +63,22 @@ const s_asset* c_engine::get_asset(c_string_id asset_id)
 	return c_asset_system::get().get_asset(asset_id);
 };
 
-void c_engine::render_fill_screen(const uint32 color)
+void c_engine::render_fill_screen(const c_color color)
 {
 	render_system_fill_screen(color);
 }
 
-void c_engine::render_draw_rect(const t_render_shape_rect rect, const uint32 color)
+void c_engine::render_draw_rect(const t_render_shape_rect rect, const c_color color)
 {
 	render_system_draw_rect(rect, color);
 }
 
-void c_engine::render_draw_line(const t_render_shape_point start, const t_render_shape_point end, const uint32 color, e_render_layer layer)
+void c_engine::render_draw_line(const t_render_shape_point start, const t_render_shape_point end, const c_color color, e_render_layer layer)
 {
 	render_system_draw_line(start, end, color, layer);
 }
 
-void c_engine::render_draw_circle(const s_render_shape_circle circle, uint32 color, bool fill)
+void c_engine::render_draw_circle(const s_render_shape_circle circle, c_color color, bool fill)
 {
 	render_system_draw_circle(circle, color, fill);
 }

@@ -21,18 +21,21 @@ enum e_render_layer
 class c_color
 {
 public:
-	c_color() : m_data(k_invalid) {}
-	constexpr c_color(uint32 data) : m_data(data) {}
+	c_color() : m_data(k_invalid) DEBUG_ONLY_PARAM_LEFT_COMMA(d_name("")) {}
+	constexpr c_color(uint32 data DEBUG_ONLY_PARAM_LEFT_COMMA(const char* name = "")) :
+		m_data(data) 
+		DEBUG_ONLY_PARAM_LEFT_COMMA(d_name(name)) {}
 	
-	constexpr c_color(real32 r, real32 g, real32 b, real32 a) 
+	constexpr c_color(real32 r, real32 g, real32 b, real32 a DEBUG_ONLY_PARAM_LEFT_COMMA(const char* name = ""))
 	{
 		set(r, g, b, a);
+		d_name = name;
 	}
 
-	real32 alpha() const { return ((m_data & 0xFF000000) >> 24) / static_cast<real32>(k_uint8_max); }
-	real32 red() const { return ((m_data & 0x00FF0000) >> 16) / static_cast<real32>(k_uint8_max); }
-	real32 green() const { return ((m_data & 0x0000FF00) >> 8) / static_cast<real32>(k_uint8_max); }
-	real32 blue() const { return ((m_data & 0x000000FF) >> 0) / static_cast<real32>(k_uint8_max); }
+	inline real32 alpha() const { return ((m_data & 0xFF000000) >> 24) / static_cast<real32>(k_uint8_max); }
+	inline real32 red() const { return ((m_data & 0x00FF0000) >> 16) / static_cast<real32>(k_uint8_max); }
+	inline real32 green() const { return ((m_data & 0x0000FF00) >> 8) / static_cast<real32>(k_uint8_max); }
+	inline real32 blue() const { return ((m_data & 0x000000FF) >> 0) / static_cast<real32>(k_uint8_max); }
 
 	constexpr void set(real32 r, real32 g, real32 b, real32 a)
 	{
@@ -67,18 +70,14 @@ public:
 
 private:
 	uint32 m_data;
+	IF_DEBUG(const char* d_name;)
 };
 
-constexpr c_color k_color_red(1.0f, 0.0f, 0.0f, 1.0f);
-constexpr c_color k_color_green(0.0f, 1.0f, 0.0f, 1.0f);
-constexpr c_color k_color_blue(0.0f, 0.0f, 1.0f, 1.0f);
-constexpr c_color k_color_black(0.0f, 0.0f, 0.0f, 1.0f);
-constexpr c_color k_color_white(1.0f, 1.0f, 1.0f, 1.0f);
-
-// remove
-constexpr uint32 k_color_red_uint32 = k_color_red.to_uint32();
-constexpr uint32 k_color_blue_uint32 = k_color_blue.to_uint32();
-constexpr uint32 k_color_green_uint32 = k_color_green.to_uint32();
+constexpr c_color k_color_red(1.0f, 0.0f, 0.0f, 1.0f DEBUG_ONLY_PARAM_LEFT_COMMA("red"));
+constexpr c_color k_color_green(0.0f, 1.0f, 0.0f, 1.0f DEBUG_ONLY_PARAM_LEFT_COMMA("green"));
+constexpr c_color k_color_blue(0.0f, 0.0f, 1.0f, 1.0f DEBUG_ONLY_PARAM_LEFT_COMMA("blue"));
+constexpr c_color k_color_black(0.0f, 0.0f, 0.0f, 1.0f DEBUG_ONLY_PARAM_LEFT_COMMA("black"));
+constexpr c_color k_color_white(1.0f, 1.0f, 1.0f, 1.0f DEBUG_ONLY_PARAM_LEFT_COMMA("white"));
 
 using t_render_shape_point = t_vector_2d_int32;
 using t_render_shape_rect = t_rect_2d_int32;

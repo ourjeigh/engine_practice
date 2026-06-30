@@ -20,7 +20,7 @@ inline void draw_debug_world_grid(int32 size_meters, const c_camera_2d& camera)
 		engine_render_draw_line(
 			camera.world_to_screen_space(vertical_start),
 			camera.world_to_screen_space(vertical_end),
-			k_color_green_uint32,
+			k_color_green,
 			render_layer_debug);
 	}
 
@@ -32,7 +32,7 @@ inline void draw_debug_world_grid(int32 size_meters, const c_camera_2d& camera)
 		engine_render_draw_line(
 			camera.world_to_screen_space(horizontal_start),
 			camera.world_to_screen_space(horizontal_end),
-			k_color_green_uint32,
+			k_color_green,
 			render_layer_debug);
 	}
 }

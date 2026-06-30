@@ -28,27 +28,27 @@ struct s_render_message_data
 
 struct s_render_message_data_fill_screen : s_render_message_data
 {
-	uint32 color;
+	c_color color;
 };
 
 struct s_render_message_data_draw_rect : s_render_message_data
 {
 	t_render_shape_rect rect;
-	uint32 fill_color;
-	uint32 outline_color; // TODO;
+	c_color fill_color;
+	c_color outline_color; // TODO;
 };
 
 struct s_render_message_data_draw_line : s_render_message_data
 {
 	t_render_shape_point start;
 	t_render_shape_point end;
-	uint32 color;
+	c_color color;
 };
 
 struct s_render_message_data_draw_circle : s_render_message_data
 {
 	s_render_shape_circle circle;
-	uint32 color;
+	c_color color;
 	bool fill;
 };
 
@@ -81,8 +81,8 @@ void process_draw_circle_outline_message_internal(const s_render_message_data_dr
 void process_draw_bitmap_message_internal(const s_render_message_data_draw_bitmap const_ptr message, s_backbuffer const_ptr buffer);
 void process_draw_string_message_internal(const s_render_message_data_draw_string const_ptr message, s_backbuffer const_ptr buffer);
 
-inline void draw_pixel_to_buffer_internal(int32 x, int32 y, uint32 color, s_backbuffer const_ptr buffer);
-void draw_horizontal_line_internal(int32 start_x, int32 end_x, int32 y, uint32 color, s_backbuffer const_ptr buffer);
+inline void draw_pixel_to_buffer_internal(int32 x, int32 y, c_color color, s_backbuffer const_ptr buffer);
+void draw_horizontal_line_internal(int32 start_x, int32 end_x, int32 y, c_color color, s_backbuffer const_ptr buffer);
 
 const int32 k_render_commands_size_kb = k_byte_mib;
 static_global c_static_stack_allocator<k_render_commands_size_kb>* g_render_commands_allocator;
@@ -115,6 +115,15 @@ void c_render_system::update()
 	
 	const int32 write_index = m_write_buffer_index.load();
 	s_backbuffer& current_backbuffer = m_buffers[write_index];
+
+	// TODO - we don't want garbage pixels from previous frames hanging around, so if nothing has set
+	// a background, fill it with black. ideally this would be ensured by a higher level system than the renderer
+	if (g_render_messages->get_item(render_layer_background)->empty())
+	{
+		s_render_message_data_fill_screen message;
+		message.color = k_color_black;
+		process_fill_screen_message_internal(&message, &current_backbuffer);
+	}
 
 	// process the messages starting from the bottom layer so that we draw higher layers on top of lower
 	for (int32 layer_index = 0; layer_index < g_render_messages->capacity(); layer_index++)
@@ -190,7 +199,7 @@ void c_render_system::update()
 }
 
 
-void c_render_system::fill_screen(const uint32 color)
+void c_render_system::fill_screen(const c_color color)
 {
 	s_render_message_data_fill_screen* message_data = ALLOCATE_NEW(s_render_message_data_fill_screen, *g_render_commands_allocator);
 
@@ -204,7 +213,7 @@ void c_render_system::fill_screen(const uint32 color)
 	new_message.data = message_data;
 }
 
-void c_render_system::draw_rect(const t_render_shape_rect rect, const uint32 color)
+void c_render_system::draw_rect(const t_render_shape_rect rect, const c_color color)
 {
 	s_render_message_data_draw_rect* message_data = ALLOCATE_NEW(s_render_message_data_draw_rect, *g_render_commands_allocator);
 
@@ -218,7 +227,7 @@ void c_render_system::draw_rect(const t_render_shape_rect rect, const uint32 col
 	new_message.data = message_data;
 }
 
-void c_render_system::draw_line(const t_render_shape_point start, const t_render_shape_point end, const uint32 color, e_render_layer layer)
+void c_render_system::draw_line(const t_render_shape_point start, const t_render_shape_point end, const c_color color, e_render_layer layer)
 {
 	s_render_message_data_draw_line* message_data = ALLOCATE_NEW(s_render_message_data_draw_line, *g_render_commands_allocator);
 	
@@ -233,7 +242,7 @@ void c_render_system::draw_line(const t_render_shape_point start, const t_render
 	new_message.data = message_data;
 }
 
-void c_render_system::draw_circle(const s_render_shape_circle circle, uint32 color, bool fill)
+void c_render_system::draw_circle(const s_render_shape_circle circle, c_color color, bool fill)
 {
 	s_render_message_data_draw_circle* message_data = ALLOCATE_NEW(s_render_message_data_draw_circle, *g_render_commands_allocator);
 	ASSERT(message_data != nullptr);
@@ -312,7 +321,7 @@ void process_fill_screen_message_internal(const s_render_message_data_fill_scree
 	ASSERT(pixel_count % 2 == 0);
 
 	// pack 2 pixels together for a faster memset
-	uint64 packed_color = (static_cast<uint64>(message->color) << 32) | message->color;
+	uint64 packed_color = (static_cast<uint64>(message->color.to_uint32()) << 32) | message->color.to_uint32();
 	memory_set(buffer->memory.data(), packed_color, sizeof(packed_color) * pixel_count * 0.5f);
 }
 
@@ -349,7 +358,7 @@ void process_draw_rect_message_internal(const s_render_message_data_draw_rect co
 				{
 					if (in_range_inclusive_int32(0, buffer->dimensions.width, x))
 					{
-						draw_pixel_to_buffer_internal(x, y, color.to_uint32(), buffer);
+						draw_pixel_to_buffer_internal(x, y, color, buffer);
 					}
 				}
 			}
@@ -585,14 +594,15 @@ inline void process_draw_string_message_internal(const s_render_message_data_dra
 	}
 }
 
-inline void draw_pixel_to_buffer_internal(int32 x, int32 y, uint32 color, s_backbuffer const_ptr buffer)
+inline void draw_pixel_to_buffer_internal(int32 x, int32 y, c_color color, s_backbuffer const_ptr buffer)
 {
 	ASSERT(in_range_inclusive(k_int32_zero, buffer->dimensions.width, x) && in_range_inclusive(k_int32_zero, buffer->dimensions.height, y));
-
-	uint32 alpha = (color >> 24) & 0xFF;
-	if (alpha == 0xFF)
+	
+	real32 alpha = color.alpha();
+	
+	if (alpha == 1.0f)
 	{
-		buffer->memory[y * buffer->dimensions.width + x] = color;
+		buffer->memory[y * buffer->dimensions.width + x] = color.to_uint32();
 	}
 	else if (alpha > 0)
 	{
@@ -601,24 +611,22 @@ inline void draw_pixel_to_buffer_internal(int32 x, int32 y, uint32 color, s_back
 			real32 buffer_green = ((buffer_pixel >> 8) & 0xFF) / 255.0f;
 			real32 buffer_blue = ((buffer_pixel >> 0) & 0xFF) / 255.0f;
 			
-			real32 color_red = ((color >> 16) & 0xFF) / 255.0f;
-			real32 color_green = ((color >> 8) & 0xFF) / 255.0f;
-			real32 color_blue = ((color >> 0) & 0xFF) / 255.0f;
+			real32 color_red = color.red();
+			real32 color_green = color.green();
+			real32 color_blue = color.blue();
 
-			real32 falpha = alpha / 255.0f;
-			real32 invalpha = 1.0f - falpha;
+			real32 inverse_alpha = 1.0f - alpha;
 
-			real32 fred = (color_red * falpha) + (buffer_red * invalpha);
-			real32 fgreen = (color_green * falpha) + (buffer_green * invalpha);
-			real32 fblue = (color_blue * falpha) + (buffer_blue * invalpha);
+			real32 combined_red = (color_red * alpha) + (buffer_red * inverse_alpha);
+			real32 combined_green = (color_green * alpha) + (buffer_green * inverse_alpha);
+			real32 combined_blue = (color_blue * alpha) + (buffer_blue * inverse_alpha);
 
-			uint32 red = fred * 255;
-			uint32 green = fgreen * 255;
-			uint32 blue = fblue * 255;
+			uint32 red = combined_red * 255;
+			uint32 green = combined_green * 255;
+			uint32 blue = combined_blue * 255;
 
 			uint32 final_pixel = (red << 16) | (green << 8) | (blue << 0);
 			buffer->memory[y * buffer->dimensions.width + x] = final_pixel;
-			NOP();
 	}
 	else
 	{
@@ -627,7 +635,7 @@ inline void draw_pixel_to_buffer_internal(int32 x, int32 y, uint32 color, s_back
 	}
 }
 
-void draw_horizontal_line_internal(int32 start_x, int32 end_x, int32 y, uint32 color, s_backbuffer const_ptr buffer)
+void draw_horizontal_line_internal(int32 start_x, int32 end_x, int32 y, c_color color, s_backbuffer const_ptr buffer)
 {
 	ASSERT(in_range_inclusive(k_int32_zero, buffer->dimensions.width, start_x));
 	ASSERT(in_range_inclusive(k_int32_zero, buffer->dimensions.width, end_x));
@@ -641,7 +649,8 @@ void draw_horizontal_line_internal(int32 start_x, int32 end_x, int32 y, uint32 c
 	// start by copying sets of 2 pixes (64 bits)
 	const int32 count = end_x - start_x;
 	const int32 first_chunk_count = count * 0.5f;
-	const uint64 packed_color = (static_cast<uint64>(color) << 32) | color;
+	const int32 color_int = color.to_uint32();
+	const uint64 packed_color = (static_cast<uint64>(color_int) << 32) | color_int;
 
 	memory_set(&buffer->memory[y * buffer->dimensions.width + start_x], packed_color, sizeof(packed_color) * first_chunk_count);
 

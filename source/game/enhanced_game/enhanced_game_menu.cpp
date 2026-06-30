@@ -49,7 +49,7 @@ void c_game_flow_state_main_menu::on_update(s_flow_state_main_menu* state_data, 
 	if (state_data->show_popup)
 	{
 		t_render_shape_rect popup(300, 200, 300, 300);
-		engine_render_draw_rect(popup, k_color_blue_uint32);
+		engine_render_draw_rect(popup, k_color_blue);
 	}
 
 	if (engine_input_get_key_state(input_key_special_return).is_down)
