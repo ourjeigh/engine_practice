@@ -54,7 +54,10 @@ public:
 
 	static_member_function t_sound_playback_id play_sound(const s_wav_asset& asset);
 	static_member_function t_sound_playback_id play_sound(s_sound_info& info);
+	static_member_function t_sound_playback_id play_debug_pip();
+
 	static_member_function void update_sound(t_sound_playback_id playback_id, s_sound_properties& properties);
+	static_member_function void stop_sound(t_sound_playback_id playback_id);
 };
 
 class c_audio_engine_thread : public c_thread
@@ -120,4 +123,13 @@ inline t_sound_playback_id audio_system_play_sound(const s_wav_asset& asset)
 	return c_audio_system::play_sound(asset);
 }
 
+inline void audio_system_stop_sound(t_sound_playback_id playback_id)
+{
+	return c_audio_system::stop_sound(playback_id);
+}
+
+inline t_sound_playback_id audio_system_play_debug_pip()
+{
+	return c_audio_system::play_debug_pip();
+}
 #endif //__AUDIO_SYSTEM_H__

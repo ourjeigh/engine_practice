@@ -29,7 +29,7 @@ public:
 	{
 	}
 
-	c_audio_source_sine(int32 sample_rate, real32 frequency) :
+	c_audio_source_sine(real32 frequency) :
 		m_sample_position(0),
 		m_frequency(frequency)
 	{

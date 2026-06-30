@@ -20,6 +20,19 @@ const real64 k_math_real64_half_pi = 1.570796326794896619231321691639751442;
 const real64 k_math_real64_two_pi = 6.283185307179586476925286766559005768;
 
 template<typename t_type>
+t_type unsafe_divide(const t_type& left, const t_type& right)
+{
+	ASSERT(right != 0.0f);
+	return left / right;
+}
+
+template<typename t_type>
+t_type safe_divide(const t_type& left, const t_type& right, t_type fallback)
+{
+	return right == 0.0f ? fallback : left / right;
+}
+
+template<typename t_type>
 t_type math_min(t_type a, t_type b)
 {
 	return a < b ? a : b;

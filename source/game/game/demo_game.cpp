@@ -6,7 +6,7 @@
 #include "types/asset_types.h"
 #include "engine_api.h"
 
-struct s_game_state
+struct s_demo_game_state
 {
 	c_player player;
 	c_camera_2d camera;
@@ -17,12 +17,12 @@ struct s_game_state
 const s_asset_definition k_click_audio_asset_def = { "sound_click_01", asset_scope_global, asset_type_wav, "C:\\Users\\RJ\\git\\simm_engine\\assets\\click_16_44k.wav" };
 const s_asset_definition k_test_bmp_asset_def = { "test_bmp", asset_scope_global, asset_type_bitmap, R"(C:\Users\RJ\git\simm_engine\assets\test\dude.bmp)" };
 
-static_global s_game_state* g_game_state;
+static_global s_demo_game_state* g_game_state;
 
 void c_demo_game::init(const s_game_memory& game_memory)
 {
-	ASSERT(game_memory.size >= sizeof(s_game_state));
-	g_game_state = reinterpret_cast<s_game_state*>(game_memory.data);
+	ASSERT(game_memory.size >= sizeof(s_demo_game_state));
+	g_game_state = reinterpret_cast<s_demo_game_state*>(game_memory.data);
 	ASSERT(g_game_state != nullptr);
 
 	engine_load_asset(&k_click_audio_asset_def, nullptr, nullptr);
@@ -84,6 +84,18 @@ void c_demo_game::update(const s_input_state const_ptr input_state, real32 dt)
 			render_layer_main);
 	}
 
+	static_local_variable bool HACK_sound = false;
+	if (!HACK_sound && input_state->get_key_state(input_mouse_left).is_down)
+	{
+		HACK_sound = true;
+		const s_wav_asset* asset = static_cast<const s_wav_asset*>(engine_get_asset(k_test_bmp_asset_def.id));
+		engine_audio_play_sound(*asset);
+	}
+	else if (HACK_sound && !input_state->get_key_state(input_mouse_left).is_down)
+	{
+		HACK_sound = false;
+	}
+
 #ifdef CONFIG_DEBUG
 	draw_debug_world_grid(20, g_game_state->camera);
 
@@ -121,7 +133,7 @@ void c_demo_game::update(const s_input_state const_ptr input_state, real32 dt)
 #ifdef HOT_RELOAD
 void c_demo_game::reload(const s_game_memory& game_memory)
 {
-	g_game_state = reinterpret_cast<s_game_state*>(game_memory.data);
+	g_game_state = reinterpret_cast<s_demo_game_state*>(game_memory.data);
 	ASSERT(g_game_state != nullptr);
 }
 #endif // HOT_RELOAD

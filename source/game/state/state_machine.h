@@ -2,9 +2,12 @@
 #define __STATE_MACHINE_H__
 #pragma once
 
-#include "types/types.h"
 #include "memory/memory.h"
 #include "structures/string/string_id.h"
+#include "types/types.h"
+#include "engine_api.h"
+
+class c_game_state_machine_state_base;
 
 const int32 k_state_machine_state_data_size_bytes = k_byte_kib;
 
@@ -20,15 +23,23 @@ enum e_state_machine_phase
 	k_state_machine_phase_count
 };
 
+struct s_game_flow_state_machine_data
+{
+	c_game_state_machine_state_base* current_state;
+	e_state_machine_phase phase;
+	real32 pre_post_wait;
+	byte current_state_data[k_state_machine_state_data_size_bytes];
+};
+
 // state machine state
 class c_game_state_machine_state_base
 {
 public:
 	virtual real32 pre_enter_wait_seconds() = 0;
-	virtual void enter(byte* state_data) = 0;
-	virtual void update(byte* state_data, real32 dt, bool& out_continue) = 0;
-	virtual void exit(byte* state_data) = 0;
 	virtual real32 post_exit_wait_seconds() = 0;
+	virtual void enter(byte* state_data, real32 dt, bool& out_continue) = 0;
+	virtual void update(byte* state_data, real32 dt, bool& out_continue) = 0;
+	virtual void exit(byte* state_data, real32 dt, bool& out_continue) = 0;
 
 	virtual c_string_id state_id() const = 0;
 	virtual const char* debug_state_name() const = 0;
@@ -45,9 +56,9 @@ class c_game_state_machine_state : public c_game_state_machine_state_base
 {
 	COMPILE_ASSERT(sizeof(t_state_data_type) <= k_state_machine_state_data_size_bytes);
 
-	void enter(byte* state_data) final
+	void enter(byte* state_data, real32 dt, bool& out_continue) final
 	{
-		on_enter(make_type_data(state_data));
+		on_enter(make_type_data(state_data), dt, out_continue);
 	}
 
 	void update(byte* state_data, real32 dt, bool& out_continue) final
@@ -55,15 +66,15 @@ class c_game_state_machine_state : public c_game_state_machine_state_base
 		on_update(make_type_data(state_data), dt, out_continue);
 	}
 
-	void exit(byte* state_data) final
+	void exit(byte* state_data, real32 dt, bool& out_continue) final
 	{
-		on_exit(make_type_data(state_data));
+		on_exit(make_type_data(state_data), dt, out_continue);
 	}
 
 protected:
-	virtual void on_enter(t_state_data_type* state_data) = 0;
+	virtual void on_enter(t_state_data_type* state_data, real32 dt, bool& out_continue) = 0;
 	virtual void on_update(t_state_data_type* state_data, real32 dt, bool& out_continue) = 0;
-	virtual void on_exit(t_state_data_type* state_data) = 0;
+	virtual void on_exit(t_state_data_type* state_data, real32 dt, bool& out_continue) = 0;
 
 private:
 	t_state_data_type* make_type_data(byte* state_data)
@@ -73,14 +84,6 @@ private:
 };
 
 // state machine
-struct s_game_flow_state_machine_data
-{
-	c_game_state_machine_state_base* current_state;
-	e_state_machine_phase phase;
-	real32 pre_post_wait;
-	byte current_state_data[k_state_machine_state_data_size_bytes];
-};
-
 class c_state_machine_fsm
 {
 public:
@@ -100,8 +103,12 @@ public:
 	void update(s_game_flow_state_machine_data* data, real32 dt, bool& out_continue)
 	{
 		bool state_continue = true;
+
+		c_string_id last_state = "none";
 		if (data->current_state)
 		{
+			last_state = data->current_state->state_id();
+
 			switch (data->phase)
 			{
 			case state_machine_phase_pre_enter:
@@ -110,13 +117,16 @@ public:
 					data,
 					data->current_state->pre_enter_wait_seconds(),
 					dt,
-					state_machine_phase_enter);
+					state_machine_phase_enter); 
 				break;
 			}
 			case state_machine_phase_enter:
 			{
-				data->current_state->enter(data->current_state_data);
-				data->phase = state_machine_phase_in_state;
+				data->current_state->enter(data->current_state_data, dt, state_continue);
+				if (!state_continue)
+				{
+					data->phase = state_machine_phase_in_state;
+				}
 				break;
 			}
 			case state_machine_phase_in_state:
@@ -130,8 +140,11 @@ public:
 			}
 			case state_machine_phase_exit:
 			{
-				data->current_state->exit(data->current_state_data);
-				data->phase = state_machine_phase_post_exit;
+				data->current_state->exit(data->current_state_data, dt, state_continue);
+				if (!state_continue)
+				{
+					data->phase = state_machine_phase_post_exit;
+				}
 				break;
 			}
 			case state_machine_phase_post_exit:
@@ -154,6 +167,14 @@ public:
 		else
 		{
 			out_continue = false;
+		}
+
+		if (data->current_state && last_state != data->current_state->state_id())
+		{
+			zero_object(data->current_state_data);
+			engine_log_verbose("game_flow: state changed from {s} to {s}",
+				last_state.get_debug_string(),
+				data->current_state->debug_state_name());
 		}
 	}
 

@@ -238,6 +238,17 @@ public:
 		((this->data()[i++] = list), ...);
 	}
 
+	template<int32 count>
+	constexpr c_static_array(t_type(&&array)[count])
+	{
+		COMPILE_ASSERT(count == k_max_size);
+
+		for (int32 i = 0; i < count; i++)
+		{
+			this->data()[i] = array[i];
+		}
+	}
+
 	~c_static_array<t_type, k_max_size>() {}
 
 	c_static_array<t_type, k_max_size>& operator=(const c_static_array<t_type, k_max_size>& other)
@@ -259,6 +270,18 @@ public:
 	
 	ARRAY_DECLARE_STORAGE_MEMBERS
 };
+
+template<typename t_type, int32 count>
+constexpr auto make_static_array(t_type(&& array)[count])
+{
+	c_static_array<t_type, count> result;
+	for (int32 i = 0; i < count; ++i)
+	{
+		result.data()[i] = array[i];
+	}
+
+	return c_static_array<t_type, count>(result);
+}
 
 template<class t_type, class t_derived>
 class c_stack_base : public c_array_base<t_type, t_derived>

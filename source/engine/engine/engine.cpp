@@ -52,6 +52,11 @@ bool c_engine::load_asset(const s_asset_definition* asset_def, f_asset_loaded_ca
 	return c_asset_system::get().load_asset(asset_def, callback, object);
 }
 
+bool c_engine::load_asset_list(const c_array<s_asset_definition>& asset_list, f_asset_loaded_callback* callback, void* object)
+{
+	return c_asset_system::get().load_asset_list(asset_list, callback, object);
+}
+
 const s_asset* c_engine::get_asset(c_string_id asset_id)
 {
 	return c_asset_system::get().get_asset(asset_id);
@@ -105,4 +110,14 @@ t_sound_playback_id c_engine::play_sound(s_sound_info& info)
 t_sound_playback_id c_engine::play_sound(const s_wav_asset& asset)
 {
 	return audio_system_play_sound(asset);
+}
+
+void c_engine::stop_sound(t_sound_playback_id playback_id)
+{
+	return audio_system_stop_sound(playback_id);
+}
+
+t_sound_playback_id c_engine::play_debug_pip()
+{
+	return audio_system_play_debug_pip();
 }

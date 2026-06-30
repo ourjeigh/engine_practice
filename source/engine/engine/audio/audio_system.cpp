@@ -9,11 +9,15 @@
 #include "memory/memory_system.h"
 #include "engine/audio/audio_threadsafe_buffer.h"
 #include "rendering/render_system.h"
+// move
+constexpr real32 db_to_linear_amplitude(real32 db)
+{
+	return math_pow(10, db / 20);
+}
 
 const int32 k_audio_engine_buffer_size = 512;
 const int32 k_audio_output_buffer_size = k_audio_engine_buffer_size * 16;
 const int32 k_audio_engine_sample_rate = 48000;
-
 c_audio_engine_thread g_audio_engine_thread;
 
 // TODO: move this, maybe to application, that's what owns the graphics renderer
@@ -25,6 +29,9 @@ c_audio_threadsafe_ring_buffer<real32>* g_audio_output_ring_buffer;
 
 c_static_stack_allocator<k_byte_mb>* g_audio_source_allocator;
 t_sound_playback_id g_sound_id_top = 0;
+
+const real32 k_max_output_level_db = 24;
+constexpr real32 k_max_output_level_linear = db_to_linear_amplitude(k_max_output_level_db);
 
 struct s_sound_playback
 {
@@ -152,10 +159,52 @@ t_sound_playback_id c_audio_system::play_sound(s_sound_info& info)
 	return k_invalid;
 }
 
+t_sound_playback_id c_audio_system::play_debug_pip()
+{
+	//return k_invalid;
+
+	c_audio_source_sine* sine = ALLOCATE_NEW(c_audio_source_sine, *g_audio_source_allocator, 1000);
+	
+	for (auto it = g_audio_playbacks.begin(); it != g_audio_playbacks.end(); ++it)
+	{
+		if (it->id == k_invalid)
+		{
+			it->id = g_sound_id_top++;
+			it->source = sine;
+
+			log_message(verbose, "audio_system: play_pip: [id:{u}]", it->id);
+
+			return it->id;
+		}
+	}
+
+	log_message(warning, "audio_system: could not start playback, playbacks list is full!");
+	return k_invalid;
+}
+
 void c_audio_system::update_sound(t_sound_playback_id playback_id, s_sound_properties& properties)
 {
 	// TODO
 }
+
+void c_audio_system::stop_sound(t_sound_playback_id playback_id)
+{
+	for (auto it = g_audio_playbacks.begin(); it != g_audio_playbacks.end(); ++it)
+	{
+		if (it->id == playback_id)
+		{
+			it->id = k_invalid;
+			it->source = nullptr;
+
+			log_message(verbose, "audio_system:stop_sound stopped sound: [id:{u}]", playback_id);
+
+			return;
+		}
+	}
+
+	log_message(verbose, "audio_system:stop_sound couldn't find playback id: [id:{u}]", playback_id);
+}
+
 
 void c_audio_engine_thread::init()
 {
@@ -212,7 +261,7 @@ void c_audio_engine_thread::process_audio()
 {
 	c_static_audio_buffer<real32, 2, k_audio_engine_buffer_size> mix_buffer;
 	mix_buffer.zero();
-	
+
 	real32 playbacks_processed = 0.0f;
 	for (auto it = g_audio_playbacks.begin(); it != g_audio_playbacks.end(); ++it)
 	{
@@ -222,6 +271,8 @@ void c_audio_engine_thread::process_audio()
 
 			playbacks_processed++;
 			c_static_audio_buffer<real32, 2, k_audio_engine_buffer_size> temp_buffer;
+			temp_buffer.zero();
+
 			it->source->get_samples(temp_buffer);
 			
 			if (it->source->HACK_finished())
@@ -244,21 +295,36 @@ void c_audio_engine_thread::process_audio()
 		}
 	}
 
-	const real32 inv_source_count = 1 / playbacks_processed;
-
-	for (int32 channel_index = 0; channel_index < mix_buffer.channel_count(); channel_index++)
+	if (playbacks_processed > 0)
 	{
-		real32* mix_channel = mix_buffer.get_channel(channel_index);
+		const real32 inv_source_count = unsafe_divide(1.0f, playbacks_processed);
 
-		for (int32 sample_index = 0; sample_index < k_audio_engine_buffer_size; sample_index++)
+		for (int32 channel_index = 0; channel_index < mix_buffer.channel_count(); channel_index++)
 		{
-			mix_channel[sample_index] *= inv_source_count;
+			real32* mix_channel = mix_buffer.get_channel(channel_index);
+
+			for (int32 sample_index = 0; sample_index < k_audio_engine_buffer_size; sample_index++)
+			{
+				mix_channel[sample_index] *= inv_source_count;
+			}
 		}
 	}
 
-	// temp, make stereo
-	//memory_copy(mix_buffer.get_channel(1), mix_buffer.get_channel(0), sizeof(real32) * mix_buffer.size());
-	//memory_zero(mix_buffer.get_channel(1), sizeof(real32) * mix_buffer.size());
+#ifdef CONFIG_DEBUG
+	// catch various issues with the audio signal immediately that can be hard to track down otherwise:
+	// - very loud signals
+	// - uninitialized samples
+	// - divide by zero samples (-inf)
+	for (int32 channel = 0; channel < mix_buffer.channel_count(); channel++) 
+	{
+		const real32* channel_buffer = mix_buffer.get_channel_const(channel);
+		for (int32 sample = 0; sample < mix_buffer.size(); sample++)
+		{
+			ASSERT(math_abs(channel_buffer[sample]) < k_max_output_level_linear);
+		}
+	}
+#endif // CONFIG_DEBUG
+
 	// we need to be able to write the full mix_buffer, so wait until there's room.
 	while (g_audio_output_ring_buffer->free_sample_count() < mix_buffer.size())
 	{

@@ -94,6 +94,7 @@ void c_asset_system::update()
 {
 }
 
+// todo: f_asset_loaded_callback should include a result so that we can tell the caller if the asset failed to load for some reason.
 bool c_asset_system::load_asset(const s_asset_definition* asset_def, f_asset_loaded_callback* callback, void* object)
 {
 	ASSERT(g_asset_load_requests != nullptr);
@@ -111,6 +112,13 @@ bool c_asset_system::load_asset(const s_asset_definition* asset_def, f_asset_loa
 	}
 
 	return success;
+}
+
+bool c_asset_system::load_asset_list(const c_array<s_asset_definition>& asset_list, f_asset_loaded_callback* callback, void* object)
+{
+	HALT_UNIMPLEMENTED();
+	// we'll need a mechanism to track a group of asset requests together so that we only send the callback when all are loaded.
+	return false;
 }
 
 const s_asset* c_asset_system::get_asset(c_string_id asset_id)

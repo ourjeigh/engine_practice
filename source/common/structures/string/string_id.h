@@ -38,6 +38,12 @@ public:
 		copy_from(other);
 		return *this;
 	}
+
+	c_string_id& operator=(const c_string_id&& other)
+	{
+		copy_from(other);
+		return *this;
+	}
 	
 	void copy_from(const c_string_id& other)
 	{
@@ -82,7 +88,6 @@ private:
 	// may want these some day, but for now keep it simple
 	c_string_id(c_string_id&& other) = delete;
 	c_string_id& operator=(const char* string) = delete;
-	c_string_id& operator=(const c_string_id&& other) = delete;
 
 	const uint64 m_hash;
 

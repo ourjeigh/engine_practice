@@ -107,7 +107,8 @@ public:
 
 	const t_type* get_channel_const(int32 channel_index) const
 	{
-		return get_channel(channel_index);
+		ASSERT(0 <= channel_index && channel_index < k_channel_count);
+		return &m_storage[channel_index * k_size];
 	}
 
 	void get_interleaved(t_type* out_buffer, int32 sample_count)

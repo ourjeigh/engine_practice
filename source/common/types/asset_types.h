@@ -3,8 +3,8 @@
 #pragma once
 
 #include "file/file_path.h"
-#include "structures/string/string_id.h"
 #include "structures/audio/audio_buffer.h"
+#include "structures/string/string_id.h"
 
 struct s_asset
 {
