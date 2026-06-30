@@ -208,4 +208,48 @@ constexpr int32 math_digit_count(t_type x)
 	return count;
 }
 
+#define ENUM_MATH(type, count) \
+	template<typename t_other> \
+	inline type operator+(const type& left, const t_other& right) \
+	{ \
+		return static_cast<type>(static_cast<int32>(left) + right); \
+	} \
+\
+	template<typename t_other> \
+	inline type operator-(const type& left, const t_other& right) \
+	{ \
+		return static_cast<type>(static_cast<int32>(left) - right); \
+	} \
+\
+	inline type& operator++(type& value)\
+	{ \
+		value = value + 1; \
+		return value; \
+	} \
+\
+	inline type operator++(type& value, int unused)\
+	{\
+		type prev = value; \
+		++value; \
+		return prev;\
+	}\
+\
+	inline type& operator--(type& value)\
+	{\
+		value = value - 1; \
+		return value; \
+	}\
+\
+	inline type operator--(type& value, int unused)\
+	{\
+		type prev = value; \
+		--value; \
+		return prev;\
+	}\
+\
+	inline bool in_range_enum(const type& value) \
+	{ \
+		return in_range_inclusive<type>(static_cast<type>(0), count - 1, value); \
+	} 
+
 #endif //__MAMTH_H__

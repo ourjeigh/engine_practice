@@ -6,6 +6,7 @@
 #include "rendering/render_system.h"
 #include "structures/string/string.h"
 #include "assets/asset_system.h"
+#include "application/application.h"
 
 void c_engine::log_verbose(c_string message)
 {
@@ -120,4 +121,9 @@ void c_engine::stop_sound(t_sound_playback_id playback_id)
 t_sound_playback_id c_engine::play_debug_pip()
 {
 	return audio_system_play_debug_pip();
+}
+
+void c_engine::request_exit()
+{
+	return c_application::get().request_exit();
 }

@@ -2,7 +2,7 @@
 #include "engine_api.h"
 
 const s_asset_definition k_simm_logo_bmp_asset_def = { "logo_bmp", asset_scope_global, asset_type_bitmap, R"(C:\Users\RJ\git\simm_engine\assets\simm_logo.bmp)" };
-
+const s_asset_definition k_simm_logo_wav_asset_def = { "logo_wav", asset_scope_global, asset_type_wav, R"(C:\Users\RJ\git\simm_engine\assets\logo_24_48k.wav)" };
 /////////////////////////////////////////////////////
 // TEMP MOVE
 
@@ -64,7 +64,8 @@ constexpr auto make_asset_definition_list(s_asset_definition(&& list)[asset_coun
 
 
 MAKE_ASSET_DEF_LIST(k_logo_asset_list,
-	{ "logo_bmp", asset_scope_global, asset_type_bitmap, R"(C:\Users\RJ\git\simm_engine\assets\simm_logo.bmp)" });
+	{ "logo_bmp", asset_scope_global, asset_type_bitmap, R"(C:\Users\RJ\git\simm_engine\assets\simm_logo.bmp)" },
+	{ "logo_wav", asset_scope_global, asset_type_wav, R"(C:\Users\RJ\git\simm_engine\assets\logo_24_48k.wav)" });
 
 inline void render_full_screen_fade(real32 fade_value)
 {
@@ -127,6 +128,15 @@ void c_game_flow_state_logo::on_update(s_flow_state_logo_data* state_data, real3
 	//	engine_audio_stop_sound(HACK_id);
 	//	HACK_id = k_invalid;
 	//}
+
+	if (state_data->is_fading_in && state_data->fade_in_value == 0.0f)
+	{
+		const s_wav_asset* logo_wav_asset = static_cast<const s_wav_asset * >(engine_get_asset(k_simm_logo_wav_asset_def.id));
+		if (logo_wav_asset != nullptr)
+		{
+			engine_audio_play_sound(*logo_wav_asset);
+		}
+	}
 
 	const s_asset* asset = engine_get_asset(k_simm_logo_bmp_asset_def.id);
 	ASSERT(asset != nullptr);

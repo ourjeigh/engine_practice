@@ -37,6 +37,8 @@ struct i_engine
 	virtual t_sound_playback_id play_sound(const s_wav_asset& asset) = 0;
 	virtual void stop_sound(t_sound_playback_id playback_id) = 0;
 	virtual t_sound_playback_id play_debug_pip() = 0;
+
+	virtual void request_exit() = 0;
 };
 
 inline extern i_engine* g_engine_ptr = nullptr;
@@ -95,4 +97,5 @@ inline t_sound_playback_id engine_audio_play_sound(s_sound_info& info) { return 
 inline void engine_audio_stop_sound(t_sound_playback_id playback_id) { return g_engine_ptr->stop_sound(playback_id); }
 inline t_sound_playback_id engine_audio_play_debug_pip() { return g_engine_ptr->play_debug_pip(); }
 
+inline void engine_request_exit() { return g_engine_ptr->request_exit(); }
 #endif // !__ENGINE_API_H__

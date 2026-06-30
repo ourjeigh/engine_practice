@@ -35,6 +35,8 @@ public:
 	t_sound_playback_id play_sound(const s_wav_asset& asset);
 	t_sound_playback_id play_debug_pip();
 	void stop_sound(t_sound_playback_id playback_id);
+
+	void request_exit();
 };
 
 #endif //__ENGINE_H__

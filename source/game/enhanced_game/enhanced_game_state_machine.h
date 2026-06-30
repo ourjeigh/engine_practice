@@ -3,17 +3,25 @@
 #pragma once
 
 #include "camera.h"
+#include "mmath.h"
 #include "engine_api.h"
 #include "state/state_machine.h"
 #include "types/types.h"
 #include "player.h"
 #include "state/logo_state.h"
 
-
-
+enum e_main_menu_selection
+{
+	main_menu_selection_new_game,
+	main_menu_selection_exit,
+	k_main_menu_selection_count,
+};
+ENUM_MATH(e_main_menu_selection, k_main_menu_selection_count);
 
 struct s_flow_state_main_menu
 {
+	e_main_menu_selection selection;
+	bool show_popup;
 };
 
 class c_game_flow_state_main_menu : public c_game_state_machine_state<s_flow_state_main_menu>

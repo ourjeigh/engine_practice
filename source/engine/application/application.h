@@ -12,6 +12,13 @@ public:
 	void run();
 	void handle_window_event(s_event& event);
 	void handle_escape_key(bool down);
+	void request_exit();
+
+	static_member_function c_application& get()
+	{
+		return *m_instance;
+	}
+
 private:
 	void handle_window_close();
 	void handle_window_focus(bool is_in_focus);
@@ -21,6 +28,7 @@ private:
 	// swap it out with a screen recorder instead of a window
 	c_window_thread m_window;
 	bool m_running;
+	inline static_member_data c_application* m_instance = nullptr;
 };
 
 #endif //__APPLICATION_H__

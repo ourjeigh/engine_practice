@@ -87,3 +87,106 @@ TEST(MATH, NUM_DIGITS)
 	EXPECT_EQ(math_digit_count(1234), 4);
 	EXPECT_EQ(math_digit_count(k_int32_max), 10);
 }
+
+#define ENUM_RANGE(type, count) \
+	bool in_range_enum(const type& value) \
+	{ \
+		return in_range_inclusive<type>(static_cast<type>(0), count - 1, value); \
+	} 
+
+enum e_test_dummy
+{
+	test_dummy_0,
+	test_dummy_1,
+	test_dummy_2,
+	test_dummy_3,
+
+	k_test_dummy_count
+};
+ENUM_MATH(e_test_dummy, k_test_dummy_count);
+
+TEST(MATH, ENUM_ADD)
+{
+	e_test_dummy test = test_dummy_0;
+	test = test + 1;
+	EXPECT_EQ(test, test_dummy_1);
+}
+
+TEST(MATH, ENUM_SUBTRACT)
+{
+	e_test_dummy test = test_dummy_0;
+	test = test + 1;
+	EXPECT_EQ(test, test_dummy_1);
+}
+
+TEST(MATH, ENUM_INCREMENT)
+{
+	{
+		// pre-fix
+		e_test_dummy test = test_dummy_0;
+		++test;
+		EXPECT_EQ(test, test_dummy_1);
+	}
+	{
+		// post-fix
+		e_test_dummy test = test_dummy_0;
+		test++;
+		EXPECT_EQ(test, test_dummy_1);
+	}
+	{
+		// pre-fix mid-use
+		e_test_dummy test = test_dummy_0;
+		EXPECT_EQ(++test, test_dummy_1);
+		EXPECT_EQ(test, test_dummy_1);
+	}
+	{
+		// post-fix mid-use
+		e_test_dummy test = test_dummy_0;
+		EXPECT_EQ(test++, test_dummy_0);
+		EXPECT_EQ(test, test_dummy_1);
+	}
+}
+
+TEST(MATH, ENUM_DECREMENT)
+{
+	{
+		// pre-fix
+		e_test_dummy test = test_dummy_1;
+		--test;
+		EXPECT_EQ(test, test_dummy_0);
+	}
+	{
+		// post-fix
+		e_test_dummy test = test_dummy_1;
+		test--;
+		EXPECT_EQ(test, test_dummy_0);
+	}
+	{
+		// pre-fix mid-use
+		e_test_dummy test = test_dummy_1;
+		EXPECT_EQ(--test, test_dummy_0);
+		EXPECT_EQ(test, test_dummy_0);
+	}
+	{
+		// post-fix mid-use
+		e_test_dummy test = test_dummy_1;
+		EXPECT_EQ(test--, test_dummy_1);
+		EXPECT_EQ(test, test_dummy_0);
+	}
+}
+
+TEST(MATH, ENUM_RANGE)
+{
+	{
+		e_test_dummy test = test_dummy_0;
+		EXPECT_TRUE(in_range_enum(test));
+		test--;
+		EXPECT_FALSE(in_range_enum(test));
+	}
+	{
+		e_test_dummy test = test_dummy_3;
+		EXPECT_TRUE(in_range_enum(test));
+		test++;
+		EXPECT_FALSE(in_range_enum(test));
+	}
+}
