@@ -6,6 +6,8 @@
 #include "structures/vector.h"
 #include "structures/shapes.h"
 
+const real32 k_one_over_uint8_max = 1 / static_cast<real32>(k_uint8_max);
+
 enum e_render_layer
 {
 	render_layer_invalid = k_invalid,
@@ -32,10 +34,10 @@ public:
 		d_name = name;
 	}
 
-	inline real32 alpha() const { return ((m_data & 0xFF000000) >> 24) / static_cast<real32>(k_uint8_max); }
-	inline real32 red() const { return ((m_data & 0x00FF0000) >> 16) / static_cast<real32>(k_uint8_max); }
-	inline real32 green() const { return ((m_data & 0x0000FF00) >> 8) / static_cast<real32>(k_uint8_max); }
-	inline real32 blue() const { return ((m_data & 0x000000FF) >> 0) / static_cast<real32>(k_uint8_max); }
+	inline real32 alpha()	const { return ((m_data & 0xFF000000) >> 24) * k_one_over_uint8_max; }
+	inline real32 red()		const { return ((m_data & 0x00FF0000) >> 16) * k_one_over_uint8_max; }
+	inline real32 green()	const { return ((m_data & 0x0000FF00) >> 8) * k_one_over_uint8_max; }
+	inline real32 blue()	const { return ((m_data & 0x000000FF) >> 0) * k_one_over_uint8_max; }
 
 	constexpr void set(real32 r, real32 g, real32 b, real32 a)
 	{

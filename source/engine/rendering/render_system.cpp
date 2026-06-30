@@ -81,8 +81,8 @@ void process_draw_circle_outline_message_internal(const s_render_message_data_dr
 void process_draw_bitmap_message_internal(const s_render_message_data_draw_bitmap const_ptr message, s_backbuffer const_ptr buffer);
 void process_draw_string_message_internal(const s_render_message_data_draw_string const_ptr message, s_backbuffer const_ptr buffer);
 
-inline void draw_pixel_to_buffer_internal(int32 x, int32 y, c_color color, s_backbuffer const_ptr buffer);
-void draw_horizontal_line_internal(int32 start_x, int32 end_x, int32 y, c_color color, s_backbuffer const_ptr buffer);
+inline void draw_pixel_to_buffer_internal(int32 x, int32 y, const c_color& color, s_backbuffer const_ptr buffer);
+void draw_horizontal_line_internal(int32 start_x, int32 end_x, int32 y, const c_color& color, s_backbuffer const_ptr buffer);
 
 const int32 k_render_commands_size_kb = k_byte_mib;
 static_global c_static_stack_allocator<k_render_commands_size_kb>* g_render_commands_allocator;
@@ -543,6 +543,8 @@ inline void process_draw_bitmap_message_internal(const s_render_message_data_dra
 
 inline void process_draw_string_message_internal(const s_render_message_data_draw_string const_ptr message, s_backbuffer const_ptr buffer)
 {
+	PERF_MEASURE_FUNCTION();
+
 	const int32 scale = message->scale;
 	int32 current_x = message->x;
 	int32 current_y = message->y;
@@ -594,7 +596,7 @@ inline void process_draw_string_message_internal(const s_render_message_data_dra
 	}
 }
 
-inline void draw_pixel_to_buffer_internal(int32 x, int32 y, c_color color, s_backbuffer const_ptr buffer)
+inline void draw_pixel_to_buffer_internal(int32 x, int32 y, const c_color& color, s_backbuffer const_ptr buffer)
 {
 	ASSERT(in_range_inclusive(k_int32_zero, buffer->dimensions.width, x) && in_range_inclusive(k_int32_zero, buffer->dimensions.height, y));
 	
@@ -606,27 +608,27 @@ inline void draw_pixel_to_buffer_internal(int32 x, int32 y, c_color color, s_bac
 	}
 	else if (alpha > 0)
 	{
-			uint32 buffer_pixel = buffer->memory[y * buffer->dimensions.width + x];
-			real32 buffer_red = ((buffer_pixel >> 16) & 0xFF) / 255.0f;
-			real32 buffer_green = ((buffer_pixel >> 8) & 0xFF) / 255.0f;
-			real32 buffer_blue = ((buffer_pixel >> 0) & 0xFF) / 255.0f;
-			
-			real32 color_red = color.red();
-			real32 color_green = color.green();
-			real32 color_blue = color.blue();
+		uint32 buffer_pixel = buffer->memory[y * buffer->dimensions.width + x];
+		real32 buffer_red =  ((buffer_pixel >> 16) & 0xFF) / 255.0f;
+		real32 buffer_green =  ((buffer_pixel >> 8) & 0xFF) / 255.0f;
+		real32 buffer_blue = ((buffer_pixel >> 0) & 0xFF) / 255.0f;
 
-			real32 inverse_alpha = 1.0f - alpha;
+		real32 color_red = color.red();
+		real32 color_green = color.green();
+		real32 color_blue = color.blue();
 
-			real32 combined_red = (color_red * alpha) + (buffer_red * inverse_alpha);
-			real32 combined_green = (color_green * alpha) + (buffer_green * inverse_alpha);
-			real32 combined_blue = (color_blue * alpha) + (buffer_blue * inverse_alpha);
+		real32 inverse_alpha = 1.0f - alpha;
 
-			uint32 red = combined_red * 255;
-			uint32 green = combined_green * 255;
-			uint32 blue = combined_blue * 255;
+		real32 combined_red = (color_red * alpha) + (buffer_red * inverse_alpha);
+		real32 combined_green = (color_green * alpha) + (buffer_green * inverse_alpha);
+		real32 combined_blue = (color_blue * alpha) + (buffer_blue * inverse_alpha);
 
-			uint32 final_pixel = (red << 16) | (green << 8) | (blue << 0);
-			buffer->memory[y * buffer->dimensions.width + x] = final_pixel;
+		uint32 red = combined_red * 255;
+		uint32 green = combined_green * 255;
+		uint32 blue = combined_blue * 255;
+
+		uint32 final_pixel = (red << 16) | (green << 8) | (blue << 0);
+		buffer->memory[y * buffer->dimensions.width + x] = final_pixel;
 	}
 	else
 	{
@@ -635,7 +637,7 @@ inline void draw_pixel_to_buffer_internal(int32 x, int32 y, c_color color, s_bac
 	}
 }
 
-void draw_horizontal_line_internal(int32 start_x, int32 end_x, int32 y, c_color color, s_backbuffer const_ptr buffer)
+void draw_horizontal_line_internal(int32 start_x, int32 end_x, int32 y, const c_color& color, s_backbuffer const_ptr buffer)
 {
 	ASSERT(in_range_inclusive(k_int32_zero, buffer->dimensions.width, start_x));
 	ASSERT(in_range_inclusive(k_int32_zero, buffer->dimensions.width, end_x));
