@@ -82,16 +82,6 @@ c_engine_time_span get_time_since(t_timestamp since)
 	return c_engine_time_span(since, get_high_precision_timestamp());
 }
 
-void sleep_for_seconds(real32 seconds)
-{
-	platform_time_sleep_for_milliseconds(seconds * k_milliseconds_in_second);
-}
-
-void sleep_for_milliseconds(uint32 milliseconds)
-{
-	platform_time_sleep_for_milliseconds(milliseconds);
-}
-
 const c_session_time* get_session_time()
 {
 	return &g_session_time;

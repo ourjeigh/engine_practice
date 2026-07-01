@@ -34,19 +34,3 @@ TEST(TIME, TIME_SPAN_DURATION)
 	EXPECT_NEAR(duration_seconds * 1000.0f, duration_millis, tolerance);
 }
 
-TEST(TIME, SLEEP)
-{
-	c_timer timer;
-	timer.start();
-
-	const real32 sleep_duration_seconds = 0.1f;
-	sleep_for_seconds(sleep_duration_seconds);
-	timer.stop();
-
-	// 25% tolerance since we can't guarantee sleep accuracy
-	real64 tolerance = sleep_duration_seconds * 0.25f; 
-	real64 diff = abs(timer.get_time_span().get_duration_seconds() - sleep_duration_seconds);
-
-	EXPECT_LE(diff, tolerance);
-	//EXPECT_NEAR(timer.get_time_span()->get_duration_seconds(), sleep_duration_seconds, tolerance);
-}

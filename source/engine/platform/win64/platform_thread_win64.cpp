@@ -3,7 +3,7 @@
 
 #include "platform/platform_thread.h"
 #include "platform/win64/win64_includes.h"
-
+#include "platform/win64/platform_handle_win64.h"
 
 int32 get_thread_priority(e_thread_priority priority);
 
@@ -73,6 +73,77 @@ uint32 platform_thread_get_current_thread_id()
 {
 	return GetCurrentThreadId();
 }
+
+void platform_thread_sleep_for_milliseconds(uint32 milliseconds)
+{
+	// anything under 20ms needs 1ms precision
+	bool needs_precision = milliseconds < 20;
+
+	if (needs_precision)
+	{
+		timeBeginPeriod(1);
+	}
+
+	Sleep(milliseconds);
+
+	if (needs_precision)
+	{
+		timeEndPeriod(1);
+	}
+}
+
+c_platform_handle platform_thread_create_event(bool manual_reset, bool start_signalled, c_string name)
+{
+	c_platform_handle out_handle = c_platform_handle::invalid();
+	
+	HANDLE event_handle = CreateEvent(nullptr, manual_reset, start_signalled, name.get_const_char());
+	if (event_handle != nullptr)
+	{
+		out_handle = c_platform_handle_factory::get_platform_handle_from_native_handle<HANDLE>(event_handle);
+	}
+
+	return out_handle;
+}
+
+bool platform_thread_signal_event(c_platform_handle& event_handle)
+{
+	return SetEvent(c_platform_handle_factory::get_native_handle_from_platform_handle<HANDLE>(event_handle));
+}
+
+e_signalled_object_result platform_thread_wait_for_signalled_object(c_platform_handle& object, uint32 timeout_ms)
+{
+	e_signalled_object_result out_result = signalled_object_result_failed;
+
+	if (timeout_ms == k_wait_time_infinite)
+	{
+		timeout_ms = INFINITE;
+	}
+
+	DWORD result = 	WaitForSingleObject(
+		c_platform_handle_factory::get_native_handle_from_platform_handle<HANDLE>(object),
+		timeout_ms);
+
+	switch (result)
+	{
+	case WAIT_OBJECT_0:
+		out_result = signalled_object_result_signalled;
+		break;
+	case WAIT_ABANDONED:
+		out_result = signalled_object_result_abandoned;
+		break;
+	case WAIT_TIMEOUT:
+		out_result = signalled_object_result_timed_out;
+		break;
+	case WAIT_FAILED:
+		out_result = signalled_object_result_failed;
+		break;
+	default:
+		HALT("unreachable");
+	}
+
+	return out_result;
+}
+
 
 // private
 int32 get_thread_priority(e_thread_priority priority)

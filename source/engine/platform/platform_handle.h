@@ -31,6 +31,12 @@ public:
 
 	bool is_valid() const;
 	void invalidate() { m_handle = k_invalid; }
+	static_member_function c_platform_handle invalid()
+	{
+		c_platform_handle out;
+		out.invalidate();
+		return out;
+	}
 
 private:
 	friend class c_platform_handle_factory;

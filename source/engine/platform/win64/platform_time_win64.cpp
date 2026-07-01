@@ -19,23 +19,4 @@ int64 platform_time_get_performance_counter()
 	QueryPerformanceCounter(&counter);
 	return counter.QuadPart;
 }
-
-void platform_time_sleep_for_milliseconds(uint32 milliseconds)
-{
-	// anything under 20ms needs 1ms precision
-	bool needs_precision = milliseconds < 20;
-
-	if (needs_precision)
-	{
-		timeBeginPeriod(1);
-	}
-
-	Sleep(milliseconds);
-
-	if (needs_precision)
-	{
-		timeEndPeriod(1);
-	}
-}
-
 #endif //PLATFORM_WIN64

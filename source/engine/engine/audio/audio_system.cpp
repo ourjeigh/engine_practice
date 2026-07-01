@@ -54,7 +54,7 @@ void c_audio_system::init()
 	// replace with a flag checking for audio sync setup
 	while (g_audio_format.sample_rate == 0)
 	{
-		sleep_for_milliseconds(10);
+		thread_sleep_for_milliseconds(10);
 	}
 	
 	{
@@ -247,7 +247,7 @@ void c_audio_engine_thread::audio_engine_thread_entry_point(c_audio_engine_threa
 		if (update_period_ms - time_span_ms > sleep_padding_ms)
 		{
 			real64 sleep_duration_milliseconds = update_period_ms - time_span_ms - sleep_padding_ms;
-			sleep_for_milliseconds(real64_to_uint32(sleep_duration_milliseconds));
+			thread_sleep_for_milliseconds(real64_to_uint32(sleep_duration_milliseconds));
 		}
 
 		while (update_period_ms - timer.get_time_span().get_duration_milliseconds() > 0.5f)
@@ -385,7 +385,7 @@ void c_audio_render_thread::audio_render_thread_entry_point(c_audio_render_threa
 	{
 		while (thread->m_is_running)
 		{
-			sleep_for_milliseconds(thread->m_device_period_ms);
+			thread_sleep_for_milliseconds(thread->m_device_period_ms);
 			thread->render_audio();
 		}
 	}

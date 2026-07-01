@@ -48,3 +48,13 @@ uint32 get_current_thread_id()
 {
 	return platform_thread_get_current_thread_id();
 }
+
+void thread_sleep_for_seconds(real32 seconds)
+{
+	platform_thread_sleep_for_milliseconds(seconds * k_milliseconds_in_second);
+}
+
+void thread_sleep_for_milliseconds(uint32 milliseconds)
+{
+	platform_thread_sleep_for_milliseconds(milliseconds);
+}

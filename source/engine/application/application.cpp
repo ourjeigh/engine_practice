@@ -139,7 +139,7 @@ void c_application::run()
 
 		if (sleep_time_ms > 0.0f)
 		{
-			sleep_for_milliseconds(real64_to_uint32(sleep_time_ms));
+			thread_sleep_for_milliseconds(real64_to_uint32(sleep_time_ms));
 		}
 		else
 		{
@@ -311,7 +311,7 @@ bool check_game_dll_and_reload_if_newer()
 			log_message(verbose, "detected dll change!");
 
 			// replace this with a wait until the file becomes readable
-			sleep_for_milliseconds(100);
+			thread_sleep_for_milliseconds(100);
 			unload_game();
 			load_game();
 			reloaded = true;
