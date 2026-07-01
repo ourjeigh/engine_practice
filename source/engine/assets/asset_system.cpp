@@ -73,7 +73,7 @@ using t_asset_hash_map = c_hash_map<uint64, s_asset_internal, k_max_active_asset
 t_asset_hash_map* g_active_assets;
 
 c_asset_loader_thread g_asset_loader_thread;
-c_platform_handle g_process_assets_event;
+c_platform_handle g_asset_loader_thread_wake_event;
 
 void c_asset_system::init()
 {
@@ -86,14 +86,16 @@ void c_asset_system::init()
 	g_asset_load_requests->clear();
 	g_active_assets->clear();
 
-	g_process_assets_event = platform_thread_create_event(true, false, t_string_128("process assets event"));
-	ASSERT(g_process_assets_event.is_valid());
+	g_asset_loader_thread_wake_event = platform_thread_create_event(true, false, t_string_128("process assets event"));
+	ASSERT(g_asset_loader_thread_wake_event.is_valid());
 
 	g_asset_loader_thread.init();
 }
 
 void c_asset_system::term()
 {
+	ASSERT(platform_thread_signal_event(g_asset_loader_thread_wake_event));
+	g_asset_loader_thread_wake_event.close();
 	g_asset_loader_thread.term();
 }
 
@@ -102,7 +104,7 @@ void c_asset_system::update()
 {
 	if (g_asset_load_requests != nullptr && !g_asset_load_requests->empty())
 	{
-		ASSERT(platform_thread_signal_event(g_process_assets_event));
+		ASSERT(platform_thread_signal_event(g_asset_loader_thread_wake_event));
 	}
 }
 
@@ -181,7 +183,7 @@ void c_asset_loader_thread::asset_loader_thread_entry_point(c_asset_loader_threa
 {
 	while (thread->m_is_running)
 	{
-		if (platform_thread_wait_for_signalled_object(g_process_assets_event) == signalled_object_result_signalled)
+		if (platform_thread_wait_for_signalled_object(g_asset_loader_thread_wake_event) == signalled_object_result_signalled)
 		{
 			thread->process_asset_loads();
 		}

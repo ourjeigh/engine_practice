@@ -29,6 +29,8 @@ public:
 		return *this;
 	}
 
+	void close();
+
 	bool is_valid() const;
 	void invalidate() { m_handle = k_invalid; }
 	static_member_function c_platform_handle invalid()

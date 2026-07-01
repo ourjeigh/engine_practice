@@ -8,6 +8,7 @@
 #include "platform/platform_handle.h"
 #include "platform/win64/win64_includes.h"
 
+
 // make template type
 class c_platform_handle_factory
 {
@@ -24,6 +25,5 @@ public:
 		return c_platform_handle(handle);
 	}
 };
-
 #endif // PLATFORM_WIN64
 #endif //__PLATFORM_HANDLE_WINDOWS_H__
