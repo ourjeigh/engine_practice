@@ -130,10 +130,11 @@ void c_render_system::update()
 	{
 		t_render_message_layer_stack* layer_messages = g_render_messages->get_item(layer_index);
 
-		while (!layer_messages->empty())
+		// process in the order they were pushed because overlaying of later messages over earlier will be more expected
+		// by higher level systems
+		for (auto it = layer_messages->begin_const(); it != layer_messages->end_const(); ++it)
 		{
-			const s_render_message& message = layer_messages->top();
-			layer_messages->pop();
+			const s_render_message& message = *it;
 
 			switch (message.type)
 			{
@@ -192,6 +193,8 @@ void c_render_system::update()
 				HALT_UNIMPLEMENTED();
 			}
 		}
+
+		layer_messages->clear();
 	}
 
 	m_write_buffer_index.store(!write_index);
@@ -651,7 +654,7 @@ void draw_horizontal_line_internal(int32 start_x, int32 end_x, int32 y, const c_
 	// start by copying sets of 2 pixes (64 bits)
 	const int32 count = end_x - start_x;
 	const int32 first_chunk_count = count * 0.5f;
-	const int32 color_int = color.to_uint32();
+	const uint64 color_int = color.to_uint32();
 	const uint64 packed_color = (static_cast<uint64>(color_int) << 32) | color_int;
 
 	memory_set(&buffer->memory[y * buffer->dimensions.width + start_x], packed_color, sizeof(packed_color) * first_chunk_count);
