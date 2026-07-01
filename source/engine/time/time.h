@@ -4,6 +4,7 @@
 
 #include "types/types.h"
 #include "types/time_types.h"
+#include "debug/asserts.h"
 
 class c_engine_time_span
 {
@@ -20,6 +21,7 @@ public:
 
 	static_member_function s_time_span to_time_span(t_timestamp start, t_timestamp end)
 	{
+		ASSERT(start != k_invalid && end != k_invalid);
 		c_engine_time_span span(start, end);
 		return s_time_span(span.get_duration_seconds());
 	}

@@ -29,8 +29,8 @@ void c_game_flow_state_main_menu::on_update(s_flow_state_main_menu* state_data, 
 		color.set_alpha(0.95f);
 		engine_render_draw_rect(popup, color, render_layer_ui);
 
-		t_string_128 blurb("Try the new\nAI Enhanced Mode!");
-		engine_render_draw_string(blurb, popup.x + 100, popup.y + 20, 3, k_color_white, render_layer_ui);
+		t_string_128 blurb("Try the new\nAI-Enhanced Mode!");
+		engine_render_draw_string(blurb, popup.x + 100, popup.y + 20, 3, k_color_black, render_layer_ui);
 
 		t_render_shape_rect ok_rect(center.x() - 30, center.y() - 15, 60, 30);
 		engine_render_draw_rect(ok_rect, k_color_black, render_layer_ui);
@@ -38,15 +38,17 @@ void c_game_flow_state_main_menu::on_update(s_flow_state_main_menu* state_data, 
 		t_string_128 ok("ok");
 		engine_render_draw_string(ok, center.x()-20, center.y()-10, 3, k_color_white, render_layer_ui);
 
+		s_key_state state = engine_input_get_key_state(input_key_special_return);
+
 		if (engine_input_get_key_state(input_key_special_esc).is_down)
 		{
 			state_data->show_popup = false;
 		}
-		// enter from New Game selection applies to quickly and takes us into gameplay here
-		/*else if (engine_input_get_key_state(input_key_special_return).is_down)
+		else if (engine_input_get_key_state(input_key_special_return).is_down)
 		{
+			engine_input_consume_key_state(input_key_special_return);
 			out_continue = false;
-		}*/
+		}
 	}
 	else
 	{
@@ -81,6 +83,7 @@ void c_game_flow_state_main_menu::on_update(s_flow_state_main_menu* state_data, 
 
 	if (engine_input_get_key_state(input_key_special_return).is_down)
 	{
+		engine_input_consume_key_state(input_key_special_return);
 		switch (state_data->selection)
 		{
 		case main_menu_selection_new_game:

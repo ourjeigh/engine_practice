@@ -17,6 +17,7 @@ struct i_engine
 	virtual void log_critical(c_string message) = 0;
 
 	virtual s_key_state input_get_key_state(e_input_keycode key) = 0;
+	virtual void input_consume_key_state(e_input_keycode key) = 0;
 	virtual const s_mouse_state* input_get_mouse_state() = 0;
 
 	virtual bool load_asset(const s_asset_definition* asset_def, f_asset_loaded_callback* callback, void* object) = 0;
@@ -76,6 +77,7 @@ inline void engine_log_critical(const char* message, t_args... args)
 }
 
 inline s_key_state engine_input_get_key_state(e_input_keycode key) { return g_engine_ptr->input_get_key_state(key); }
+inline void engine_input_consume_key_state(e_input_keycode key) { return g_engine_ptr->input_consume_key_state(key); }
 inline const s_mouse_state* engine_input_get_mouse_state() { return g_engine_ptr->input_get_mouse_state(); }
 
 inline bool engine_load_asset(const s_asset_definition* asset_def, f_asset_loaded_callback* callback, void* object) { return g_engine_ptr->load_asset(asset_def, callback, object); }

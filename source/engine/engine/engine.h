@@ -15,6 +15,7 @@ public:
 	void halt(const char* message, const char* file, const long line);
 
 	s_key_state input_get_key_state(e_input_keycode key);
+	void input_consume_key_state(e_input_keycode key);
 	const s_mouse_state* input_get_mouse_state();
 
 	bool load_asset(const s_asset_definition* asset_def, f_asset_loaded_callback* callback, void* object);

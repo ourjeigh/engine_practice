@@ -85,6 +85,15 @@ s_key_state input_system_get_key_state(e_input_keycode key)
 	return g_input_state.key_states[key];
 }
 
+void input_system_consume_key_state(e_input_keycode key)
+{
+	s_key_state& state = g_input_state.key_states[key];
+	if (state.is_down)
+	{
+		state.is_down = false;
+	}
+}
+
 const s_mouse_state* input_system_get_mouse_state()
 {
 	return &g_input_state.mouse_state;
@@ -147,7 +156,9 @@ void process_input_event_queue_internal()
 		{
 			s_input_event_key_data& data = event.key_data;
 			g_input_state.key_states[data.key].is_down = data.down;
-			g_input_state.key_states[data.key].time_in_state = c_engine_time_span::to_time_span(g_key_timestamps[data.key], current_time);
+			g_input_state.key_states[data.key].time_in_state = g_key_timestamps[data.key] == k_invalid ?
+				s_time_span(0.0f) :
+				c_engine_time_span::to_time_span(g_key_timestamps[data.key], current_time);
 
 			log_message(verbose, "input system: key:{i} {s} repeat:{i}",
 				data.key, 

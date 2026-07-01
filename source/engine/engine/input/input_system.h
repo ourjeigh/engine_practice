@@ -128,6 +128,7 @@ private:
 void input_system_handle_event(s_event& event);
 
 s_key_state input_system_get_key_state(e_input_keycode key);
+void input_system_consume_key_state(e_input_keycode key);
 const s_mouse_state* input_system_get_mouse_state();
 
 const s_input_state* input_system_get_current_input_state();

@@ -43,6 +43,11 @@ s_key_state c_engine::input_get_key_state(e_input_keycode key)
 	return input_system_get_key_state(key);
 }
 
+void c_engine::input_consume_key_state(e_input_keycode key)
+{
+	input_system_consume_key_state(key);
+}
+
 const s_mouse_state* c_engine::input_get_mouse_state()
 {
 	return input_system_get_mouse_state();
