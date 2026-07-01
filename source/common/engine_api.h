@@ -24,11 +24,11 @@ struct i_engine
 	virtual const s_asset* get_asset(c_string_id asset_id) = 0;
 
 	virtual void render_fill_screen(const c_color color) = 0;
-	virtual void render_draw_rect(const t_render_shape_rect rect, const c_color color) = 0;
+	virtual void render_draw_rect(const t_render_shape_rect rect, const c_color color, e_render_layer layer) = 0;
 	virtual void render_draw_line(const t_render_shape_point start, const t_render_shape_point end, const c_color color, e_render_layer layer) = 0;
-	virtual void render_draw_circle(const s_render_shape_circle circle, c_color color, bool fill) = 0;
+	virtual void render_draw_circle(const s_render_shape_circle circle, c_color color, bool fill, e_render_layer layer) = 0;
 	virtual void render_draw_bitmap(const s_bitmap_asset& bitmap, const t_render_shape_rect& rect, e_render_layer layer) = 0;
-	virtual void render_draw_string(const c_string string, int32 x, int32 y, int32 scale, c_color color) = 0;
+	virtual void render_draw_string(const c_string string, int32 x, int32 y, int32 scale, c_color color, e_render_layer layer) = 0;
 	
 	virtual s_screen_dimensions get_screen_dimensions() = 0;
 	virtual t_render_shape_point get_screen_center() = 0;
@@ -83,11 +83,11 @@ inline bool engine_load_asset_list(const c_array<s_asset_definition>& asset_list
 inline const s_asset* engine_get_asset(c_string_id asset_id) { return g_engine_ptr->get_asset(asset_id); }
 
 inline void engine_render_fill_screen(const c_color color) { g_engine_ptr->render_fill_screen(color); }
-inline void engine_render_draw_rect(const t_render_shape_rect rect, const c_color color) { g_engine_ptr->render_draw_rect(rect, color); }
+inline void engine_render_draw_rect(const t_render_shape_rect rect, const c_color color, e_render_layer layer) { g_engine_ptr->render_draw_rect(rect, color, layer); }
 inline void engine_render_draw_line(const t_render_shape_point start, const t_render_shape_point end, const c_color color, e_render_layer layer) { g_engine_ptr->render_draw_line(start, end, color, layer); }
-inline void engine_render_draw_circle(const s_render_shape_circle circle, c_color color, bool fill) { g_engine_ptr->render_draw_circle(circle, color, fill); }
+inline void engine_render_draw_circle(const s_render_shape_circle circle, c_color color, bool fill, e_render_layer layer) { g_engine_ptr->render_draw_circle(circle, color, fill, layer); }
 inline void engine_render_bitmap(const s_bitmap_asset& bitmap, const t_render_shape_rect& rect, e_render_layer layer) { g_engine_ptr->render_draw_bitmap(bitmap, rect, layer); }
-inline void engine_render_draw_string(const c_string string, int32 x, int32 y, int32 scale, c_color color) { g_engine_ptr->render_draw_string(string, x, y, scale, color); }
+inline void engine_render_draw_string(const c_string string, int32 x, int32 y, int32 scale, c_color color, e_render_layer layer) { g_engine_ptr->render_draw_string(string, x, y, scale, color, layer); }
 
 inline s_screen_dimensions engine_get_screen_dimensions() { return g_engine_ptr->get_screen_dimensions(); }
 inline t_render_shape_point engine_get_screen_center() { return g_engine_ptr->get_screen_center(); }

@@ -16,7 +16,7 @@ void c_game_flow_state_gameplay::on_update(s_flow_state_gameplay* state_data, re
 	engine_render_fill_screen(k_color_black.to_uint32());
 
 	t_string_128 title("Gameplay!");
-	engine_render_draw_string(title, 600, 300, 5, k_color_white);
+	engine_render_draw_string(title, 600, 300, 5, k_color_white, render_layer_ui);
 
 	if (engine_input_get_key_state(input_key_special_return).is_down)
 	{
@@ -34,7 +34,7 @@ void c_game_flow_state_gameplay::on_update(s_flow_state_gameplay* state_data, re
 			state_data->player.m_transform.position.y(),
 			state_data->player.m_transform.position.z());
 
-		engine_render_draw_string(player_position_string, align_x, 5, 1, k_color_white);
+		engine_render_draw_string(player_position_string, align_x, 5, 1, k_color_white, render_layer_debug);
 	}
 	{
 		t_string_128 camera_position_string;
@@ -43,15 +43,15 @@ void c_game_flow_state_gameplay::on_update(s_flow_state_gameplay* state_data, re
 			state_data->camera.get_transform().position.y(),
 			state_data->camera.get_transform().position.z());
 
-		engine_render_draw_string(camera_position_string, align_x, 15, 1, k_color_white);
+		engine_render_draw_string(camera_position_string, align_x, 15, 1, k_color_white, render_layer_debug);
 	}
 	{
 		t_string_128 camera_viewport_title("Camera Viewport");
-		engine_render_draw_string(camera_viewport_title, align_x, 25, 1, k_color_white);
+		engine_render_draw_string(camera_viewport_title, align_x, 25, 1, k_color_white, render_layer_debug);
 		const int32 view_align_x = align_x + 65;
 		t_string_128 camera_viewport_string;
 		state_data->camera.get_viewport_debug_string(camera_viewport_string);
-		engine_render_draw_string(camera_viewport_string, view_align_x, 35, 1, k_color_white);
+		engine_render_draw_string(camera_viewport_string, view_align_x, 35, 1, k_color_white, render_layer_debug);
 	}
 #endif // CONFIG_DEBUG
 }

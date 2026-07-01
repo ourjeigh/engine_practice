@@ -22,7 +22,7 @@ void c_enhanced_game::init(const s_game_memory& game_memory)
 	g_game_state = reinterpret_cast<s_game_state*>(game_memory.data);
 	ASSERT(g_game_state != nullptr);
 
-//#define SKIP_LOGO
+#define SKIP_LOGO
 
 #ifndef SKIP_LOGO
 	g_game_flow.init(&g_game_state->game_flow_state_machine_data);

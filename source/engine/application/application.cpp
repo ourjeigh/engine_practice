@@ -72,9 +72,9 @@ void c_application::init()
 	m_window.set_event_handler(
 		c_delegate<t_event_callback>::bind<c_application, &c_application::handle_window_event>(this));
 
-	input_system_add_key_combo_callback(
+	/*input_system_add_key_combo_callback(
 		c_delegate<t_key_combo_callback>::bind<c_application, &c_application::handle_escape_key>(this),
-		input_key_special_esc);
+		input_key_special_esc);*/
 
 	input_system_add_key_combo_callback(
 		MAKE_DELEGATE_STATIC(t_key_combo_callback, handle_game_reload),
@@ -152,7 +152,7 @@ void c_application::run()
 #ifdef CONFIG_DEBUG
 		t_string_128 string;
 		string.printf("Frame Time: {f.2}ms", span.get_duration_milliseconds());
-		render_system_draw_string(string, 5, 5, 1, k_color_white);
+		render_system_draw_string(string, 5, 5, 1, k_color_white, render_layer_debug);
 #endif //CONFIG_DEBUG
 	}
 }
@@ -195,11 +195,11 @@ void c_application::handle_window_event(s_event& event)
 
 void c_application::handle_escape_key(bool down)
 {
-	if (down)
+	/*if (down)
 	{
 		log_message(verbose, "c_application: escape pressed, begin shutdown");
 		m_running = false;
-	}
+	}*/
 }
 
 void c_application::request_exit()

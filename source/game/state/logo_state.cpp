@@ -80,7 +80,7 @@ inline void render_full_screen_fade(real32 fade_value)
 	real32 alpha = math_pin(0.0f, 1.0f, (1.0f - fade_value));
 	color.set_alpha(alpha);
 
-	engine_render_draw_rect(rect, color);
+	engine_render_draw_rect(rect, color, render_layer_ui);
 }
 // //TEMP MOVE
 /////////////////////////////////////////////////////

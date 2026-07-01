@@ -216,7 +216,7 @@ void c_render_system::fill_screen(const c_color color)
 	new_message.data = message_data;
 }
 
-void c_render_system::draw_rect(const t_render_shape_rect rect, const c_color color)
+void c_render_system::draw_rect(const t_render_shape_rect rect, const c_color color, e_render_layer layer)
 {
 	s_render_message_data_draw_rect* message_data = ALLOCATE_NEW(s_render_message_data_draw_rect, *g_render_commands_allocator);
 
@@ -225,7 +225,7 @@ void c_render_system::draw_rect(const t_render_shape_rect rect, const c_color co
 	message_data->rect = rect;
 	message_data->fill_color = color;
 
-	s_render_message& new_message = g_render_messages->get_item(render_layer_main)->push();
+	s_render_message& new_message = g_render_messages->get_item(layer)->push();
 	new_message.type = render_message_type_draw_rect;
 	new_message.data = message_data;
 }
@@ -245,7 +245,7 @@ void c_render_system::draw_line(const t_render_shape_point start, const t_render
 	new_message.data = message_data;
 }
 
-void c_render_system::draw_circle(const s_render_shape_circle circle, c_color color, bool fill)
+void c_render_system::draw_circle(const s_render_shape_circle circle, c_color color, bool fill, e_render_layer layer)
 {
 	s_render_message_data_draw_circle* message_data = ALLOCATE_NEW(s_render_message_data_draw_circle, *g_render_commands_allocator);
 	ASSERT(message_data != nullptr);
@@ -255,7 +255,7 @@ void c_render_system::draw_circle(const s_render_shape_circle circle, c_color co
 	message_data->color = color;
 	message_data->fill = fill;
 
-	s_render_message& new_message = g_render_messages->get_item(render_layer_main)->push();
+	s_render_message& new_message = g_render_messages->get_item(layer)->push();
 	new_message.type = render_message_type_draw_circle;
 	new_message.data = message_data;
 }
@@ -273,7 +273,7 @@ void c_render_system::draw_bitmap(const s_bitmap_asset& bitmap, const t_render_s
 	new_message.data = message_data;
 }
 
-void c_render_system::draw_string(const c_string string, int32 x, int32 y, int32 scale, c_color color)
+void c_render_system::draw_string(const c_string string, int32 x, int32 y, int32 scale, c_color color, e_render_layer layer)
 {
 	s_render_message_data_draw_string* message_data = ALLOCATE_NEW(s_render_message_data_draw_string, *g_render_commands_allocator);
 	ASSERT(message_data != nullptr);
@@ -284,7 +284,7 @@ void c_render_system::draw_string(const c_string string, int32 x, int32 y, int32
 	message_data->scale = scale;
 	message_data->color = color;
 
-	s_render_message& new_message = g_render_messages->get_item(render_layer_debug)->push();
+	s_render_message& new_message = g_render_messages->get_item(layer)->push();
 	new_message.type = render_message_type_draw_string;
 	new_message.data = message_data;
 }
@@ -336,7 +336,7 @@ void process_draw_rect_message_internal(const s_render_message_data_draw_rect co
 	const int32 start_x = math_max(k_int32_zero, message->rect.x);
 	const int32 end_x = math_min(buffer->dimensions.width - 1, message->rect.x + message->rect.width);
 	const int32 start_y = math_max(k_int32_zero, message->rect.y);
-	const int32 end_y = math_min(buffer->dimensions.height - 1, message->rect.y + message->rect.width);
+	const int32 end_y = math_min(buffer->dimensions.height - 1, message->rect.y + message->rect.height);
 
 	c_color color = message->fill_color;
 	if (color.alpha() == 1.0f)
@@ -556,7 +556,7 @@ inline void process_draw_string_message_internal(const s_render_message_data_dra
 	{
 		if (*it == '\n' || *it == '\r')
 		{
-			current_y += 10;
+			current_y += (10 * message->scale);
 			current_x = message->x;
 			continue;
 		}

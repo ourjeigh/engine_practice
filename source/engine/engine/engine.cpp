@@ -68,9 +68,9 @@ void c_engine::render_fill_screen(const c_color color)
 	render_system_fill_screen(color);
 }
 
-void c_engine::render_draw_rect(const t_render_shape_rect rect, const c_color color)
+void c_engine::render_draw_rect(const t_render_shape_rect rect, const c_color color, e_render_layer layer)
 {
-	render_system_draw_rect(rect, color);
+	render_system_draw_rect(rect, color, layer);
 }
 
 void c_engine::render_draw_line(const t_render_shape_point start, const t_render_shape_point end, const c_color color, e_render_layer layer)
@@ -78,9 +78,9 @@ void c_engine::render_draw_line(const t_render_shape_point start, const t_render
 	render_system_draw_line(start, end, color, layer);
 }
 
-void c_engine::render_draw_circle(const s_render_shape_circle circle, c_color color, bool fill)
+void c_engine::render_draw_circle(const s_render_shape_circle circle, c_color color, bool fill, e_render_layer layer)
 {
-	render_system_draw_circle(circle, color, fill);
+	render_system_draw_circle(circle, color, fill, layer);
 }
 
 void c_engine::render_draw_bitmap(const s_bitmap_asset& bitmap, const t_render_shape_rect& rect, e_render_layer layer)
@@ -88,9 +88,9 @@ void c_engine::render_draw_bitmap(const s_bitmap_asset& bitmap, const t_render_s
 	render_system_draw_bitmap(bitmap, rect, layer);
 }
 
-void c_engine::render_draw_string(const c_string string, int32 x, int32 y, int32 scale, c_color color) 
+void c_engine::render_draw_string(const c_string string, int32 x, int32 y, int32 scale, c_color color, e_render_layer layer)
 {
-	render_system_draw_string(string, x, y, scale, color);
+	render_system_draw_string(string, x, y, scale, color, layer);
 }
 
 s_screen_dimensions c_engine::get_screen_dimensions()

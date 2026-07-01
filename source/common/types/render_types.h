@@ -79,6 +79,7 @@ constexpr c_color k_color_red(1.0f, 0.0f, 0.0f, 1.0f DEBUG_ONLY_PARAM_LEFT_COMMA
 constexpr c_color k_color_green(0.0f, 1.0f, 0.0f, 1.0f DEBUG_ONLY_PARAM_LEFT_COMMA("green"));
 constexpr c_color k_color_blue(0.0f, 0.0f, 1.0f, 1.0f DEBUG_ONLY_PARAM_LEFT_COMMA("blue"));
 constexpr c_color k_color_black(0.0f, 0.0f, 0.0f, 1.0f DEBUG_ONLY_PARAM_LEFT_COMMA("black"));
+constexpr c_color k_color_grey(0.7f, 0.7f, 0.7f, 1.0f DEBUG_ONLY_PARAM_LEFT_COMMA("grey"));
 constexpr c_color k_color_white(1.0f, 1.0f, 1.0f, 1.0f DEBUG_ONLY_PARAM_LEFT_COMMA("white"));
 
 using t_render_shape_point = t_vector_2d_int32;

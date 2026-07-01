@@ -107,7 +107,7 @@ void c_demo_game::update(const s_input_state const_ptr input_state, real32 dt)
 			g_game_state->player.m_transform.position.y(),
 			g_game_state->player.m_transform.position.z());
 
-		engine_render_draw_string(player_position_string, align_x, 5, 1, k_color_white);
+		engine_render_draw_string(player_position_string, align_x, 5, 1, k_color_white, render_layer_debug);
 	}
 	{
 		t_string_128 camera_position_string;
@@ -116,15 +116,15 @@ void c_demo_game::update(const s_input_state const_ptr input_state, real32 dt)
 			g_game_state->camera.get_transform().position.y(),
 			g_game_state->camera.get_transform().position.z());
 
-		engine_render_draw_string(camera_position_string, align_x, 15, 1, k_color_white);
+		engine_render_draw_string(camera_position_string, align_x, 15, 1, k_color_white, render_layer_debug);
 	}
 	{
 		t_string_128 camera_viewport_title("Camera Viewport");
-		engine_render_draw_string(camera_viewport_title, align_x, 25, 1, k_color_white);
+		engine_render_draw_string(camera_viewport_title, align_x, 25, 1, k_color_white, render_layer_debug);
 		const int32 view_align_x = align_x + 65;
 		t_string_128 camera_viewport_string;
 		g_game_state->camera.get_viewport_debug_string(camera_viewport_string);
-		engine_render_draw_string(camera_viewport_string, view_align_x, 35, 1, k_color_white);
+		engine_render_draw_string(camera_viewport_string, view_align_x, 35, 1, k_color_white, render_layer_debug);
 	}
 #endif // CONFIG_DEBUG
 

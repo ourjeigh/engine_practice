@@ -72,7 +72,4 @@ struct s_audio_file_format
 	uint32 data_position;
 	uint64 sample_count;
 };
-
-
-
 #endif // __AUDIO_TYPES_H__
