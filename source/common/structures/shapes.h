@@ -30,6 +30,15 @@ struct s_rect_2d
 	{
 		return c_vector_2d<t_type, t_scalar, k_default_epsilon>(width, height);
 	}
+
+	c_vector_2d<t_type, t_scalar, k_default_epsilon> center() const
+	{
+		c_vector_2d<t_type, t_scalar, k_default_epsilon> out;
+		out.x() = x + width * 0.5f;
+		out.y() = y + height * 0.5f;
+		return out;
+	}
+
 };
 
 using t_rect_2d_real32 = s_rect_2d<real32, real32, k_default_epsilon_real32>;
