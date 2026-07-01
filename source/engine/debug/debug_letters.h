@@ -7,16 +7,20 @@
 
 const int32 k_debug_char_pixel_width = 8;
 const int32 k_debug_char_pixel_height = 8;
+
 // only supporting square chars for now
 COMPILE_ASSERT(k_debug_char_pixel_width == k_debug_char_pixel_height);
 
 const int32 k_debug_char_pixle_count = k_debug_char_pixel_width * k_debug_char_pixel_height;
 
+using t_render_char_array_def = c_static_array<real32, k_debug_char_pixle_count>;
+using t_render_char_array = c_array<real32>;
+
 // ---------------------------------------------------------
 // UPPERCASE ALPHABET
 // ---------------------------------------------------------
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_a =
+t_render_char_array_def k_debug_letter_upper_a =
 {
 	0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0,
 	1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
@@ -28,7 +32,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_a =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_b =
+t_render_char_array_def k_debug_letter_upper_b =
 {
 	1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0,
 	1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
@@ -40,7 +44,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_b =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_c =
+t_render_char_array_def k_debug_letter_upper_c =
 {
 	0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0,
 	1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -52,7 +56,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_c =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_d =
+t_render_char_array_def k_debug_letter_upper_d =
 {
 	1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0,
 	1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
@@ -64,7 +68,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_d =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_e =
+t_render_char_array_def k_debug_letter_upper_e =
 {
 	1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0,
 	1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -76,7 +80,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_e =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_f =
+t_render_char_array_def k_debug_letter_upper_f =
 {
 	1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0,
 	1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -88,7 +92,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_f =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_g =
+t_render_char_array_def k_debug_letter_upper_g =
 {
 	0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0,
 	1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -100,7 +104,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_g =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_h =
+t_render_char_array_def k_debug_letter_upper_h =
 {
 	1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
 	1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
@@ -112,7 +116,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_h =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_i =
+t_render_char_array_def k_debug_letter_upper_i =
 {
 	0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0,
 	0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -124,7 +128,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_i =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_j =
+t_render_char_array_def k_debug_letter_upper_j =
 {
 	0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0,
 	0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
@@ -136,7 +140,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_j =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_k =
+t_render_char_array_def k_debug_letter_upper_k =
 {
 	1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
 	1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0,
@@ -148,7 +152,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_k =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_l =
+t_render_char_array_def k_debug_letter_upper_l =
 {
 	1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 	1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -160,7 +164,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_l =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_m =
+t_render_char_array_def k_debug_letter_upper_m =
 {
 	1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
 	1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0,
@@ -172,7 +176,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_m =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_n =
+t_render_char_array_def k_debug_letter_upper_n =
 {
 	1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
 	1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
@@ -184,7 +188,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_n =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_o =
+t_render_char_array_def k_debug_letter_upper_o =
 {
 	0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0,
 	1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
@@ -196,7 +200,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_o =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_p =
+t_render_char_array_def k_debug_letter_upper_p =
 {
 	1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0,
 	1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
@@ -208,7 +212,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_p =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_q =
+t_render_char_array_def k_debug_letter_upper_q =
 {
 	0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0,
 	1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
@@ -220,7 +224,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_q =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_r =
+t_render_char_array_def k_debug_letter_upper_r =
 {
 	1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0,
 	1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
@@ -232,7 +236,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_r =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_s =
+t_render_char_array_def k_debug_letter_upper_s =
 {
 	0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0,
 	1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -244,7 +248,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_s =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_t =
+t_render_char_array_def k_debug_letter_upper_t =
 {
 	1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0,
 	0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -256,7 +260,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_t =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_u =
+t_render_char_array_def k_debug_letter_upper_u =
 {
 	1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
 	1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
@@ -268,7 +272,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_u =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_v =
+t_render_char_array_def k_debug_letter_upper_v =
 {
 	1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
 	1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
@@ -280,7 +284,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_v =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_w =
+t_render_char_array_def k_debug_letter_upper_w =
 {
 	1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
 	1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
@@ -292,7 +296,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_w =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_x =
+t_render_char_array_def k_debug_letter_upper_x =
 {
 	1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
 	1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
@@ -304,7 +308,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_x =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_y =
+t_render_char_array_def k_debug_letter_upper_y =
 {
 	1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
 	1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
@@ -316,7 +320,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_y =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_z =
+t_render_char_array_def k_debug_letter_upper_z =
 {
 	1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0,
 	0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
@@ -333,7 +337,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_upper_z =
 // LOWERCASE ALPHABET
 // ---------------------------------------------------------
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_a =
+t_render_char_array_def k_debug_letter_lower_a =
 {
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -345,7 +349,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_a =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_b =
+t_render_char_array_def k_debug_letter_lower_b =
 {
 	1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 	1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -357,7 +361,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_b =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_c =
+t_render_char_array_def k_debug_letter_lower_c =
 {
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -369,7 +373,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_c =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_d =
+t_render_char_array_def k_debug_letter_lower_d =
 {
 	0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
 	0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
@@ -381,7 +385,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_d =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_e =
+t_render_char_array_def k_debug_letter_lower_e =
 {
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -393,7 +397,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_e =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_f =
+t_render_char_array_def k_debug_letter_lower_f =
 {
 	0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0,
 	0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -405,7 +409,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_f =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_g =
+t_render_char_array_def k_debug_letter_lower_g =
 {
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -417,7 +421,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_g =
 	0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_h =
+t_render_char_array_def k_debug_letter_lower_h =
 {
 	1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 	1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -429,7 +433,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_h =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_i =
+t_render_char_array_def k_debug_letter_lower_i =
 {
 	0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -441,7 +445,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_i =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_j =
+t_render_char_array_def k_debug_letter_lower_j =
 {
 	0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0,
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -453,7 +457,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_j =
 	0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_k =
+t_render_char_array_def k_debug_letter_lower_k =
 {
 	1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 	1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -465,7 +469,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_k =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_l =
+t_render_char_array_def k_debug_letter_lower_l =
 {
 	0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 	0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -477,7 +481,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_l =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_m =
+t_render_char_array_def k_debug_letter_lower_m =
 {
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -489,7 +493,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_m =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_n =
+t_render_char_array_def k_debug_letter_lower_n =
 {
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -501,7 +505,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_n =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_o =
+t_render_char_array_def k_debug_letter_lower_o =
 {
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -513,7 +517,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_o =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_p =
+t_render_char_array_def k_debug_letter_lower_p =
 {
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -525,7 +529,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_p =
 	1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_q =
+t_render_char_array_def k_debug_letter_lower_q =
 {
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -537,7 +541,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_q =
 	0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_r =
+t_render_char_array_def k_debug_letter_lower_r =
 {
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -549,7 +553,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_r =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_s =
+t_render_char_array_def k_debug_letter_lower_s =
 {
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -561,7 +565,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_s =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_t =
+t_render_char_array_def k_debug_letter_lower_t =
 {
 	0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 	0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -573,7 +577,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_t =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_u =
+t_render_char_array_def k_debug_letter_lower_u =
 {
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -585,7 +589,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_u =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_v =
+t_render_char_array_def k_debug_letter_lower_v =
 {
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -597,7 +601,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_v =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_w =
+t_render_char_array_def k_debug_letter_lower_w =
 {
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -609,7 +613,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_w =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_x =
+t_render_char_array_def k_debug_letter_lower_x =
 {
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -621,7 +625,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_x =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_y =
+t_render_char_array_def k_debug_letter_lower_y =
 {
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -633,7 +637,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_y =
 	0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_z =
+t_render_char_array_def k_debug_letter_lower_z =
 {
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -649,7 +653,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_letter_lower_z =
 // NUMBERS 0 - 9
 // ---------------------------------------------------------
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_number_0 =
+t_render_char_array_def k_debug_number_0 =
 {
 	0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0,
 	1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
@@ -661,7 +665,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_number_0 =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_number_1 =
+t_render_char_array_def k_debug_number_1 =
 {
 	0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 	0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -673,7 +677,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_number_1 =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_number_2 =
+t_render_char_array_def k_debug_number_2 =
 {
 	0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0,
 	1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
@@ -685,7 +689,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_number_2 =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_number_3 =
+t_render_char_array_def k_debug_number_3 =
 {
 	0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0,
 	1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
@@ -697,7 +701,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_number_3 =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_number_4 =
+t_render_char_array_def k_debug_number_4 =
 {
 	0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0,
 	0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0,
@@ -709,7 +713,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_number_4 =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_number_5 =
+t_render_char_array_def k_debug_number_5 =
 {
 	1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0,
 	1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -721,7 +725,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_number_5 =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_number_6 =
+t_render_char_array_def k_debug_number_6 =
 {
 	0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0,
 	1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -733,7 +737,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_number_6 =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_number_7 =
+t_render_char_array_def k_debug_number_7 =
 {
 	1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0,
 	0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
@@ -745,7 +749,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_number_7 =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_number_8 =
+t_render_char_array_def k_debug_number_8 =
 {
 	0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0,
 	1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
@@ -757,7 +761,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_number_8 =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_number_9 =
+t_render_char_array_def k_debug_number_9 =
 {
 	0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0,
 	1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
@@ -773,7 +777,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_number_9 =
 // SPECIAL CHARACTERS
 // ---------------------------------------------------------
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_char_space =
+t_render_char_array_def k_debug_char_space =
 {
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -785,7 +789,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_char_space =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_char_period =
+t_render_char_array_def k_debug_char_period =
 {
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -797,7 +801,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_char_period =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_char_comma =
+t_render_char_array_def k_debug_char_comma =
 {
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -809,7 +813,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_char_comma =
 	1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_char_minus =
+t_render_char_array_def k_debug_char_minus =
 {
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -821,7 +825,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_char_minus =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_char_colon =
+t_render_char_array_def k_debug_char_colon =
 {
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 	0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -833,7 +837,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_char_colon =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_char_question =
+t_render_char_array_def k_debug_char_question =
 {
 	0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0,
 	1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
@@ -845,7 +849,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_char_question =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_char_exclamation =
+t_render_char_array_def k_debug_char_exclamation =
 {
 	0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 	0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -857,7 +861,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_char_exclamation =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_char_percent =
+t_render_char_array_def k_debug_char_percent =
 {
 	1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
 	1.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0,
@@ -869,7 +873,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_char_percent =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_char_paren_left =
+t_render_char_array_def k_debug_char_paren_left =
 {
 	0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 	0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -881,7 +885,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_char_paren_left =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_char_paren_right =
+t_render_char_array_def k_debug_char_paren_right =
 {
 	0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 	0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -893,7 +897,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_char_paren_right =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_char_brace_left =
+t_render_char_array_def k_debug_char_brace_left =
 {
 	0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0,
 	0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -905,7 +909,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_char_brace_left =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_char_brace_right =
+t_render_char_array_def k_debug_char_brace_right =
 {
 	0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 	0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0,
@@ -917,7 +921,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_char_brace_right =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_char_bracket_left =
+t_render_char_array_def k_debug_char_bracket_left =
 {
 	0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0,
 	0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -929,7 +933,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_char_bracket_left =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_char_bracket_right =
+t_render_char_array_def k_debug_char_bracket_right =
 {
 	0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0,
 	0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0,
@@ -941,7 +945,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_char_bracket_right =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_char_slash_forward =
+t_render_char_array_def k_debug_char_slash_forward =
 {
 	0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
 	0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0,
@@ -953,7 +957,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_char_slash_forward =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_char_slash_back =
+t_render_char_array_def k_debug_char_slash_back =
 {
 	1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 	0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -965,7 +969,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_char_slash_back =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_char_plus =
+t_render_char_array_def k_debug_char_plus =
 {
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 	0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -977,7 +981,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_char_plus =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_char_equals =
+t_render_char_array_def k_debug_char_equals =
 {
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -989,7 +993,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_char_equals =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_char_asterisk =
+t_render_char_array_def k_debug_char_asterisk =
 {
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 	0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -1001,7 +1005,19 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_char_asterisk =
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 };
 
-c_static_array<real32, k_debug_char_pixle_count> k_debug_char_invalid =
+t_render_char_array_def k_debug_char_pipe =
+{
+	0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0,
+	0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0,
+	0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0,
+	0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0,
+	0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0,
+	0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0,
+	0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0,
+	0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0,
+};
+
+t_render_char_array_def k_debug_char_invalid =
 {
 	1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
 	1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
@@ -1013,9 +1029,7 @@ c_static_array<real32, k_debug_char_pixle_count> k_debug_char_invalid =
 	1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
 };
 
-using t_debug_render_char_array = c_array<real32>;
-
-static_member_function t_debug_render_char_array get_debug_char_array(const char letter)
+static_member_function t_render_char_array get_debug_char_array(const char letter)
 {
 	switch (letter)
 	{
@@ -1100,6 +1114,7 @@ static_member_function t_debug_render_char_array get_debug_char_array(const char
 	case '-': return k_debug_char_minus;
 	case '=': return k_debug_char_equals;
 	case '*': return k_debug_char_asterisk;
+	case '|': return k_debug_char_pipe;
 	case '%': return k_debug_char_percent;
 	case '/': return k_debug_char_slash_forward;
 	case '\\': return k_debug_char_slash_back;

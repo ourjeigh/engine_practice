@@ -564,7 +564,7 @@ inline void process_draw_string_message_internal(const s_render_message_data_dra
 		// TODO: update string iterators to stop before null term
 		if (*it == k_null_char) break;
 
-		t_debug_render_char_array letter_pixels = get_debug_char_array(*it);
+		t_render_char_array letter_pixels = get_debug_char_array(*it);
 
 		int i = 0;
 		int32 start_x = current_x;

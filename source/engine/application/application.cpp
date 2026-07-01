@@ -54,11 +54,15 @@ s_game_info_internal g_game_info;
 bool g_interrupt_signalled = false;
 real32 g_last_dt;
 
+#ifdef CONFIG_DEBUG
+void debug_render_framerate_widget(real64 work_duration_ms, real64 frame_duration_ms);
+#endif //CONFIG_DEBUG
+
 void c_application::init()
 {
 	ASSERT(m_instance == nullptr);
-
 	m_instance = this;
+	
 	// not sure if there's a better spot for this but we want it set very early so anything can assert safely
 	g_assert_handler = assert_internal;
 
@@ -136,10 +140,12 @@ void c_application::run()
 		timer.stop();
 		real64 frame_work_time_ms = timer.get_time_span().get_duration_milliseconds();
 		real64 sleep_time_ms = (k_max_frame_interval_ms - frame_work_time_ms);
-
-		if (sleep_time_ms > 0.0f)
+		const real64 frame_sleep_pad_ms = 2.0f;
+		if (sleep_time_ms > frame_sleep_pad_ms)
 		{
-			thread_sleep_for_milliseconds(real64_to_uint32(sleep_time_ms));
+			// if we sleep the full sleep time, innacuracies in sleep precision can cause us to wake
+			// after the max frame interval. 
+			thread_sleep_for_milliseconds(real64_to_uint32(sleep_time_ms - frame_sleep_pad_ms));
 		}
 		else
 		{
@@ -150,9 +156,7 @@ void c_application::run()
 		g_last_dt = span.get_duration_seconds();
 
 #ifdef CONFIG_DEBUG
-		t_string_128 string;
-		string.printf("Frame Time: {f.2}ms", span.get_duration_milliseconds());
-		render_system_draw_string(string, 5, 5, 1, k_color_white, render_layer_debug);
+		debug_render_framerate_widget(frame_work_time_ms, span.get_duration_milliseconds());
 #endif //CONFIG_DEBUG
 	}
 }
@@ -363,5 +367,31 @@ static_global void cleanup_temp_game_dlls()
 		}
 	}
 }
-
 #endif //HOT_RELOAD
+
+#ifdef CONFIG_DEBUG
+void debug_render_framerate_widget(real64 work_duration_ms, real64 frame_duration_ms)
+{
+	t_string_128 string;
+	string.printf("W: {f.2}ms| F: {f.2}ms", work_duration_ms, frame_duration_ms);
+	render_system_draw_string(string, 5, 5, 1, k_color_white, render_layer_debug);
+
+	const int32 full_frame_width = 170;
+	t_render_shape_rect full_frame_rect(5, 15, full_frame_width, 10);
+	render_system_draw_rect(full_frame_rect, k_color_white, render_layer_debug);
+
+	const int32 actual_frame_width = frame_duration_ms / k_max_frame_interval_ms * full_frame_width;
+	t_render_shape_rect actual_frame_rect(5, 15, actual_frame_width, 10);
+	c_color actual_color = frame_duration_ms > k_max_frame_interval_ms ?
+		k_color_red :
+		k_color_grey_dark;
+	render_system_draw_rect(actual_frame_rect, actual_color, render_layer_debug);
+
+	const int32 work_width = work_duration_ms / k_max_frame_interval_ms * full_frame_width;
+	t_render_shape_rect work_rect(5, 15, work_width, 10);
+	c_color work_color = work_duration_ms > k_max_frame_interval_ms ?
+		k_color_red :
+		k_color_blue;
+	render_system_draw_rect(work_rect, work_color, render_layer_debug);
+}
+#endif //CONFIG_DEBUG
