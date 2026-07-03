@@ -61,6 +61,20 @@ void c_input_system::update()
 {
 	process_input_event_queue_internal();
 
+	t_timestamp current_time = get_high_precision_timestamp();
+
+	// TODO: look into why keys being held down don't always get very frequent windows events.
+	// for now we'll just assume that once a key is in a given state, we need to update it's 
+	// time in state every frame to provide a smooth and up-to-date value here.
+	ASSERT(g_input_state.key_states.capacity() == g_key_timestamps.capacity());
+	for (int32 key_index = 0; key_index < g_input_state.key_states.capacity(); key_index++)
+	{
+		if (g_key_timestamps[key_index] != k_invalid)
+		{
+			g_input_state.key_states[key_index].time_in_state = c_engine_time_span::to_time_span(g_key_timestamps[key_index], current_time);
+		}
+	}
+
 	for (auto& combo : m_key_combo_callbacks)
 	{
 		bool new_down = true;
@@ -155,16 +169,29 @@ void process_input_event_queue_internal()
 		case event_type_input_key:
 		{
 			s_input_event_key_data& data = event.key_data;
-			g_input_state.key_states[data.key].is_down = data.down;
-			g_input_state.key_states[data.key].time_in_state = g_key_timestamps[data.key] == k_invalid ?
-				s_time_span(0.0f) :
-				c_engine_time_span::to_time_span(g_key_timestamps[data.key], current_time);
+			s_key_state& key = g_input_state.key_states[data.key];
 
-			log_message(verbose, "input system: key:{i} {s} repeat:{i}",
+			bool changed = false;
+			if (key.is_down != data.down)
+			{
+				changed = true;
+				key.is_down = data.down;
+				key.time_in_state = s_time_span(0.0f);
+				g_key_timestamps[data.key] = current_time;
+			}
+			else
+			{
+				// leaving this here for now even tho we set it again just after this in c_input_system::update().
+				// once we get a stead message pump for the key while it's being held down, we could go back to
+				// just setting this here.
+				key.time_in_state = c_engine_time_span::to_time_span(g_key_timestamps[data.key], current_time);
+			}
+
+			log_message(verbose, "input system: key:{i} {s} time:{f.2} (changed {b})",
 				data.key, 
 				data.down ? "down" : "up", 
-				data.repeat_count);
-			// todo, handle repeat
+				key.time_in_state.get_duration_seconds(),
+				changed);
 			break;
 		}
 		case event_type_input_mouse:

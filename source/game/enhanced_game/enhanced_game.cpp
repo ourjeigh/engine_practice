@@ -22,16 +22,16 @@ void c_enhanced_game::init(const s_game_memory& game_memory)
 	g_game_state = reinterpret_cast<s_game_state*>(game_memory.data);
 	ASSERT(g_game_state != nullptr);
 
-#define SKIP_LOGO
+#define SKIP_INTRO
 
-#ifndef SKIP_LOGO
+#ifndef SKIP_INTRO
 	g_game_flow.init(&g_game_state->game_flow_state_machine_data);
 #else
 	// feels a bit off to get the static id member directly...
 	g_game_flow.init_with_state(
 		&g_game_state->game_flow_state_machine_data, 
 		c_game_flow_state_main_menu::id);
-#endif //SKIP_LOGO
+#endif //SKIP_INTRO
 }
 
 void c_enhanced_game::update(const s_input_state const_ptr input_state, real32 dt)

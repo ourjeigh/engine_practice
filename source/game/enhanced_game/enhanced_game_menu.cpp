@@ -5,6 +5,8 @@ void c_game_flow_state_main_menu::on_enter(s_flow_state_main_menu* state_data, r
 	out_continue = false;
 }
 
+// this is all pretty haphazard. need an actual concept of a menu, perhaps like a state machine, with the ability to draw
+// boxes (in front or behind one another), handle input to them, and navigate between them.
 void c_game_flow_state_main_menu::on_update(s_flow_state_main_menu* state_data, real32 dt, bool& out_continue)
 {
 	out_continue = true;
@@ -32,22 +34,45 @@ void c_game_flow_state_main_menu::on_update(s_flow_state_main_menu* state_data, 
 		t_string_128 blurb("Try the new\nAI-Enhanced Mode!");
 		engine_render_draw_string(blurb, popup.x + 100, popup.y + 20, 3, k_color_black, render_layer_ui);
 
+		t_string_128 blurb2("AI-Enhanced Mode improves gameplay performance by 500%!");
+		engine_render_draw_string(blurb2, popup.x + 100, popup.y + 100, 1, k_color_black, render_layer_ui);
+
 		t_render_shape_rect ok_rect(center.x() - 30, center.y() - 15, 60, 30);
 		engine_render_draw_rect(ok_rect, k_color_black, render_layer_ui);
 		
 		t_string_128 ok("ok");
 		engine_render_draw_string(ok, center.x()-20, center.y()-10, 3, k_color_white, render_layer_ui);
 
-		s_key_state state = engine_input_get_key_state(input_key_special_return);
+		s_key_state return_state = engine_input_get_key_state(input_key_special_return);
 
 		if (engine_input_get_key_state(input_key_special_esc).is_down)
 		{
 			state_data->show_popup = false;
 		}
-		else if (engine_input_get_key_state(input_key_special_return).is_down)
+		else if (return_state.is_down)
 		{
-			engine_input_consume_key_state(input_key_special_return);
-			out_continue = false;
+			const real32 fill_time = 2.0f;
+			const real32 progress_time = return_state.time_in_state.get_duration_seconds();
+			const uint32 full_width = 60;
+			const uint32 progress_width = math_max<uint32>(1, (progress_time / fill_time * full_width));
+			t_render_shape_rect progress_rect(ok_rect.x, ok_rect.y, progress_width, ok_rect.height);
+
+			engine_log_verbose("progress_time: {f.2}", progress_time);
+			if (progress_time)
+			{
+				progress_rect = progress_rect;
+			}
+
+			c_color color = k_color_blue;
+			color.set_alpha(0.5f);
+			engine_render_draw_rect(progress_rect, color, render_layer_ui);
+
+			if (progress_time >= fill_time)
+			{
+				engine_input_consume_key_state(input_key_special_return);
+				out_continue = false;
+			}
+
 		}
 	}
 	else
@@ -71,6 +96,21 @@ void c_game_flow_state_main_menu::on_update(s_flow_state_main_menu* state_data, 
 		{
 			state_data->selection = main_menu_selection_exit;
 		}
+
+		if (engine_input_get_key_state(input_key_special_return).is_down)
+		{
+			engine_input_consume_key_state(input_key_special_return);
+			switch (state_data->selection)
+			{
+			case main_menu_selection_new_game:
+				state_data->show_popup = true;
+				//out_continue = false;
+				break;
+			case main_menu_selection_exit:
+				engine_request_exit();
+				break;
+			}
+		}
 	}
 
 	const int32 x = 225;
@@ -79,21 +119,6 @@ void c_game_flow_state_main_menu::on_update(s_flow_state_main_menu* state_data, 
 	{
 		engine_render_draw_string(menu_items[item_index], x, y, 3, k_color_white, render_layer_main);
 		y += 30;
-	}
-
-	if (engine_input_get_key_state(input_key_special_return).is_down)
-	{
-		engine_input_consume_key_state(input_key_special_return);
-		switch (state_data->selection)
-		{
-		case main_menu_selection_new_game:
-			state_data->show_popup = true;
-			//out_continue = false;
-			break;
-		case main_menu_selection_exit:
-			engine_request_exit();
-			break;
-		}
 	}
 }
 

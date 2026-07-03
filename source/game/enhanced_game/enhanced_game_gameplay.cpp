@@ -18,10 +18,6 @@ void c_game_flow_state_gameplay::on_update(s_flow_state_gameplay* state_data, re
 	t_string_128 title("Gameplay!");
 	engine_render_draw_string(title, 600, 300, 5, k_color_white, render_layer_ui);
 
-	if (engine_input_get_key_state(input_key_special_return).is_down)
-	{
-		out_continue = false;
-	}
 
 #ifdef CONFIG_DEBUG
 	draw_debug_world_grid(20, state_data->camera);

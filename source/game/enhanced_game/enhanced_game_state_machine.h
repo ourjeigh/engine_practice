@@ -73,6 +73,10 @@ public:
 		{
 			data->current_state = &m_state_main_menu;
 		}
+		else if (state_id == m_state_gameplay.state_id())
+		{
+			data->current_state = &m_state_gameplay;
+		}
 	}
 
 	c_game_state_machine_state_base* get_next_state(const c_game_state_machine_state_base* current_state)
