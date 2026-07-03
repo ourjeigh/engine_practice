@@ -73,9 +73,9 @@ void c_engine::render_fill_screen(const c_color color)
 	render_system_fill_screen(color);
 }
 
-void c_engine::render_draw_rect(const t_render_shape_rect rect, const c_color color, e_render_layer layer)
+void c_engine::render_draw_rect(const t_render_shape_rect rect, const c_color color, bool fill, e_render_layer layer)
 {
-	render_system_draw_rect(rect, color, layer);
+	render_system_draw_rect(rect, color, fill, layer);
 }
 
 void c_engine::render_draw_line(const t_render_shape_point start, const t_render_shape_point end, const c_color color, e_render_layer layer)

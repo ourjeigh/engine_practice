@@ -29,7 +29,7 @@ void c_game_flow_state_main_menu::on_update(s_flow_state_main_menu* state_data, 
 		t_render_shape_rect popup(center.x() - width / 2, center.y() - height / 2, width, height);
 		c_color color = k_color_grey;
 		color.set_alpha(0.95f);
-		engine_render_draw_rect(popup, color, render_layer_ui);
+		engine_render_draw_rect(popup, color, true, render_layer_ui);
 
 		t_string_128 blurb("Try the new\nAI-Enhanced Mode!");
 		engine_render_draw_string(blurb, popup.x + 100, popup.y + 20, 3, k_color_black, render_layer_ui);
@@ -38,7 +38,7 @@ void c_game_flow_state_main_menu::on_update(s_flow_state_main_menu* state_data, 
 		engine_render_draw_string(blurb2, popup.x + 100, popup.y + 100, 1, k_color_black, render_layer_ui);
 
 		t_render_shape_rect ok_rect(center.x() - 30, center.y() - 15, 60, 30);
-		engine_render_draw_rect(ok_rect, k_color_black, render_layer_ui);
+		engine_render_draw_rect(ok_rect, k_color_black, true, render_layer_ui);
 		
 		t_string_128 ok("ok");
 		engine_render_draw_string(ok, center.x()-20, center.y()-10, 3, k_color_white, render_layer_ui);
@@ -64,14 +64,13 @@ void c_game_flow_state_main_menu::on_update(s_flow_state_main_menu* state_data, 
 
 			c_color color = k_color_blue;
 			color.set_alpha(0.5f);
-			engine_render_draw_rect(progress_rect, color, render_layer_ui);
+			engine_render_draw_rect(progress_rect, color, true, render_layer_ui);
 
 			if (progress_time >= fill_time)
 			{
 				engine_input_consume_key_state(input_key_special_return);
 				out_continue = false;
 			}
-
 		}
 	}
 	else

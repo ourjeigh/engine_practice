@@ -72,7 +72,7 @@ void c_demo_game::update(const s_input_state const_ptr input_state, real32 dt)
 		// todo: make position a well defined type with w hardcoded to 1
 		g_game_state->player.m_transform.position.w() = 1.0f;
 
-		t_render_shape_point render_pos = g_game_state->camera.world_to_screen_space(g_game_state->player.m_transform.position);
+		t_render_shape_point render_pos = g_game_state->camera.world_position_to_screen_space(g_game_state->player.m_transform.position);
 		t_render_shape_rect rect;
 		rect.x = render_pos.x() - player_bitmap->width * g_game_state->camera.get_zoom() / 2;
 		rect.y = render_pos.y() - player_bitmap->height * g_game_state->camera.get_zoom() / 2;

@@ -18,8 +18,8 @@ inline void draw_debug_world_grid(int32 size_meters, const c_camera_2d& camera)
 		t_vector_4d_real32 vertical_end(x, end_y, 0, 1);
 
 		engine_render_draw_line(
-			camera.world_to_screen_space(vertical_start),
-			camera.world_to_screen_space(vertical_end),
+			camera.world_position_to_screen_space(vertical_start),
+			camera.world_position_to_screen_space(vertical_end),
 			k_color_green,
 			render_layer_debug);
 	}
@@ -30,8 +30,8 @@ inline void draw_debug_world_grid(int32 size_meters, const c_camera_2d& camera)
 		t_vector_4d_real32 horizontal_end(end_x, y, 0, 1);
 
 		engine_render_draw_line(
-			camera.world_to_screen_space(horizontal_start),
-			camera.world_to_screen_space(horizontal_end),
+			camera.world_position_to_screen_space(horizontal_start),
+			camera.world_position_to_screen_space(horizontal_end),
 			k_color_green,
 			render_layer_debug);
 	}

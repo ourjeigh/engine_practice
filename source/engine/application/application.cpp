@@ -378,20 +378,20 @@ void debug_render_framerate_widget(real64 work_duration_ms, real64 frame_duratio
 
 	const int32 full_frame_width = 170;
 	t_render_shape_rect full_frame_rect(5, 15, full_frame_width, 10);
-	render_system_draw_rect(full_frame_rect, k_color_white, render_layer_debug);
+	render_system_draw_rect(full_frame_rect, k_color_white, true, render_layer_debug);
 
 	const int32 actual_frame_width = frame_duration_ms / k_max_frame_interval_ms * full_frame_width;
 	t_render_shape_rect actual_frame_rect(5, 15, actual_frame_width, 10);
 	c_color actual_color = frame_duration_ms > k_max_frame_interval_ms ?
 		k_color_red :
 		k_color_grey_dark;
-	render_system_draw_rect(actual_frame_rect, actual_color, render_layer_debug);
+	render_system_draw_rect(actual_frame_rect, actual_color, true, render_layer_debug);
 
 	const int32 work_width = work_duration_ms / k_max_frame_interval_ms * full_frame_width;
 	t_render_shape_rect work_rect(5, 15, work_width, 10);
 	c_color work_color = work_duration_ms > k_max_frame_interval_ms ?
 		k_color_red :
 		k_color_blue;
-	render_system_draw_rect(work_rect, work_color, render_layer_debug);
+	render_system_draw_rect(work_rect, work_color, true, render_layer_debug);
 }
 #endif //CONFIG_DEBUG

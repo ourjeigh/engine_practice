@@ -15,6 +15,9 @@ struct s_transform
 		real32 rotation_x, real32 rotation_y, real32 rotation_z,
 		real32 scale_x, real32 scale_y, real32 scale_z)
 	{
+		// not ready to support negative scales
+		ASSERT(scale_x > 0.0f && scale_y > 0.0f && scale_z > 0.0f);
+
 		position.set(position_x, position_y, position_z, 1);
 		rotation.set(rotation_x, rotation_y, rotation_z, 0);
 		scale.set(scale_x, scale_y, scale_z, 0);
@@ -22,9 +25,9 @@ struct s_transform
 	
 	void reset()
 	{
-		position.zero();
+		position.set(0, 0, 0, 1);
 		rotation.zero();
-		scale.set(1, 1, 1, 1);
+		scale.set(1, 1, 1, 0);
 	}
 
 	static_member_function s_transform default_values()

@@ -23,7 +23,7 @@ public:
 	const s_asset* get_asset(c_string_id asset_id);
 
 	void render_fill_screen(const c_color color);
-	void render_draw_rect(const t_render_shape_rect rect, const c_color color, e_render_layer layer);
+	void render_draw_rect(const t_render_shape_rect rect, const c_color color, bool fill, e_render_layer layer);
 	void render_draw_line(const t_render_shape_point start, const t_render_shape_point end, const c_color color, e_render_layer layer);
 	void render_draw_circle(const s_render_shape_circle circle, c_color color, bool fill, e_render_layer layer);
 	void render_draw_bitmap(const s_bitmap_asset& bitmap, const t_render_shape_rect& rect, e_render_layer layer);

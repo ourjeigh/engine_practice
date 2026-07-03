@@ -30,7 +30,7 @@ void c_enhanced_game::init(const s_game_memory& game_memory)
 	// feels a bit off to get the static id member directly...
 	g_game_flow.init_with_state(
 		&g_game_state->game_flow_state_machine_data, 
-		c_game_flow_state_main_menu::id);
+		c_game_flow_state_gameplay::id);
 #endif //SKIP_INTRO
 }
 

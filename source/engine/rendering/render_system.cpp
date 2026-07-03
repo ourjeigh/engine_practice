@@ -34,8 +34,8 @@ struct s_render_message_data_fill_screen : s_render_message_data
 struct s_render_message_data_draw_rect : s_render_message_data
 {
 	t_render_shape_rect rect;
-	c_color fill_color;
-	c_color outline_color; // TODO;
+	c_color color;
+	bool fill;
 };
 
 struct s_render_message_data_draw_line : s_render_message_data
@@ -75,6 +75,7 @@ struct s_render_message
 
 void process_fill_screen_message_internal(const s_render_message_data_fill_screen const_ptr message, s_backbuffer const_ptr buffer);
 void process_draw_rect_message_internal(const s_render_message_data_draw_rect const_ptr message, s_backbuffer const_ptr buffer);
+void process_draw_rect_outline_message_internal(const s_render_message_data_draw_rect const_ptr message, s_backbuffer const_ptr buffer);
 void process_draw_line_message_internal(const s_render_message_data_draw_line const_ptr message, s_backbuffer const_ptr buffer);
 void process_draw_circle_message_internal(const s_render_message_data_draw_circle const_ptr message, s_backbuffer const_ptr buffer);
 void process_draw_circle_outline_message_internal(const s_render_message_data_draw_circle const_ptr message, s_backbuffer const_ptr buffer);
@@ -149,7 +150,14 @@ void c_render_system::update()
 			{
 				const s_render_message_data_draw_rect* message_data = static_cast<s_render_message_data_draw_rect*>(message.data);
 				ASSERT(message_data != nullptr);
-				process_draw_rect_message_internal(message_data, &current_backbuffer);
+				if (message_data->fill)
+				{
+					process_draw_rect_message_internal(message_data, &current_backbuffer);
+				}
+				else
+				{
+					process_draw_rect_outline_message_internal(message_data, &current_backbuffer);
+				}
 				break;
 			}
 			case render_message_type_draw_line:
@@ -216,14 +224,15 @@ void c_render_system::fill_screen(const c_color color)
 	new_message.data = message_data;
 }
 
-void c_render_system::draw_rect(const t_render_shape_rect rect, const c_color color, e_render_layer layer)
+void c_render_system::draw_rect(const t_render_shape_rect rect, const c_color color, bool fill, e_render_layer layer)
 {
 	s_render_message_data_draw_rect* message_data = ALLOCATE_NEW(s_render_message_data_draw_rect, *g_render_commands_allocator);
 
 	ASSERT(message_data != nullptr);
 
 	message_data->rect = rect;
-	message_data->fill_color = color;
+	message_data->color = color;
+	message_data->fill = fill;
 
 	s_render_message& new_message = g_render_messages->get_item(layer)->push();
 	new_message.type = render_message_type_draw_rect;
@@ -338,7 +347,7 @@ void process_draw_rect_message_internal(const s_render_message_data_draw_rect co
 	const int32 start_y = math_max(k_int32_zero, message->rect.y);
 	const int32 end_y = math_min(buffer->dimensions.height - 1, message->rect.y + message->rect.height);
 
-	c_color color = message->fill_color;
+	c_color color = message->color;
 	if (color.alpha() == 1.0f)
 	{
 		for (int32 y = start_y;	y <= end_y; y++)
@@ -347,7 +356,7 @@ void process_draw_rect_message_internal(const s_render_message_data_draw_rect co
 				start_x,
 				end_x,
 				y,
-				message->fill_color,
+				message->color,
 				buffer);
 		}
 	}
@@ -368,6 +377,32 @@ void process_draw_rect_message_internal(const s_render_message_data_draw_rect co
 		}
 	}
 }
+
+void process_draw_rect_outline_message_internal(const s_render_message_data_draw_rect const_ptr message, s_backbuffer const_ptr buffer)
+{
+	PERF_MEASURE_FUNCTION();
+	ASSERT(buffer->dimensions.width && buffer->dimensions.height);
+	
+	const t_render_shape_rect& rect = message->rect;
+	// top
+	draw_horizontal_line_internal(rect.x, rect.x + rect.width, rect.y, message->color, buffer);
+	
+	// bottom
+	draw_horizontal_line_internal(rect.x, rect.x + rect.width, rect.y + rect.height, message->color, buffer);
+
+	int32 y_start = math_max<int32>(0, rect.y);
+	int32 y_end = math_min<int32>(rect.y + rect.height, buffer->dimensions.height - 1);
+	
+	for (int32 y = rect.y; y < y_end; y++)
+	{
+		// left
+		draw_pixel_to_buffer_internal(rect.x, y, message->color, buffer);
+		
+		// right
+		draw_pixel_to_buffer_internal(rect.x + rect.width, y, message->color, buffer);
+	}
+}
+
 
 void move_point_within_buffer_space(t_render_shape_point& point, const s_backbuffer const_ptr buffer)
 {

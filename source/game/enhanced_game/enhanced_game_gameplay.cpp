@@ -17,8 +17,11 @@ void c_game_flow_state_gameplay::on_update(s_flow_state_gameplay* state_data, re
 
 	t_string_128 title("Gameplay!");
 	engine_render_draw_string(title, 600, 300, 5, k_color_white, render_layer_ui);
+	
+	t_rect_2d_real32 game_rect(-0.9, 0.9, 1.2, 1.2);
 
-
+	t_render_shape_rect test = state_data->camera.world_rect_to_screen_space(game_rect);
+	engine_render_draw_rect(test, k_color_red, false, render_layer_debug);
 #ifdef CONFIG_DEBUG
 	draw_debug_world_grid(20, state_data->camera);
 

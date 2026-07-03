@@ -61,11 +61,27 @@ public:
 		update_view_matrix();
 	}
 
-	t_render_shape_point world_to_screen_space(const t_vector_4d_real32& position) const
+	t_render_shape_point world_position_to_screen_space(const t_vector_4d_real32& position) const
 	{
 		t_render_shape_point out;
 		t_vector_4d_real32 world_space = position * m_viewport;
 		out.set(world_space.x(), world_space.y());
+		return out;
+	}
+
+	t_render_shape_rect world_rect_to_screen_space(const t_rect_2d_real32& rect) const
+	{
+		// converting from world to screen space involves flipping top/bottom
+		t_vector_4d_real32 world_top_left(rect.x, rect.y , 0, 1);
+		t_vector_4d_real32 world_bottom_right(rect.x + rect.width, rect.y + rect.height, 0, 1);
+
+		t_render_shape_point screen_top_left = world_position_to_screen_space(world_top_left);
+		t_render_shape_point screen_bottom_right = world_position_to_screen_space(world_bottom_right);
+
+		int32 width = screen_bottom_right.x() - screen_top_left.x();
+		int32 height = screen_top_left.y() - screen_bottom_right.y();
+
+		t_render_shape_rect out(screen_top_left.x(), screen_top_left.y(), width, height);
 		return out;
 	}
 

@@ -25,7 +25,7 @@ struct i_engine
 	virtual const s_asset* get_asset(c_string_id asset_id) = 0;
 
 	virtual void render_fill_screen(const c_color color) = 0;
-	virtual void render_draw_rect(const t_render_shape_rect rect, const c_color color, e_render_layer layer) = 0;
+	virtual void render_draw_rect(const t_render_shape_rect rect, const c_color color, bool fill, e_render_layer layer) = 0;
 	virtual void render_draw_line(const t_render_shape_point start, const t_render_shape_point end, const c_color color, e_render_layer layer) = 0;
 	virtual void render_draw_circle(const s_render_shape_circle circle, c_color color, bool fill, e_render_layer layer) = 0;
 	virtual void render_draw_bitmap(const s_bitmap_asset& bitmap, const t_render_shape_rect& rect, e_render_layer layer) = 0;
@@ -85,7 +85,7 @@ inline bool engine_load_asset_list(const c_array<s_asset_definition>& asset_list
 inline const s_asset* engine_get_asset(c_string_id asset_id) { return g_engine_ptr->get_asset(asset_id); }
 
 inline void engine_render_fill_screen(const c_color color) { g_engine_ptr->render_fill_screen(color); }
-inline void engine_render_draw_rect(const t_render_shape_rect rect, const c_color color, e_render_layer layer) { g_engine_ptr->render_draw_rect(rect, color, layer); }
+inline void engine_render_draw_rect(const t_render_shape_rect rect, const c_color color, bool fill, e_render_layer layer) { g_engine_ptr->render_draw_rect(rect, color, fill, layer); }
 inline void engine_render_draw_line(const t_render_shape_point start, const t_render_shape_point end, const c_color color, e_render_layer layer) { g_engine_ptr->render_draw_line(start, end, color, layer); }
 inline void engine_render_draw_circle(const s_render_shape_circle circle, c_color color, bool fill, e_render_layer layer) { g_engine_ptr->render_draw_circle(circle, color, fill, layer); }
 inline void engine_render_bitmap(const s_bitmap_asset& bitmap, const t_render_shape_rect& rect, e_render_layer layer) { g_engine_ptr->render_draw_bitmap(bitmap, rect, layer); }
