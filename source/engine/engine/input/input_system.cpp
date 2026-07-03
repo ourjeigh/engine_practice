@@ -171,10 +171,8 @@ void process_input_event_queue_internal()
 			s_input_event_key_data& data = event.key_data;
 			s_key_state& key = g_input_state.key_states[data.key];
 
-			bool changed = false;
 			if (key.is_down != data.down)
 			{
-				changed = true;
 				key.is_down = data.down;
 				key.time_in_state = s_time_span(0.0f);
 				g_key_timestamps[data.key] = current_time;
@@ -187,11 +185,10 @@ void process_input_event_queue_internal()
 				key.time_in_state = c_engine_time_span::to_time_span(g_key_timestamps[data.key], current_time);
 			}
 
-			log_message(verbose, "input system: key:{i} {s} time:{f.2} (changed {b})",
+			log_message(verbose, "input system: key:{i} {s} time:{f.2})",
 				data.key, 
 				data.down ? "down" : "up", 
-				key.time_in_state.get_duration_seconds(),
-				changed);
+				key.time_in_state.get_duration_seconds());
 			break;
 		}
 		case event_type_input_mouse:

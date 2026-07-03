@@ -57,7 +57,6 @@ void c_game_flow_state_main_menu::on_update(s_flow_state_main_menu* state_data, 
 			const uint32 progress_width = math_max<uint32>(1, (progress_time / fill_time * full_width));
 			t_render_shape_rect progress_rect(ok_rect.x, ok_rect.y, progress_width, ok_rect.height);
 
-			engine_log_verbose("progress_time: {f.2}", progress_time);
 			if (progress_time)
 			{
 				progress_rect = progress_rect;
