@@ -107,6 +107,8 @@ private:
 	uint32 m_device_period_ms;
 	uint32 m_buffer_size;
 
+	c_platform_handle m_render_event_handle;
+
 	DEBUG_ONLY_MEMBER(bool d_read_initialized);
 };
 

@@ -1,6 +1,6 @@
 #include "platform/platform.h"
 #include "platform/platform_file.h"
-#include "platform/win64/platform_handle_win64.h"
+#include "platform/win64/win64_includes.h"
 
 IGNORE_WINDOWS_WARNINGS_PUSH
 #include "windows.h"

@@ -51,7 +51,7 @@ void test_function_with_args(int32* param)
 	assert(*param == k_test_value_1);
 	for (int32 i = 0; i < *param; ++i)
 	{
-		thread_sleep_for_seconds(0.01f);
+		thread_sleep_for_milliseconds(10);
 	}
 	assert(*param != k_test_value_1);
 }
@@ -64,7 +64,7 @@ TEST(THREADS, CREATE_THREAD_WITH_ARGS)
 	test_thread.create(test_function_with_args, THREAD_ARGS(&loop_count), WIDE("TEST THREAD WITH ARGS"));
 	test_thread.start();
 
-	thread_sleep_for_seconds(0.1f);
+	thread_sleep_for_milliseconds(100);
 	loop_count = k_test_value_2; // change after starting to ensure arg is passed by pointer
 	NOP();
 	test_thread.join();
@@ -161,13 +161,13 @@ TEST(THREAD, SLEEP)
 	c_timer timer;
 	timer.start();
 
-	const real32 sleep_duration_seconds = 0.1f;
-	thread_sleep_for_seconds(sleep_duration_seconds);
+	const uint32 sleep_duration_millseconds= 100;
+	thread_sleep_for_milliseconds(sleep_duration_millseconds);
 	timer.stop();
 
 	// 25% tolerance since we can't guarantee sleep accuracy
-	real64 tolerance = sleep_duration_seconds * 0.25f;
-	real64 diff = abs(timer.get_time_span().get_duration_seconds() - sleep_duration_seconds);
+	real64 tolerance = sleep_duration_millseconds * 0.25f;
+	real64 diff = abs(timer.get_time_span().get_duration_milliseconds() - sleep_duration_millseconds);
 
 	EXPECT_LE(diff, tolerance);
 	//EXPECT_NEAR(timer.get_time_span()->get_duration_seconds(), sleep_duration_seconds, tolerance);

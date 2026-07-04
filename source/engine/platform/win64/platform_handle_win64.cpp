@@ -1,6 +1,8 @@
 #include "platform/platform.h"
 #ifdef PLATFORM_WIN64
 
+#include "platform/win64/win64_includes.h"
+#include "platform/platform_handle.h"
 #include "platform/win64/platform_handle_win64.h"
 #include "debug/asserts.h"
 

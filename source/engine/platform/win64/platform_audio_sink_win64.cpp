@@ -7,6 +7,7 @@
 #include "debug/asserts.h"
 #include "platform/platform.h"
 #include "platform/win64/win64_includes.h"
+#include <platform/platform_handle.h>
 
 const CLSID CLSID_MMDeviceEnumerator = __uuidof(MMDeviceEnumerator);
 const IID IID_IMMDeviceEnumerator = __uuidof(IMMDeviceEnumerator);
@@ -41,11 +42,10 @@ IAudioRenderClient* g_audio_render_client;
 
 c_platform_audio_sink::c_platform_audio_sink()
 {
-	m_device_period_ms = 0;
 	m_render_active = false;
 }
 
-bool c_platform_audio_sink::register_sink(s_audio_device_format& inout_audio_format)
+bool c_platform_audio_sink::register_sink(s_audio_device_format& inout_audio_format, c_platform_handle& out_render_event_handle)
 {
 	//https://learn.microsoft.com/en-us/windows/win32/coreaudio/rendering-a-stream?source=recommendations
 
@@ -104,7 +104,10 @@ bool c_platform_audio_sink::register_sink(s_audio_device_format& inout_audio_for
 
 	mix_format->nAvgBytesPerSec = inout_audio_format.sample_rate * mix_format->nBlockAlign;
 
-	DWORD stream_flags = AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM | AUDCLNT_STREAMFLAGS_SRC_DEFAULT_QUALITY; // Force WASAPI to resample;
+	DWORD stream_flags =
+		AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM | // Force WASAPI to resample;
+		AUDCLNT_STREAMFLAGS_SRC_DEFAULT_QUALITY |
+		AUDCLNT_STREAMFLAGS_EVENTCALLBACK;
 
 	CALL_WIN_FUNC_LOG_CRITICAL_AND_RETURN_FALSE_ON_ERROR(g_audio_client->Initialize(
 		AUDCLNT_SHAREMODE_SHARED,
@@ -114,6 +117,12 @@ bool c_platform_audio_sink::register_sink(s_audio_device_format& inout_audio_for
 		mix_format,
 		NULL));
 
+	HANDLE audio_render_event_handle = CreateEvent(NULL, FALSE, FALSE, NULL);
+	CALL_WIN_FUNC_LOG_CRITICAL_AND_RETURN_FALSE_ON_ERROR(g_audio_client->SetEventHandle(audio_render_event_handle));
+
+	out_render_event_handle = c_platform_handle_factory::get_platform_handle_from_native_handle<HANDLE>(audio_render_event_handle);
+	ASSERT(out_render_event_handle.is_valid());
+
 	UINT32 buffer_size = 0;
 	CALL_WIN_FUNC_LOG_CRITICAL_AND_RETURN_FALSE_ON_ERROR(g_audio_client->GetBufferSize(&buffer_size));
 	inout_audio_format.buffer_size = buffer_size;
@@ -121,10 +130,6 @@ bool c_platform_audio_sink::register_sink(s_audio_device_format& inout_audio_for
 	CALL_WIN_FUNC_LOG_CRITICAL_AND_RETURN_FALSE_ON_ERROR(g_audio_client->Start());
 
 	CALL_WIN_FUNC_LOG_CRITICAL_AND_RETURN_FALSE_ON_ERROR(g_audio_client->GetService(IID_IAudioRenderClient, (void**)&g_audio_render_client));
-
-	// the buffer needs to be filled twice every device period, so we'll track that value
-	const real32 reftimes_per_millisecond = 10000.0f;
-	m_device_period_ms = static_cast<uint32>(device_period_min / reftimes_per_millisecond / 2.0f);
 
 	inout_audio_format.channel_count = mix_format->nChannels;
 	inout_audio_format.sample_rate = mix_format->nSamplesPerSec;

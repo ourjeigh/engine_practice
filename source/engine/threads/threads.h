@@ -47,6 +47,5 @@ private:
 };
 
 uint32 get_current_thread_id();
-void thread_sleep_for_seconds(real32 seconds);
 void thread_sleep_for_milliseconds(uint32 milliseconds);
 #endif //__THREADS_H__

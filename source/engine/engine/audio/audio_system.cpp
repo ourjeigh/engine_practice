@@ -9,6 +9,8 @@
 #include "memory/memory_system.h"
 #include "engine/audio/audio_threadsafe_buffer.h"
 #include "rendering/render_system.h"
+#include "platform/platform_thread.h"
+
 // move
 constexpr real32 db_to_linear_amplitude(real32 db)
 {
@@ -54,7 +56,7 @@ void c_audio_system::init()
 	// replace with a flag checking for audio sync setup
 	while (g_audio_format.sample_rate == 0)
 	{
-		thread_sleep_for_milliseconds(10);
+		thread_sleep_for_milliseconds(100);
 	}
 	
 	{
@@ -240,6 +242,7 @@ void c_audio_engine_thread::audio_engine_thread_entry_point(c_audio_engine_threa
 
 		thread->process_audio();
 
+		// can this wait on some kind of object as well or does it need to sleep?
 		timer.stop();
 		real64 time_span_ms = timer.get_time_span().get_duration_milliseconds();
 
@@ -349,7 +352,7 @@ bool c_audio_render_thread::setup_audio_sink()
 	requested_format.sample_rate = k_audio_engine_sample_rate;
 	requested_format.sample_type = audio_sample_type_real32;
 
-	if (m_sink.register_sink(requested_format))
+	if (m_sink.register_sink(requested_format, m_render_event_handle))
 	{
 		g_audio_format = requested_format;
 
@@ -385,7 +388,8 @@ void c_audio_render_thread::audio_render_thread_entry_point(c_audio_render_threa
 	{
 		while (thread->m_is_running)
 		{
-			thread_sleep_for_milliseconds(thread->m_device_period_ms);
+			platform_thread_wait_for_signalled_object(thread->m_render_event_handle, k_wait_time_infinite);
+
 			thread->render_audio();
 		}
 	}
