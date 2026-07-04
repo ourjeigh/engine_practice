@@ -415,3 +415,56 @@ TEST(ARRAY, ARRAY_HAS_NON_ZERO_VALUES)
 	array[200] = -253;
 	EXPECT_TRUE(array_has_non_zero_data(array));
 }
+
+
+TEST(FLAG, FLAG_VALUES)
+{
+	enum e_test_enum
+	{
+		test_enum_value_0,
+		test_enum_value_1,
+		test_enum_value_2,
+		test_enum_value_3,
+		test_enum_value_4,
+
+		k_test_enum_value_count
+	};
+
+	using t_test_flags = c_flags<k_test_enum_value_count>;
+
+	t_test_flags test;
+	test.clear();
+
+	test.set(test_enum_value_3, true);
+	EXPECT_TRUE(test.any());
+	EXPECT_FALSE(test.test(test_enum_value_0));
+	EXPECT_FALSE(test.test(test_enum_value_1));
+	EXPECT_FALSE(test.test(test_enum_value_2));
+	EXPECT_TRUE(test.test(test_enum_value_3));
+	EXPECT_FALSE(test.test(test_enum_value_4));
+}
+
+TEST(FLAG, INITIAL_VALUES)
+{
+	enum e_test_enum
+	{
+		test_enum_value_0,
+		test_enum_value_1,
+		test_enum_value_2,
+		test_enum_value_3,
+		test_enum_value_4,
+
+		k_test_enum_value_count
+	};
+
+	using t_test_flags = c_flags<k_test_enum_value_count>;
+
+	t_test_flags test(test_enum_value_1,  test_enum_value_3);
+	EXPECT_TRUE(test.any());
+
+	EXPECT_FALSE(test.test(test_enum_value_0));
+	EXPECT_TRUE(test.test(test_enum_value_1));
+	EXPECT_FALSE(test.test(test_enum_value_2));
+	EXPECT_TRUE(test.test(test_enum_value_3));
+	EXPECT_FALSE(test.test(test_enum_value_4));
+}

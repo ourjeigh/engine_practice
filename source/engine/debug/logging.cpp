@@ -34,9 +34,7 @@ void c_logging_system::init(s_log_config config)
 
 	// temp
 	c_file_path path("test_log_file.txt");
-	t_file_open_mode_flags flags;
-	flags.set(file_open_mode_write, true);
-	flags.set(file_open_mode_replace, true);
+	t_file_open_mode_flags flags(file_open_mode_write, file_open_mode_replace);
 	m_file.open(path, flags);
 
 	t_string_128 header = "Timestamp\t\tTime\tThread\tLevel\tMessage\n";

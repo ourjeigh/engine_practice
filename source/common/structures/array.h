@@ -456,6 +456,8 @@ public:
 
 	void set(int32 index, bool value)
 	{
+		ASSERT(in_range_inclusive<int32>(0, k_size - 1, index));
+
 		if (value)
 		{
 			m_data[get_data_index(index)] |= get_index_mask(index);
@@ -564,7 +566,15 @@ private:
 template<size_t k_size>
 class c_flags : public c_bit_array<k_size>
 {
-	// TODO: make a constructor that can take initial values
+public:
+	c_flags() { this->clear(); }
+	
+	template<typename... t_args>
+	c_flags(const t_args... args)
+	{
+		this->clear();
+		(this->set(args, true), ...);
+	}
 };
 
 template<typename t_type, typename t_derived>

@@ -226,8 +226,7 @@ void c_asset_loader_thread::process_asset_loads()
 			s_file_info file_info = get_file_info(file_path);
 			if (file_info.exists)
 			{
-				t_file_open_mode_flags flags;
-				flags.set(file_open_mode_read, true);
+				t_file_open_mode_flags flags(file_open_mode_read);
 
 				c_file file;
 				if (file.open(request.asset_definition.path, flags))

@@ -234,8 +234,7 @@ void c_audio_source_file_streamed::set_file(c_file_path file_path)
 {
 	zero_object(m_format);
 
-	t_file_open_mode_flags flags;
-	flags.set(file_open_mode_read, true);
+	t_file_open_mode_flags flags(file_open_mode_read);
 	m_file.open(file_path, flags);
 
 	c_static_array<byte, 2048> header_buffer;
