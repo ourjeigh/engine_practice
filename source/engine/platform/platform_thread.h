@@ -26,4 +26,7 @@ void platform_thread_sleep_for_milliseconds(uint32 milliseconds);
 c_platform_handle platform_thread_create_event(bool manual_reset, bool start_signalled, c_string name);
 bool platform_thread_signal_event(c_platform_handle& event_handle);
 e_signalled_object_result platform_thread_wait_for_signalled_object(c_platform_handle& object, uint32 timeout_ms = k_wait_time_infinite);
+
+c_platform_handle platform_thread_create_waitable_timer(bool manual_reset, bool high_resolution, c_string name);
+bool platform_thread_start_waitable_timer(c_platform_handle& timer_handle, int32 time_milliseconds, int32 period_milliseconds);
 #endif // !__PLATFORM_THREAD_H__

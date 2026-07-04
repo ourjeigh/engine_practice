@@ -144,6 +144,52 @@ e_signalled_object_result platform_thread_wait_for_signalled_object(c_platform_h
 	return out_result;
 }
 
+c_platform_handle platform_thread_create_waitable_timer(bool manual_reset, bool high_resolution, c_string name)
+{
+	c_platform_handle out_handle = c_platform_handle::invalid();
+
+	DWORD flags = 0;
+	DWORD access = TIMER_ALL_ACCESS;
+	if (manual_reset)
+	{
+		flags |= CREATE_WAITABLE_TIMER_MANUAL_RESET;
+	}
+
+	if (high_resolution)
+	{
+		flags |= CREATE_WAITABLE_TIMER_HIGH_RESOLUTION;
+	}
+
+	HANDLE handle = CreateWaitableTimerExW(nullptr, nullptr, flags, access);
+	if (handle != nullptr)
+	{
+		out_handle = c_platform_handle_factory::get_platform_handle_from_native_handle<HANDLE>(handle);
+	}
+
+	return out_handle;
+}
+
+bool platform_thread_start_waitable_timer(c_platform_handle& timer_handle, int32 time_milliseconds, int32 period_milliseconds)
+{
+	HANDLE handle = c_platform_handle_factory::get_native_handle_from_platform_handle<HANDLE>(timer_handle);
+	
+	// positive indicates absolute time in future, for now we always want a relative time
+	const int64 hundred_ns_per_ms = 10000;
+	int64 time_nano = -time_milliseconds * hundred_ns_per_ms;
+
+	LARGE_INTEGER due_time = {};
+	due_time.QuadPart = time_nano;
+
+	// REVIEW
+	const bool resume = false;
+	bool result =  SetWaitableTimer(handle, &due_time, period_milliseconds, nullptr, nullptr, resume);
+	if (!result)
+	{
+		DWORD err = GetLastError();
+		NOP();
+	}
+	return result;
+}
 
 // private
 int32 get_thread_priority(e_thread_priority priority)

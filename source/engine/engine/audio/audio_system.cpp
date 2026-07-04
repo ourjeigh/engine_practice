@@ -235,6 +235,9 @@ void c_audio_engine_thread::audio_engine_thread_entry_point(c_audio_engine_threa
 
 	const real64 update_period_ms = static_cast<real32>(g_audio_format.buffer_size) / g_audio_format.sample_rate * 1000.0f;
 
+	c_platform_handle timer_handle = platform_thread_create_waitable_timer(false, true, t_string_128("unused"));
+	ASSERT(timer_handle.is_valid());
+
 	while (thread->m_is_running)
 	{
 		c_timer timer;
@@ -242,21 +245,21 @@ void c_audio_engine_thread::audio_engine_thread_entry_point(c_audio_engine_threa
 
 		thread->process_audio();
 
-		// can this wait on some kind of object as well or does it need to sleep?
 		timer.stop();
 		real64 time_span_ms = timer.get_time_span().get_duration_milliseconds();
 
 		const real64 sleep_padding_ms = 1.0f;
 		if (update_period_ms - time_span_ms > sleep_padding_ms)
 		{
-			real64 sleep_duration_milliseconds = update_period_ms - time_span_ms - sleep_padding_ms;
-			thread_sleep_for_milliseconds(real64_to_uint32(sleep_duration_milliseconds));
+			real64 wait_duration_ms = update_period_ms - time_span_ms - sleep_padding_ms;
+			ASSERT(platform_thread_start_waitable_timer(timer_handle, real64_to_uint32(wait_duration_ms), 0));
+			platform_thread_wait_for_signalled_object(timer_handle);
 		}
 
-		while (update_period_ms - timer.get_time_span().get_duration_milliseconds() > 0.5f)
-		{
-			NOP();
-		}
+		//while (update_period_ms - timer.get_time_span().get_duration_milliseconds() > 0.5f)
+		//{
+		//	NOP();
+		//}
 	}
 }
 
@@ -329,9 +332,15 @@ void c_audio_engine_thread::process_audio()
 #endif // CONFIG_DEBUG
 
 	// we need to be able to write the full mix_buffer, so wait until there's room.
+	// TODO: we could allow the sink thread to alert this thread when there is
+	// enough space to consume, and eliminate the polling here completely.
 	while (g_audio_output_ring_buffer->free_sample_count() < mix_buffer.size())
 	{
-		NOP();
+		c_platform_handle timer_handle = platform_thread_create_waitable_timer(true, true, t_string_128("unused"));
+		ASSERT(timer_handle.is_valid());
+		platform_thread_start_waitable_timer(timer_handle, 1, 0);
+		platform_thread_wait_for_signalled_object(timer_handle);
+		timer_handle.close();
 	}
 
 	int32 samples_written = g_audio_output_ring_buffer->write(&mix_buffer, mix_buffer.size());

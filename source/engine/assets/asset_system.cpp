@@ -86,7 +86,7 @@ void c_asset_system::init()
 	g_asset_load_requests->clear();
 	g_active_assets->clear();
 
-	g_asset_loader_thread_wake_event = platform_thread_create_event(true, false, t_string_128("process assets event"));
+	g_asset_loader_thread_wake_event = platform_thread_create_event(false, false, t_string_128("process assets event"));
 	ASSERT(g_asset_loader_thread_wake_event.is_valid());
 
 	g_asset_loader_thread.init();
