@@ -107,6 +107,12 @@ inline constexpr uint32 real32_to_uint32(real32 in)
 	return static_cast<uint32>(in);
 }
 
+inline constexpr int32 real64_to_int32(real64 in)
+{
+	ASSERT(in_range_inclusive(static_cast<real64>(k_int32_min), static_cast<real64>(k_int32_max), in));
+	return static_cast<uint32>(in);
+}
+
 inline constexpr uint32 real64_to_uint32(real64 in)
 {
 	ASSERT(in >= 0.0);

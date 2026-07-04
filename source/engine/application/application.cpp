@@ -14,11 +14,11 @@
 #include "rendering/render_system.h"
 #include "perf/perf.h"
 #include "platform/platform_file.h"
+#include "platform/platform_thread.h"
 
 const real32 k_max_fps = 60.0f;
 const real32 k_max_frame_interval_seconds = 1 / k_max_fps;
 const real32 k_max_frame_interval_ms = 1000 / k_max_fps;
-
 
 const int32 k_default_window_width = 1440;
 const int32 k_default_window_height = 720;
@@ -113,6 +113,9 @@ void c_application::run()
 	c_loop_timer loop_timer;
 	loop_timer.start();
 
+	c_platform_handle timer_handle = platform_thread_create_waitable_timer(false, true, t_string_128("application_sleep_timer"));
+	ASSERT(timer_handle.is_valid());
+
 	while (m_running)
 	{
 		c_timer timer;
@@ -138,14 +141,15 @@ void c_application::run()
 #endif //HOT_RELOAD
 
 		timer.stop();
+
 		real64 frame_work_time_ms = timer.get_time_span().get_duration_milliseconds();
-		real64 sleep_time_ms = (k_max_frame_interval_ms - frame_work_time_ms);
-		const real64 frame_sleep_pad_ms = 2.0f;
-		if (sleep_time_ms > frame_sleep_pad_ms)
+		const real64 frame_sleep_pad_ms = 1.0f;
+		real64 sleep_time_ms = (k_max_frame_interval_ms - frame_work_time_ms - frame_sleep_pad_ms);
+
+		if (sleep_time_ms > 0)
 		{
-			// if we sleep the full sleep time, innacuracies in sleep precision can cause us to wake
-			// after the max frame interval. 
-			thread_sleep_for_milliseconds(real64_to_uint32(sleep_time_ms - frame_sleep_pad_ms));
+			platform_thread_start_waitable_timer(timer_handle, real64_to_int32(sleep_time_ms), 0);
+			platform_thread_wait_for_signalled_object(timer_handle);
 		}
 		else
 		{

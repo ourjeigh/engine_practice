@@ -76,20 +76,28 @@ uint32 platform_thread_get_current_thread_id()
 
 void platform_thread_sleep_for_milliseconds(uint32 milliseconds)
 {
-	// anything under 20ms needs 1ms precision
-	bool needs_precision = milliseconds < 20;
+	// if you need sub-20ms precision, use a waitable timer
+	// platform_thread_create_waitable_timer
+	// platform_thread_start_waitable_timer
+	// platform_thread_wait_for_signalled_object
+	ASSERT(milliseconds >= 20);
+	
+	// leaving here as an artifact, but we want to avoid timeBeginPeriod
+	// because it's a bit heavyhanded.
 
+	// anything under 20ms needs 1ms precision
+	/*bool needs_precision = milliseconds < 20;
 	if (needs_precision)
 	{
 		timeBeginPeriod(1);
-	}
+	}*/
 
 	Sleep(milliseconds);
 
-	if (needs_precision)
+	/*if (needs_precision)
 	{
 		timeEndPeriod(1);
-	}
+	}*/
 }
 
 c_platform_handle platform_thread_create_event(bool manual_reset, bool start_signalled, c_string name)

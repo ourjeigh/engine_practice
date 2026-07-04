@@ -51,7 +51,7 @@ void test_function_with_args(int32* param)
 	assert(*param == k_test_value_1);
 	for (int32 i = 0; i < *param; ++i)
 	{
-		thread_sleep_for_milliseconds(10);
+		thread_sleep_for_milliseconds(20);
 	}
 	assert(*param != k_test_value_1);
 }
