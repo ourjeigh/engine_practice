@@ -162,7 +162,7 @@ void c_window_thread::resize(int width, int height)
 	g_window_info.bmi.bmiHeader.biCompression = BI_RGB;
 }
 
-struct s_rect
+struct s_window_rect
 {
 	int32 height;
 	int32 width;
@@ -170,7 +170,7 @@ struct s_rect
 
 // returns true if rect was modified
 // TODO: this should check against some list of supported rects and pick the closest
-bool verify_window_size(s_rect& in_out_rect)
+bool verify_window_size(s_window_rect& in_out_rect)
 {
 	bool modified = false;
 	if (in_out_rect.height % 2 != 0)
@@ -208,7 +208,7 @@ LRESULT CALLBACK process_message_callback(HWND hwnd, UINT msg, WPARAM param, LPA
 		{
 			RECT* rect = reinterpret_cast<RECT*>(lParam);
 
-			s_rect requested;
+			s_window_rect requested;
 			requested.height = rect->bottom - rect->top;
 			requested.width = rect->right - rect->left;
 
@@ -229,7 +229,7 @@ LRESULT CALLBACK process_message_callback(HWND hwnd, UINT msg, WPARAM param, LPA
 
 			if (!(window_position->flags & SWP_NOSIZE))
 			{
-				s_rect requested;
+				s_window_rect requested;
 				requested.width = window_position->cx;
 				requested.height = window_position->cy;
 
