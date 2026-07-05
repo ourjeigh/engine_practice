@@ -5,6 +5,7 @@
 void c_game_flow_state_gameplay::on_enter(s_flow_state_gameplay* state_data, real32 dt, bool& out_continue)
 {
 	state_data->player.m_transform.reset();
+	state_data->player.m_transform.scale *= 0.5f;
 	c_object& dummy = state_data->scene_objects.push();
 	dummy.m_transform.reset();
 	dummy.m_transform.position.set(1, 1, 0, 1);
@@ -40,11 +41,20 @@ void c_game_flow_state_gameplay::on_update(s_flow_state_gameplay* state_data, re
 		false,
 		render_layer_debug);
 
+	t_vector_2d_real32 player_center = state_data->player.m_transform.position.xy();
+	t_aabb_2d_real32 player_aabb = state_data->player.get_collision_rect().to_aabb();
 	for (const auto& object : state_data->scene_objects)
 	{
+		c_color color = k_color_blue;
+		
+		if (object.get_collision_rect().to_aabb().overlaps_other(player_aabb))
+		{
+			color = k_color_green;
+		}
+
 		engine_render_draw_rect(
 			state_data->camera.world_rect_to_screen_space(object.get_collision_rect()),
-			k_color_blue,
+			color,
 			false,
 			render_layer_debug);
 	}
