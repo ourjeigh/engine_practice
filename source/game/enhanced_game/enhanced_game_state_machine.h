@@ -43,6 +43,7 @@ struct s_flow_state_gameplay
 {
 	c_player player;
 	c_camera_2d camera;
+	c_static_stack<c_object, 8> scene_objects;
 };
 
 class c_game_flow_state_gameplay : public c_game_state_machine_state< s_flow_state_gameplay>

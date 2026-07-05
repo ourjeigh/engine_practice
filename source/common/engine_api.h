@@ -16,6 +16,7 @@ struct i_engine
 	virtual void log_error(c_string message) = 0;
 	virtual void log_critical(c_string message) = 0;
 
+	virtual const s_input_state* input_get_input_state() = 0;
 	virtual s_key_state input_get_key_state(e_input_keycode key) = 0;
 	virtual void input_consume_key_state(e_input_keycode key) = 0;
 	virtual const s_mouse_state* input_get_mouse_state() = 0;
@@ -76,6 +77,7 @@ inline void engine_log_critical(const char* message, t_args... args)
 	g_engine_ptr->log_critical(log_msg);
 }
 
+inline const s_input_state* engine_input_get_input_state() { return g_engine_ptr->input_get_input_state(); }
 inline s_key_state engine_input_get_key_state(e_input_keycode key) { return g_engine_ptr->input_get_key_state(key); }
 inline void engine_input_consume_key_state(e_input_keycode key) { return g_engine_ptr->input_consume_key_state(key); }
 inline const s_mouse_state* engine_input_get_mouse_state() { return g_engine_ptr->input_get_mouse_state(); }

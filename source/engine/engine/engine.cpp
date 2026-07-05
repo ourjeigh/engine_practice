@@ -38,6 +38,11 @@ void c_engine::halt(const char* message, const char* file, const long line)
 	halt_internal(message, file, line);
 }
 
+const s_input_state* c_engine::input_get_input_state()
+{
+	return input_system_get_current_input_state();
+}
+
 s_key_state c_engine::input_get_key_state(e_input_keycode key)
 {
 	return input_system_get_key_state(key);

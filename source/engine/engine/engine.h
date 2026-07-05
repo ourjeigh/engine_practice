@@ -14,6 +14,7 @@ public:
 	void assert(const char* condition, const char* file, const long line);
 	void halt(const char* message, const char* file, const long line);
 
+	const s_input_state* input_get_input_state();
 	s_key_state input_get_key_state(e_input_keycode key);
 	void input_consume_key_state(e_input_keycode key);
 	const s_mouse_state* input_get_mouse_state();

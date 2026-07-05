@@ -81,7 +81,7 @@ public:
 		int32 width = screen_bottom_right.x() - screen_top_left.x();
 		int32 height = screen_top_left.y() - screen_bottom_right.y();
 
-		t_render_shape_rect out(screen_top_left.x(), screen_top_left.y(), width, height);
+		t_render_shape_rect out(screen_top_left.x(), screen_bottom_right.y(), width, height);
 		return out;
 	}
 
