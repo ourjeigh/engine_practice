@@ -8,30 +8,54 @@
 template<typename t_type, typename t_scalar, t_type k_default_epsilon>
 struct s_aabb_2d
 {
-	c_vector_2d<t_type, t_scalar, k_default_epsilon> bottom_left;
-	c_vector_2d<t_type, t_scalar, k_default_epsilon> top_right;
+	c_vector_2d<t_type, t_scalar, k_default_epsilon> min_xy;
+	c_vector_2d<t_type, t_scalar, k_default_epsilon> max_xy;
+
+	s_aabb_2d<t_type, t_scalar, k_default_epsilon> add(const s_aabb_2d<t_type, t_scalar, k_default_epsilon>& other) const
+	{
+		s_aabb_2d out = *this;
+		real32 other_half_width = other.width() * 0.5f;
+		real32 other_half_height = other.height() * 0.5;
+		out.min_xy.x() -= other_half_width;
+		out.min_xy.y() -= other_half_height;
+		out.max_xy.x() += other_half_width;
+		out.max_xy.y() += other_half_height;
+		return out;
+	}
+
+	bool is_valid() const
+	{
+		return max_xy.x() > min_xy.x() && max_xy.y() > min_xy.y();
+	}
+
+	real32 width() const { return max_xy.x() - min_xy.x(); }
+	real32 height() const { return max_xy.y() - min_xy.y(); }
 
 	bool contains_point(const c_vector_2d<t_type, t_scalar, k_default_epsilon>& point) const
 	{
+		ASSERT(is_valid());
 		return
-			in_range_inclusive<t_type>(bottom_left.x(), top_right.x(), point.x()) &&
-			in_range_inclusive<t_type>(bottom_left.y(), top_right.y(), point.y());
+			in_range_inclusive<t_type>(min_xy.x(), max_xy.x(), point.x()) &&
+			in_range_inclusive<t_type>(min_xy.y(), max_xy.y(), point.y());
 	}
 
 	bool contains_plane_x(t_type y) const
 	{
-		return in_range_inclusive<t_type>(bottom_left.y(), top_right.y(), y);
+		ASSERT(is_valid());
+		return in_range_inclusive<t_type>(min_xy.y(), max_xy.y(), y);
 	}
 
 	bool contains_plane_y(t_type x) const
 	{
-		return in_range_inclusive<t_type>(bottom_left.x(), top_right.x(), x);
+		ASSERT(is_valid());
+		return in_range_inclusive<t_type>(min_xy.x(), max_xy.x(), x);
 	}
 
 	bool overlaps_other(const s_aabb_2d<t_type, t_scalar, k_default_epsilon>& other) const
 	{
-		bool contains_x = contains_plane_x(other.bottom_left.y()) || contains_plane_x(other.top_right.y());
-		bool contains_y = contains_plane_x(other.bottom_left.x()) || contains_plane_x(other.top_right.x());
+		ASSERT(is_valid());
+		bool contains_x = contains_plane_x(other.min_xy.y()) || contains_plane_x(other.max_xy.y());
+		bool contains_y = contains_plane_y(other.min_xy.x()) || contains_plane_y(other.max_xy.x());
 		return contains_x && contains_y;
 	}
 };
@@ -76,8 +100,8 @@ struct s_rect_2d
 	s_aabb_2d<t_type, t_scalar, k_default_epsilon> to_aabb() const
 	{
 		s_aabb_2d<t_type, t_scalar, k_default_epsilon> out;
-		out.bottom_left.set(x, y);
-		out.top_right.set(x + width, y + height);
+		out.min_xy.set(x, y);
+		out.max_xy.set(x + width, y + height);
 		return out;
 	}
 };

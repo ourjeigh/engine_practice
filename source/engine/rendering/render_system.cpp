@@ -384,25 +384,44 @@ void process_draw_rect_outline_message_internal(const s_render_message_data_draw
 	ASSERT(buffer->dimensions.width && buffer->dimensions.height);
 	
 	const t_render_shape_rect& rect = message->rect;
+	
+	const int32 left = rect.x;
+	const int32 right = rect.x + rect.width;
+	const int32 top = rect.y;
+	const int32 bottom = rect.y + rect.height;
+
+	int32 x_start = math_pin<int32>(0, buffer->dimensions.width - 1, left);
+	int32 x_end = math_pin<int32>(0, buffer->dimensions.width - 1, right);
+	int32 y_start = math_pin<int32>(0, buffer->dimensions.height - 1, top);
+	int32 y_end = math_pin<int32>(0, buffer->dimensions.height - 1, bottom);
+
 	// top
-	draw_horizontal_line_internal(rect.x, rect.x + rect.width, rect.y, message->color, buffer);
+	if (in_range_inclusive_int32(0, buffer->dimensions.height - 1, top))
+	{
+		draw_horizontal_line_internal(x_start, x_end, top, message->color, buffer);
+	}
 	
 	// bottom
-	draw_horizontal_line_internal(rect.x, rect.x + rect.width, rect.y + rect.height, message->color, buffer);
-
-	int32 y_start = math_max<int32>(0, rect.y);
-	int32 y_end = math_min<int32>(rect.y + rect.height, buffer->dimensions.height - 1);
+	if (in_range_inclusive_int32(0, buffer->dimensions.height - 1, bottom))
+	{
+		draw_horizontal_line_internal(x_start, x_end, bottom, message->color, buffer);
+	}
 	
-	for (int32 y = rect.y; y < y_end; y++)
+	for (int32 y = y_start; y < y_end; y++)
 	{
 		// left
-		draw_pixel_to_buffer_internal(rect.x, y, message->color, buffer);
+		if (in_range_inclusive_int32(0, buffer->dimensions.width - 1, left))
+		{
+			draw_pixel_to_buffer_internal(left, y, message->color, buffer);
+		}
 		
 		// right
-		draw_pixel_to_buffer_internal(rect.x + rect.width, y, message->color, buffer);
+		if (in_range_inclusive_int32(0, buffer->dimensions.width - 1, right))
+		{
+			draw_pixel_to_buffer_internal(right, y, message->color, buffer);
+		}
 	}
 }
-
 
 void move_point_within_buffer_space(t_render_shape_point& point, const s_backbuffer const_ptr buffer)
 {
