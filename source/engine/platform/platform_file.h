@@ -8,7 +8,7 @@
 c_platform_handle platform_file_open(const c_file_path& file_path, t_file_open_mode_flags flags);
 void platform_file_close(c_platform_handle& handle);
 bool platform_file_delete(const c_file_path& file_path);
-void platform_file_directory_get_files(const c_file_path& directory, c_stack<c_file_path>& out_files);
+void platform_file_directory_get_files(const c_file_path& directory, c_stack<c_file_path> out_files);
 
 int32 platform_file_read_bytes(
 	c_platform_handle& file_handle,

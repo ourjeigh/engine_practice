@@ -359,12 +359,11 @@ static_global void cleanup_temp_game_dlls()
 {
 	c_file_path directory("C:\\Users\\RJ\\git\\simm_engine\\build");
 	c_static_stack<c_file_path, 128> files;
-	c_stack<c_file_path> stack = files.as_stack();
-	platform_file_directory_get_files(directory, stack);
+	platform_file_directory_get_files(directory, files);
 
 	const t_string_128 temp_string("temp");
 
-	for (auto& file : stack)
+	for (auto& file : files)
 	{
 		if (file.contains(temp_string))
 		{

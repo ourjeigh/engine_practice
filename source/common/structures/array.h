@@ -192,9 +192,9 @@ protected:
 		ASSERT(index < capacity());
 	}
 
-private:
 	t_derived& self() { return *static_cast<t_derived*>(this); }
 	const t_derived& self() const { return *static_cast<const t_derived*>(this); }
+private:
 };
 
 template<class t_type>
@@ -287,10 +287,10 @@ template<class t_type, class t_derived>
 class c_stack_base : public c_array_base<t_type, t_derived>
 {
 public:
-	iterator<t_type> end() { return iterator<t_type>(&this->data()[m_top + 1]); }
-	iterator<t_type> begin_reverse() { return iterator<t_type>(&this->data()[m_top]); }
-	const_iterator<t_type> end_const() const { return const_iterator<t_type>(&this->data()[m_top + 1]); }
-	const_iterator<t_type> begin_reverse_const() const { return const_iterator<t_type>(&this->data()[m_top]); }
+	iterator<t_type> end() { return iterator<t_type>(&this->data()[this->top_index() + 1]); }
+	iterator<t_type> begin_reverse() { return iterator<t_type>(&this->data()[this->top_index()]); }
+	const_iterator<t_type> end_const() const { return const_iterator<t_type>(&this->data()[this->top_index() + 1]); }
+	const_iterator<t_type> begin_reverse_const() const { return const_iterator<t_type>(&this->data()[this->top_index()]); }
 
 	template<class t_other>
 	bool operator==(const c_stack_base<t_type, t_other>& other) const
@@ -318,60 +318,60 @@ public:
 	void push(t_type item)
 	{
 		ASSERT(!full());
-		this->data()[++m_top] = item;
+		this->data()[++this->top_index()] = item;
 	}
 
 	t_type& push()
 	{
 		ASSERT(!full());
-		return this->data()[++m_top];
+		return this->data()[++this->top_index()];
 	}
 
 	template<class t_other>
 	void push_from(const c_array_base<t_type, t_other>& other)
 	{
 		ASSERT(free() >= other.capacity());
-		memory_copy(&this->data()[++m_top], other.data(), sizeof(t_type) * other.capacity());
+		memory_copy(&this->data()[++this->top_index()], other.data(), sizeof(t_type) * other.capacity());
 
-		m_top += other.capacity() - 1;
-		ASSERT(m_top <= this->capacity());
+		this->top_index() += other.capacity() - 1;
+		ASSERT(this->top_index() <= this->capacity());
 	}
 
 	void pop()
 	{
 		ASSERT(!empty());
-		m_top--;
+		this->top_index()--;
 	}
 
 	t_type& top()
 	{
 		ASSERT(!empty());
-		return this->data()[m_top];
+		return this->data()[this->top_index()];
 	}
 
 	const t_type& top() const
 	{
 		ASSERT(!empty());
-		return this->data()[m_top];
+		return this->data()[this->top_index()];
 	}
 
 	t_type* get_item(int32 index)
 	{
-		ASSERT(index <= m_top);
+		ASSERT(index <= this->top_index());
 		return c_array_base<t_type, t_derived>::get_item(index);
 	}
 
 	const t_type* get_item_const(int32 index) const
 	{
-		ASSERT(index <= m_top);
+		ASSERT(index <= this->top_index());
 		return c_array_base<t_type, t_derived>::get_item_const(index);
 	}
 
-	int32 used() const { return m_top + 1; }
+	int32 used() const { return this->top_index() + 1; }
 	int32 free() const { return this->capacity() - used(); }
-	bool empty() const { return m_top == k_index_empty; }
-	bool full() const { return m_top == this->capacity() - 1; }
-	void clear() { m_top = k_index_empty; }
+	bool empty() const { return this->top_index() == k_index_empty; }
+	bool full() const { return this->top_index() == this->capacity() - 1; }
+	void clear() { this->top_index() = k_index_empty; }
 
 	operator c_array<t_type>() { return c_array<t_type>(this->data(), this->used()); }
 	operator c_array<const t_type>() const { return c_array<const t_type>(this->data(), this->used()); }
@@ -383,14 +383,14 @@ public:
 		ASSERT(!other.empty());
 		ASSERT(this->capacity() >= other.used());
 		c_array_base<t_type, t_derived>::copy_from_range(other, 0, other.used());
-		m_top = other.used() - 1;
+		this->top_index() = other.used() - 1;
 	}
 
 	template<class t_other>
 	void copy_from_range(const c_stack_base<t_type, t_other>& other, int32 start, int32 end)
 	{
 		c_array_base<t_type, t_derived>::copy_from_range(other, start, end);
-		m_top = end - start - 1;
+		this->top_index() = end - start - 1;
 	}
 
 	c_array<t_type> make_array()
@@ -398,8 +398,10 @@ public:
 		return c_array<t_type>(this->data(), used());
 	}
 
+	int32& top_index() { return this->self().top_index(); }
+	const int32& top_index() const { return this->self().top_index(); }
 protected:
-	int32 m_top = k_index_empty;
+	//int32 m_top = k_index_empty;
 
 private:
 	static_member_data const int32 k_index_empty = -1;
@@ -410,11 +412,10 @@ template<class t_type>
 class c_stack : public c_stack_base<t_type, c_stack<t_type>>
 {
 public:
-	c_stack() : m_data_reference(nullptr), m_size(k_invalid) {}
-	c_stack(t_type* data, int32 size) : m_data_reference(data), m_size(size) {}
-	c_stack(t_type* data, int32 size, int32 top) : m_data_reference(data), m_size(size) 
+	c_stack() : m_data_reference(nullptr), m_size(k_invalid), m_top_ref(nullptr) {}
+	c_stack(t_type* data, int32 size, int32* top) : m_data_reference(data), m_size(size) 
 	{
-		this->m_top = top;
+		m_top_ref = top;
 	}
 
 	c_stack& operator=(const c_stack& other)
@@ -423,9 +424,15 @@ public:
 
 		m_data_reference = other.m_data_reference;
 		m_size = other.m_size;
-		this->m_top = other.m_top;
+		m_top_ref = other.m_top_ref;
 		return *this;
 	}
+
+	int32& top_index() { return *m_top_ref; }
+	const int32& top_index() const { return *m_top_ref; }
+
+private:
+	int32* m_top_ref;
 
 	ARRAY_DECLARE_REFERENCE_MEMBERS
 };
@@ -434,8 +441,16 @@ template<class t_type, int32 k_max_size>
 class c_static_stack : public c_stack_base<t_type, c_static_stack<t_type, k_max_size>>
 {
 public:
-	c_stack<t_type> as_stack() { return c_stack<t_type>(this->data(), this->capacity(), this->m_top); }
-	operator c_stack<t_type>() { return c_stack<t_type>(this->data(), this->capacity(), this->m_top); }
+	c_static_stack() { this->clear(); }
+
+	c_stack<t_type> as_stack() { return c_stack<t_type>(this->data(), this->capacity(), &m_top); }
+	operator c_stack<t_type>() { return c_stack<t_type>(this->data(), this->capacity(), &m_top); }
+
+	int32& top_index() { return m_top; }
+	const int32& top_index() const { return m_top; }
+
+private:
+	int32 m_top;
 
 	ARRAY_DECLARE_STORAGE_MEMBERS
 };

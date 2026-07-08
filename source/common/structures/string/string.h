@@ -18,7 +18,7 @@ public:
 
 	c_string() { this->clear(); }
 
-	explicit c_string(char* data, int32 size) : c_stack<char>(data, size) {}
+	explicit c_string(char* data, int32 size, int32* top) : c_stack<char>(data, size, top) {}
 
 	void clear()
 	{
@@ -105,7 +105,7 @@ public:
 
 	void assert_valid()
 	{
-		assert_valid_index(this->m_top);
+		assert_valid_index(this->top_index());
 		ASSERT(is_terminated());
 	}
 
@@ -224,9 +224,9 @@ template<int32 k_max_size>
 class c_static_string : public c_string
 {
 public:
-	c_static_string() : c_string(m_data, k_max_size) {}
+	c_static_string() : c_string(m_data, k_max_size, &m_top) {}
 
-	constexpr c_static_string(const char* string) : c_string(m_data, k_max_size)
+	constexpr c_static_string(const char* string) : c_string(m_data, k_max_size, &m_top)
 	{
 		this->clear();
 		print(string);
@@ -234,6 +234,7 @@ public:
 
 private:
 	char m_data[k_max_size];
+	int32 m_top;
 };
 
 typedef c_static_string<128> t_string_128;
