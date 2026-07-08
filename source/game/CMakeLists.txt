@@ -28,6 +28,15 @@ else()
 	add_library(game STATIC ${GAME_SOURCES})
 endif()
 
+add_custom_command(
+    TARGET game
+    PRE_BUILD
+    COMMAND cmd /c "del /Q /F game_*.pdb 2>nul & exit 0"
+    WORKING_DIRECTORY "$<TARGET_PDB_FILE_DIR:game>"
+    COMMENT "Deleting old game_*.pdb files"
+    VERBATIM
+)
+
 # The game needs the common headers, but DOES NOT link against the Engine lib
 target_include_directories(game 
 	PRIVATE 
