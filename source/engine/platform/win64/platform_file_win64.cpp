@@ -84,7 +84,7 @@ bool platform_file_delete(const c_file_path& file_path)
 	return DeleteFile(file_path.get_full_path());
 }
 
-void platform_file_directory_get_files(const c_file_path& directory, c_stack<c_file_path> out_files)
+void platform_file_directory_get_files(const c_file_path& directory, c_stack<c_file_path>& out_files)
 {
 	t_string_128 wildcard("\\*");
 	t_string_256 directory_no_wildcard(directory.get_full_path());

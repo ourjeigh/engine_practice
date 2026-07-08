@@ -99,11 +99,11 @@ void c_application::init()
 
 void c_application::term()
 {
-	engine_systems_term();
-	m_window.term();
 	g_game_info.library.invalidate();
 	unload_game();
 	cleanup_temp_game_dlls();
+	engine_systems_term();
+	m_window.term();
 }
 
 void c_application::run()
@@ -359,15 +359,23 @@ static_global void cleanup_temp_game_dlls()
 {
 	c_file_path directory("C:\\Users\\RJ\\git\\simm_engine\\build");
 	c_static_stack<c_file_path, 128> files;
-	platform_file_directory_get_files(directory, files);
+	c_stack<c_file_path> stack = files.as_stack();
+	platform_file_directory_get_files(directory, stack);
 
 	const t_string_128 temp_string("temp");
 
-	for (auto& file : files)
+	for (auto& file : stack)
 	{
 		if (file.contains(temp_string))
 		{
-			platform_file_delete(file);
+			if (platform_file_delete(file))
+			{
+				log_message(verbose, "application: deleted game dll: {s}", file.get_full_path());
+			}
+			else
+			{
+				log_message(warning, "application: could not delete game dll: {s}", file.get_full_path());
+			}
 		}
 	}
 }
