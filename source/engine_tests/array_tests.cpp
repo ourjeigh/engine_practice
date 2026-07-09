@@ -238,10 +238,8 @@ TEST(C_STACK, C_STACK_ASSERTS)
 
 TEST(C_STACK, ASSIGNMENT_PRESERVES_TOP)
 {
-	int32 source_buffer[8];
-	int32 target_buffer[8];
-	c_stack<int32> source(source_buffer, 8);
-	c_stack<int32> target(target_buffer, 8);
+	c_static_stack<int32, 8> source;
+	c_static_stack<int32, 8> target;
 
 	source.push(10);
 	source.push(20);
@@ -286,8 +284,8 @@ TEST(C_STACK, COPY_BETWEEN_TYPES)
 	source.push(200);
 	source.push(300);
 
-	int32 target_buffer[8];
-	c_stack<int32> target(target_buffer, 8);
+	c_static_stack<int32, 8> target_static;
+	c_stack<int32> target = target_static;
 	target.copy_from(source);
 
 	EXPECT_EQ(target.used(), source.used());
@@ -342,8 +340,8 @@ TEST(C_STACK, COPY_FROM_RANGE)
 	source.push(40);
 	source.push(50);
 
-	int32 target_buffer[8];
-	c_stack<int32> target(target_buffer, 8);
+	c_static_stack<int32, 8> target_static;
+	c_stack<int32> target = target_static;
 	target.copy_from_range(source, 1, 4);
 
 	EXPECT_EQ(target.used(), 3);
