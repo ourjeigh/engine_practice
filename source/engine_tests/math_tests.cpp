@@ -28,6 +28,23 @@ TEST(MATH, POW)
 	EXPECT_NEAR(math_pow(2.63f, 8), 2289.00f, 0.01f);
 }
 
+TEST(MATH, SQUARE)
+{
+	EXPECT_EQ(math_square(2), 4);
+	EXPECT_EQ(math_square(3), 9);
+	EXPECT_EQ(math_square(8), 64);
+	EXPECT_EQ(math_square(287), 82369);
+}
+
+TEST(MATH, SQRT)
+{
+	EXPECT_FLOAT_EQ(math_sqrt(0.25), 0.5);
+	EXPECT_FLOAT_EQ(math_sqrt(1), 1);
+	EXPECT_FLOAT_EQ(math_sqrt(4), 2);
+	EXPECT_FLOAT_EQ(math_sqrt(9), 3);
+	EXPECT_FLOAT_EQ(math_sqrt(64), 8);
+}
+
 TEST(MATH, FACT)
 {
 	EXPECT_EQ(math_fact(0), 0);

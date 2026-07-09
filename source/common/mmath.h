@@ -69,30 +69,19 @@ constexpr t_type math_square(t_type in)
 
 constexpr real64 math_sqrt(real64 in)
 {
-	/* make sure x is not negative .. no math crimes allowed! */
 	ASSERT(in>= 0);
 	if (in == 0) return 0;
 
-	/* the sqrt must be between xhi and xlo */
-	double xhi = in;
-	double xlo = 0;
-	double guess = in / 2;
+	real64 x0 = in / 2;
+	real64 x1 = (x0 + in / x0) * 0.5;
 
-	/* We stop when guess*guess-x is very small */
-	while (math_abs((guess * guess - in) / guess) > 0.00001)
+	while (math_abs((x1*x1) - in) > 0.00001)
 	{
-		if (guess * guess > in) {
-			xhi = guess;
-		}
-
-		else {
-			xlo = guess;
-		}
-
-		guess = (xhi + xlo) / 2;
+		x0 = x1;
+		x1 = (x0 + in / x0) * 0.5;
 	}
 
-	return guess;
+	return x1;
 }
 
 template<typename t_type>
