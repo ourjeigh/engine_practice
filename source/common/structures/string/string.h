@@ -224,7 +224,7 @@ template<int32 k_max_size>
 class c_static_string : public c_string
 {
 public:
-	c_static_string() : c_string(m_data, k_max_size, &m_top) {}
+	c_static_string() : c_string(m_data, k_max_size, &m_top) { this->clear(); }
 
 	constexpr c_static_string(const char* string) : c_string(m_data, k_max_size, &m_top)
 	{
