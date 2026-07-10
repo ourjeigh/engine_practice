@@ -2,10 +2,15 @@
 #define __STR_H__
 #pragma once
 
+/*
+function helpers for const char* strings
+*/
+
 #include "types/types.h"
 #include "debug/asserts.h"
 
 const char k_null_char = '\0';
+const int32 k_max_str_length = k_uint16_max;
 
 /// <summary>
 /// </summary>
@@ -34,7 +39,6 @@ constexpr int32 str_compare(const char* left, const char* right)
 		}
 	}
 
-	const uint64 max_char_count = k_uint16_max;
 	uint64 char_count = 0;
 
 	while (*left != k_null_char && *right != k_null_char)
@@ -46,8 +50,7 @@ constexpr int32 str_compare(const char* left, const char* right)
 			return diff;
 		}
 
-		// that's a pretty long string buddy
-		ASSERT(++char_count < max_char_count);
+		ASSERT(++char_count < k_max_str_length);
 
 		left++;
 		right++;
@@ -76,9 +79,10 @@ constexpr int32 str_length(const char* string)
 	ASSERT(string != nullptr);
 
 	int32 out_length = 0;
-	while (string[out_length] != k_null_char && out_length < k_int32_max)
+	while (string[out_length] != k_null_char)
 	{
 		out_length++;
+		ASSERT(out_length < k_max_str_length);
 	}
 
 	return out_length;

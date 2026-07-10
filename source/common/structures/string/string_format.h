@@ -159,7 +159,10 @@ inline void string_format_from_int(const t_type input, int8 width, t_char_stack&
 
 	while (temp.used() < width)
 	{
-		temp.push('0');
+		// I'm not sure if we eventually want an option for whether to put a space or 0 here, but trying space
+		// for now since it feels a little easier to read.
+		temp.push(' ');
+		//temp.push('0');
 	}
 
 	ASSERT(out_buffer.free() > temp.used());

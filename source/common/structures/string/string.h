@@ -2,11 +2,14 @@
 #define __STRING_H__
 #pragma once
 
+/*
+custom string class and related functionality. for const char* functions, see str.h
+*/
+
 #include "debug/asserts.h"
 #include "structures/array.h"
 #include "structures/string/string_format.h"
 #include "types/types.h"
-
 
 // TODO: create a c_string_base which imherits c_stack_base and
 // make c_string and c_satic_string inherit that
@@ -240,7 +243,5 @@ typedef c_static_string<128> t_string_128;
 typedef c_static_string<256> t_string_256;
 typedef c_static_string<512> t_string_512;
 typedef c_static_string<1024> t_string_1024;
-
-
 
 #endif __STRING_H__

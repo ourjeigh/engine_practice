@@ -3,8 +3,6 @@
 #ifdef FEATURE_PERF_MEASUREMENT
 #include "debug/logging.h"
 #include "structures/hash_set.h"
-#include "platform/platform.h"
-
 
 struct s_perf_measurement_set
 {
@@ -110,6 +108,7 @@ void c_perf_system::generate_report()
 	// dump to file...
 	log_message(verbose, "::: PERF REPORT :::");
 
+	// TODO: sort this by decreasing avg time
 	for (auto it = g_measurements.begin(); it != g_measurements.end(); ++it)
 	{
 		const s_perf_measurement_set& set = it->value;
@@ -123,15 +122,17 @@ void c_perf_system::generate_report()
 		real64 max_time = c_engine_time_span(0, set.max_duration).get_duration_microseconds();
 		real64 min_time = c_engine_time_span(0, set.min_duration).get_duration_microseconds();
 
-		int32 calls_per_tick = 0.5f + set.count / (real32)g_ticks;
+		int32 calls_per_tick = math_ceil<real32>(set.count / static_cast<real32>(g_ticks));
+		real64 avg_time_per_tick = avg_time * calls_per_tick;
 
-		log_message(verbose, "{s50}:\ttotal time: {f}(us),\tavg time: {f}(us)\tmin time: {f}(us)\tmax time: {f}(us)\t calls per tick: {i}",
+		log_message(verbose, "{s50}: total time: {f8}(us),\tavg time: {f8}(us)\tmin time: {f8}(us)\tmax time: {f8}(us)\tcalls per tick: {i5}\tavg time/tick:{f8}(us)",
 			name,
 			total_time,
 			avg_time,
 			min_time,
 			max_time,
-			calls_per_tick);
+			calls_per_tick,
+			avg_time_per_tick);
 	}
 
 	log_message(verbose, "::: END PERF REPORT :::");
