@@ -13,7 +13,7 @@ TEST(STRING_TEST, STRING_TEST_PRINT)
 	t_string_128 string;
 	string.print(test_string);
 
-	EXPECT_EQ(string_compare(test_string, string.get_const_char()), 0);
+	EXPECT_EQ(str_compare(test_string, string.get_const_char()), 0);
 }
 
 TEST(STRING_FORMAT, ATOI_VALID_INPUTS)
@@ -164,12 +164,22 @@ TEST(STRING_TEST, STRING_TEST_ASSERTS)
 	EXPECT_DEATH(test_string.printf("This string is way too long {d}", 12345), ".*");
 }
 
+TEST(STRING, STRING_PRINT_FIXED_LENGTH)
+{
+	t_string_128 test_string;
+	test_string.printf("Hello {s5}.", "Bob");
+	
+	t_string_128 expected_string = "Hello   Bob.";
+
+	EXPECT_TRUE(test_string == expected_string);
+}
+
 TEST(STRING_TEST, STRING_COMPARE_EQUALS)
 {
 	const char* test1 = "This is a test string";
 	const char* test2 = "This is a test string";
 
-	EXPECT_EQ(string_compare(test1, test2), 0);
+	EXPECT_EQ(str_compare(test1, test2), 0);
 }
 
 TEST(STRING_TEST, STRING_COMPARE_UNEQUAL)
@@ -177,7 +187,7 @@ TEST(STRING_TEST, STRING_COMPARE_UNEQUAL)
 	const char* test1 = "This is test string 1";
 	const char* test2 = "This is test string 2";
 
-	EXPECT_EQ(string_compare(test1, test2), 1);
+	EXPECT_EQ(str_compare(test1, test2), 1);
 }
 
 TEST(STRING_TEST, STRING_COMPARE_SHORTER)
@@ -185,7 +195,7 @@ TEST(STRING_TEST, STRING_COMPARE_SHORTER)
 	const char* test1 = "This is test string 1";
 	const char* test2 = "This is test";
 
-	EXPECT_EQ(string_compare(test1, test2), -1);
+	EXPECT_EQ(str_compare(test1, test2), -1);
 }
 
 TEST(STRING_TEST, STRING_COMPARE_LONGER)
@@ -193,7 +203,7 @@ TEST(STRING_TEST, STRING_COMPARE_LONGER)
 	const char* test1 = "This is test string 1";
 	const char* test2 = "This is test string 11";
 
-	EXPECT_EQ(string_compare(test1, test2), 1);
+	EXPECT_EQ(str_compare(test1, test2), 1);
 }
 
 TEST(STRING_TEST, STRING_COMPARE_NULL)
@@ -201,8 +211,8 @@ TEST(STRING_TEST, STRING_COMPARE_NULL)
 	const char* test1 = "This is test string 1";
 	const char* test2 = "This is test string 11";
 
-	EXPECT_EQ(string_compare(nullptr, nullptr), 0);
-	EXPECT_GE(string_compare(nullptr, test1), 1);
+	EXPECT_EQ(str_compare(nullptr, nullptr), 0);
+	EXPECT_GE(str_compare(nullptr, test1), 1);
 }
 
 TEST(STRING, STRING_COMPARE_TOO_BIG)
@@ -222,7 +232,7 @@ TEST(STRING, STRING_COMPARE_TOO_BIG)
 		long_string2[i] = new_char;
 	}
 
-	EXPECT_DEATH(string_compare(long_string1, long_string2), ".*");
+	EXPECT_DEATH(str_compare(long_string1, long_string2), ".*");
 
 	delete[] long_string1;
 	delete[] long_string2;
@@ -230,12 +240,12 @@ TEST(STRING, STRING_COMPARE_TOO_BIG)
 
 TEST(STRING, STRING_LENGTH)
 {
-	EXPECT_DEATH(string_length(nullptr), ".*");
-	EXPECT_EQ(string_length("hello"), 5);
-	EXPECT_EQ(string_length("hello world"), 11);
-	EXPECT_NE(string_length("hello world"), 3);
+	EXPECT_DEATH(str_length(nullptr), ".*");
+	EXPECT_EQ(str_length("hello"), 5);
+	EXPECT_EQ(str_length("hello world"), 11);
+	EXPECT_NE(str_length("hello world"), 3);
 
-	COMPILE_ASSERT(string_length("hello") == 5);
+	COMPILE_ASSERT(str_length("hello") == 5);
 }
 
 TEST(STRING, STRING_CONTAINS)
@@ -264,7 +274,7 @@ TEST(STRING_ID, STRING_ID_COMPILED)
 	COMPILE_ASSERT(test.get_id() != -1);
 
 #ifdef _DEBUG
-	EXPECT_EQ(string_compare(test.get_debug_string(), "test string"), 0);
+	EXPECT_EQ(str_compare(test.get_debug_string(), "test string"), 0);
 #endif //_DEBUG
 }
 
@@ -287,22 +297,22 @@ TEST(STRING_FORMAT, BOOL)
 
 	string_format_from_bool(true, 0, string);
 	string.terminate();
-	EXPECT_TRUE(are_strings_equal("true", string.get_const_char()));
+	EXPECT_TRUE(str_equal("true", string.get_const_char()));
 	string.clear();
 
 	string_format_from_bool(false, 0, string);
 	string.terminate();
-	EXPECT_TRUE(are_strings_equal("false", string.get_const_char()));
+	EXPECT_TRUE(str_equal("false", string.get_const_char()));
 	string.clear();
 
 	string_format_from_bool(true, 1, string);
 	string.terminate();
-	EXPECT_TRUE(are_strings_equal("t", string.get_const_char()));
+	EXPECT_TRUE(str_equal("t", string.get_const_char()));
 	string.clear();
 
 	string_format_from_bool(false, 1, string);
 	string.terminate();
-	EXPECT_TRUE(are_strings_equal("f", string.get_const_char()));
+	EXPECT_TRUE(str_equal("f", string.get_const_char()));
 	string.clear();
 }
 
@@ -312,32 +322,32 @@ TEST(STRING_FORMAT, INT)
 
 	string_format_from_int(0, 0, string);
 	string.terminate();
-	EXPECT_TRUE(are_strings_equal("0", string.get_const_char()));
+	EXPECT_TRUE(str_equal("0", string.get_const_char()));
 	string.clear();
 
 	string_format_from_int(256, 0, string);
 	string.terminate();
-	EXPECT_TRUE(are_strings_equal("256", string.get_const_char()));
+	EXPECT_TRUE(str_equal("256", string.get_const_char()));
 	string.clear();
 
 	string_format_from_int(-256, 0, string);
 	string.terminate();
-	EXPECT_TRUE(are_strings_equal("-256", string.get_const_char()));
+	EXPECT_TRUE(str_equal("-256", string.get_const_char()));
 	string.clear();
 
 	string_format_from_int(k_int64_max, 0, string);
 	string.terminate();
-	EXPECT_TRUE(are_strings_equal("9223372036854775807", string.get_const_char()));
+	EXPECT_TRUE(str_equal("9223372036854775807", string.get_const_char()));
 	string.clear();
 
 	string_format_from_int(k_int64_min, 0, string);
 	string.terminate();
-	EXPECT_TRUE(are_strings_equal("-9223372036854775808", string.get_const_char()));
+	EXPECT_TRUE(str_equal("-9223372036854775808", string.get_const_char()));
 	string.clear();
 
 	string_format_from_int(k_uint64_max, 0, string);
 	string.terminate();
-	EXPECT_TRUE(are_strings_equal("18446744073709551615", string.get_const_char()));
+	EXPECT_TRUE(str_equal("18446744073709551615", string.get_const_char()));
 }
 
 TEST(STRING_FORMAT, REAL64)
@@ -347,7 +357,7 @@ TEST(STRING_FORMAT, REAL64)
 	string_format_from_real(test, 0, 6, string);
 	string.terminate();
 
-	EXPECT_TRUE(are_strings_equal("-234512.320004", string.get_const_char()));
+	EXPECT_TRUE(str_equal("-234512.320004", string.get_const_char()));
 }
 
 TEST(STRING_FORMAT, HEX)
@@ -358,7 +368,7 @@ TEST(STRING_FORMAT, HEX)
 		int8 input = -1;
 		string_format_to_hex(input, 0, string);
 		string.terminate();
-		EXPECT_TRUE(are_strings_equal("FF", string.get_const_char()));
+		EXPECT_TRUE(str_equal("FF", string.get_const_char()));
 		string.clear();
 	}
 
@@ -366,19 +376,19 @@ TEST(STRING_FORMAT, HEX)
 		int16 input = -1;
 		string_format_to_hex(input, 0, string);
 		string.terminate();
-		EXPECT_TRUE(are_strings_equal("FFFF", string.get_const_char()));
+		EXPECT_TRUE(str_equal("FFFF", string.get_const_char()));
 		string.clear();
 
 		input = 757;
 		string_format_to_hex(input, 0, string);
 		string.terminate();
-		EXPECT_TRUE(are_strings_equal("02F5", string.get_const_char()));
+		EXPECT_TRUE(str_equal("02F5", string.get_const_char()));
 		string.clear();
 
 		input = -4870;
 		string_format_to_hex(input, 0, string);
 		string.terminate();
-		EXPECT_TRUE(are_strings_equal("ECFA", string.get_const_char()));
+		EXPECT_TRUE(str_equal("ECFA", string.get_const_char()));
 		string.clear();
 	}
 
@@ -386,31 +396,31 @@ TEST(STRING_FORMAT, HEX)
 		int32 input = -1;
 		string_format_to_hex(input, 0, string);
 		string.terminate();
-		EXPECT_TRUE(are_strings_equal("FFFFFFFF", string.get_const_char()));
+		EXPECT_TRUE(str_equal("FFFFFFFF", string.get_const_char()));
 		string.clear();
 
 		input = -4870;
 		string_format_to_hex(input, 0, string);
 		string.terminate();
-		EXPECT_TRUE(are_strings_equal("FFFFECFA", string.get_const_char()));
+		EXPECT_TRUE(str_equal("FFFFECFA", string.get_const_char()));
 		string.clear();
 
 		input = 10;
 		string_format_to_hex(input, 0, string);
 		string.terminate();
-		EXPECT_TRUE(are_strings_equal("0000000A", string.get_const_char()));
+		EXPECT_TRUE(str_equal("0000000A", string.get_const_char()));
 		string.clear();
 
 		input = 256;
 		string_format_to_hex(input, 0, string);
 		string.terminate();
-		EXPECT_TRUE(are_strings_equal("00000100", string.get_const_char()));
+		EXPECT_TRUE(str_equal("00000100", string.get_const_char()));
 		string.clear();
 
 		input = -487294710;
 		string_format_to_hex(input, 0, string);
 		string.terminate();
-		EXPECT_TRUE(are_strings_equal("E2F4790A", string.get_const_char()));
+		EXPECT_TRUE(str_equal("E2F4790A", string.get_const_char()));
 		string.clear();
 	}
 }

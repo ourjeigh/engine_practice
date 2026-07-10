@@ -11,6 +11,7 @@
 #include "memory/memory.h"
 #include "types/types.h"
 #include "structures/string/string.h"
+#include "structures/string/str.h"
 
 #define DECLARE_STRING_ID(variable, string) constexpr c_string_id variable = c_string_id(string)
 
@@ -22,7 +23,7 @@ public:
 		DEBUG_ONLY_PARAM_LEFT_COMMA(d_debug_string(nullptr)) {}
 	
 	constexpr c_string_id(const char* string) :
-		m_hash(fnv1a_string_hash_64(string, string_length(string)))
+		m_hash(fnv1a_string_hash_64(string, str_length(string)))
 		DEBUG_ONLY_PARAM_LEFT_COMMA(d_debug_string(string)) {}
 
 	constexpr c_string_id(uint64 hash DEBUG_ONLY_PARAM_LEFT_COMMA(const char* string)) :
@@ -62,7 +63,7 @@ public:
 #ifdef CONFIG_DEBUG
 		if (equals)
 		{
-			ASSERT(string_compare(d_debug_string, other.d_debug_string) == 0);
+			ASSERT(str_compare(d_debug_string, other.d_debug_string) == 0);
 		}
 #endif // CONFIG_DEBUG
 

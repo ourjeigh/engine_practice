@@ -2,6 +2,7 @@
 #include "engine/file_system/file.h"
 #include "test_file_text.h"
 #include "platform/platform.h"
+#include "structures/string/str.h"
 
 const char* k_test_file_path_real = k_test_file_text_path;
 const char* k_test_file_path_fake = "c:\\this_path\\definitely\\shouldnt.exist";
@@ -28,7 +29,7 @@ TEST(FILE_INFO, GET_FILE_NAME)
 
 	t_string_256 file_name;
 	file_path.get_file_name(file_name);
-	EXPECT_EQ(string_compare(file_name.get_const_char(), "test_file_text.h"), 0);
+	EXPECT_EQ(str_compare(file_name.get_const_char(), "test_file_text.h"), 0);
 }
 
 TEST(FILE_INFO, GET_FILE_EXT)
@@ -38,7 +39,7 @@ TEST(FILE_INFO, GET_FILE_EXT)
 
 	t_string_256 file_ext;
 	file_path.get_file_ext(file_ext);
-	EXPECT_EQ(string_compare(file_ext.get_const_char(), "h"), 0);
+	EXPECT_EQ(str_compare(file_ext.get_const_char(), "h"), 0);
 }
 
 TEST(FILE_INFO, GET_FILE_NAME_NO_EXT)
@@ -48,7 +49,7 @@ TEST(FILE_INFO, GET_FILE_NAME_NO_EXT)
 
 	t_string_256 file_ext;
 	file_path.get_file_name_no_ext(file_ext);
-	EXPECT_EQ(string_compare(file_ext.get_const_char(), "test_file_text"), 0);
+	EXPECT_EQ(str_compare(file_ext.get_const_char(), "test_file_text"), 0);
 }
 
 TEST(FILE_INFO, GET_DIRECTORY_PATH)
@@ -59,7 +60,7 @@ TEST(FILE_INFO, GET_DIRECTORY_PATH)
 	t_string_256 directory_path;
 	file_path.get_directory_path(directory_path);
 
-	EXPECT_EQ(string_compare(directory_path.get_const_char(), "c:\\this_path\\definitely"), 0);
+	EXPECT_EQ(str_compare(directory_path.get_const_char(), "c:\\this_path\\definitely"), 0);
 }
 
 TEST(FILE_INFO, GET_DIRECTORY_NAME)
@@ -69,7 +70,7 @@ TEST(FILE_INFO, GET_DIRECTORY_NAME)
 
 	t_string_256 directory_name;
 	file_path.get_directory_name(directory_name);
-	EXPECT_EQ(string_compare(directory_name.get_const_char(), "definitely"), 0);
+	EXPECT_EQ(str_compare(directory_name.get_const_char(), "definitely"), 0);
 }
 
 TEST(C_FILE, OPEN_SUCESS)

@@ -5,6 +5,7 @@
 #include "debug/asserts.h"
 #include "mmath.h"
 #include "types/types.h"
+#include "structures/string/str.h"
 
 inline extern const char k_null_char;
 const char k_string_format_char_begin = '{';
@@ -271,8 +272,16 @@ inline void string_format_from_char(const char input, t_char_stack& out_buffer)
 	out_buffer.push(input);
 }
 
-inline void string_format_from_string(const char* input, t_char_stack& out_buffer)
+inline void string_format_from_string(const char* input, int8 width, t_char_stack& out_buffer)
 {
+	int32 length = str_length(input);
+
+	int32 pad = math_max<int32>(0, width - length);
+	while (pad-- > 0)
+	{
+		out_buffer.push(' ');
+	}
+
 	while (*input != k_null_char)
 	{
 		out_buffer.push(*input++);
@@ -339,7 +348,7 @@ struct s_string_formatter<const char*>
 	static_member_function void format(const s_format_spec& spec, const char* value, t_char_stack& out)
 	{
 		ASSERT(spec.type == 's');
-		string_format_from_string(value, out);
+		string_format_from_string(value, spec.width, out);
 	}
 };
 

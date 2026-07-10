@@ -125,7 +125,7 @@ void c_perf_system::generate_report()
 
 		int32 calls_per_tick = 0.5f + set.count / (real32)g_ticks;
 
-		log_message(verbose, "{s}:\ttotal time: {f}(us),\tavg time: {f}(us)\tmin time: {f}(us)\tmax time: {f}(us)\t calls per tick: {i}",
+		log_message(verbose, "{s50}:\ttotal time: {f}(us),\tavg time: {f}(us)\tmin time: {f}(us)\tmax time: {f}(us)\t calls per tick: {i}",
 			name,
 			total_time,
 			avg_time,
