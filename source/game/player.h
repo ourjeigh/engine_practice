@@ -9,27 +9,19 @@
 class c_object
 {
 public:
-	void move(const t_vector_4d_real32& move_delta)
+	void move_to(t_vector_4d_real32& new_position)
 	{
-		m_transform.position += move_delta;
+		m_transform.position = new_position;
 	}
-	
-	void move(real32 dt)
+
+	void apply_move_delta(real32 dt)
 	{
 		m_transform.position += m_velocity * dt;
 	}
 
-	t_rect_2d_real32 get_move_collision(real32 dt) const
+	t_vector_4d_real32 get_move_delta(real32 dt)
 	{
-		t_vector_4d_real32 new_position = m_transform.position + m_velocity * dt;
-		
-		t_rect_2d_real32 out;
-		out.x = new_position.x() - (m_transform.scale.x() * 0.5f);
-		out.y = new_position.y() - (m_transform.scale.y() * 0.5f);
-		out.width = m_transform.scale.x();
-		out.height = m_transform.scale.y();
-
-		return out;
+		return m_transform.position + m_velocity * dt;
 	}
 
 	t_rect_2d_real32 get_collision_rect() const
@@ -43,11 +35,16 @@ public:
 		ASSERT(out.center().is_equal(m_transform.position.xy()));
 		return out;
 	}
-
-	void set_velocity(const t_vector_4d_real32& new_velocity)
+	
+	void set_velocity(const t_vector_4d_real32& velocity)
 	{
-		const real32 hack_drag = 0.95f;
-		m_velocity = (new_velocity * (1.0f - hack_drag)) + (m_velocity * hack_drag);
+		m_velocity = velocity;
+	}
+
+	void apply_force(const t_vector_4d_real32& force)
+	{
+		const real32 hack_drag = 0.90f;
+		m_velocity = (force * (1.0f - hack_drag)) + (m_velocity * hack_drag);
 	}
 
 	s_transform m_transform;

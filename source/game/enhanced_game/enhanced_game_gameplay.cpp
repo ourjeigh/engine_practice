@@ -15,90 +15,55 @@ bool ray_intersect_test(
 	const t_aabb_2d_real32& static_aabb,
 	s_collision_info& out_collision_info)
 {
-	t_vector_4d_real32 move_delta = p2 - p1;
+	t_vector_4d_real32 direction = p2 - p1;
 
-	if (move_delta.is_zero())
+	const real32 top_y = static_aabb.max_xy.y();
+	const real32 bottom_y = static_aabb.min_xy.y();
+	const real32 left_x = static_aabb.min_xy.x();
+	const real32 right_x = static_aabb.max_xy.x();
+
+	real32 t_min = 1.0f;
+
 	{
-		bool collides = static_aabb.contains_point(p1.xy());
-		if (collides)
+		// top/bottom
+		real32 t_top = safe_divide(top_y - p1.y(), direction.y(), k_real32_max);
+		real32 t_bottom = safe_divide(bottom_y - p1.y(), direction.y(), k_real32_max);
+		real32 t = math_min(t_top, t_bottom);
+		if (in_range_inc_l_exc_r(0.0f, t_min, t))
 		{
-			out_collision_info.position = p1;
-			out_collision_info.t = 1.0f;
+			t_vector_4d_real32 collision_position = p1 + (direction * t);
+			if (in_range_inclusive(left_x, right_x, collision_position.x()))
+			{
+				t_min = t;
+			}
 		}
-		return collides;
 	}
-	else
 	{
-		const real32 top_y = static_aabb.max_xy.y();
-		const real32 bottom_y = static_aabb.min_xy.y();
-		const real32 left_x = static_aabb.min_xy.x();
-		const real32 right_x = static_aabb.max_xy.x();
-
-		real32 t_min = 1.0f;
-		{
-			real32 t_top = safe_divide(top_y - p1.y(), move_delta.y(), k_real32_max);
-			if (t_top > 0.0f && t_top < t_min)
+		// left/right
+		real32 t_left = safe_divide(left_x - p1.x(), direction.x(), k_real32_max);
+		real32 t_right = safe_divide(right_x - p1.x(), direction.x(), k_real32_max);
+		real32 t = math_min(t_left, t_right);
+		if (in_range_inc_l_exc_r(0.0f, t_min, t))
+		{ 
+			t_vector_4d_real32 collision_position = p1 + (direction * t);
+			if (in_range_inclusive(bottom_y, top_y, collision_position.y()))
 			{
-				t_vector_4d_real32 collision_position = p1 + (move_delta * t_top);
-				if (in_range_inclusive(left_x, right_x, collision_position.x()))
-				{
-					t_min = t_top;
-				}
+				t_min = t;
 			}
 		}
-		{
-			real32 t_bottom = safe_divide(bottom_y - p1.y(), move_delta.y(), k_real32_max);
-			if (t_bottom > 0.0f && t_bottom < t_min)
-			{
-				t_vector_4d_real32 collision_position = p1 + (move_delta * t_bottom);
-				if (in_range_inclusive(left_x, right_x, collision_position.x()))
-				{
-					t_min = t_bottom;
-				}
-			}
-		}
-		{
-			real32 t_left = safe_divide(left_x - p1.x(), move_delta.x(), k_real32_max);
-			if (t_left > 0.0f && t_left < t_min)
-			{
-				t_vector_4d_real32 collision_position = p1 + (move_delta * t_left);
-				if (in_range_inclusive(bottom_y, top_y, collision_position.y()))
-				{
-					t_min = t_left;
-				}
-			}
-		}
-		{
-			real32 t_right = safe_divide(right_x - p1.x(), move_delta.x(), k_real32_max);
-			if (t_right > 0.0f && t_right < t_min)
-			{
-				t_vector_4d_real32 collision_position = p1 + (move_delta * t_right);
-				if (in_range_inclusive(bottom_y, top_y, collision_position.y()))
-				{
-					t_min = t_right;
-				}
-			}
-		}
-
-		bool collides = false;
-		if (in_range_inclusive(0.0f, 0.99999f, t_min))
-		{
-			t_vector_4d_real32 collision_position = p1 + (move_delta * t_min);
-
-			collides = true; // aabb_sum.contains_point(collision_position.xy());
-
-			if (collides)
-			{
-				out_collision_info.position = collision_position;
-				out_collision_info.t = t_min;
-			}
-		}
-
-		return collides;
 	}
+
+	bool collides = false;
+	if (in_range_inc_l_exc_r(0.0f, 1.0f, t_min))
+	{
+		collides = true;
+		out_collision_info.position = p1 + (direction * t_min);
+		out_collision_info.t = t_min;
+	}
+
+	return collides;
 }
 
-//physics
 bool aabb_intersect_test(
 	const t_vector_4d_real32& p1,
 	const t_vector_4d_real32& p2,
@@ -115,9 +80,17 @@ void c_game_flow_state_gameplay::on_enter(s_flow_state_gameplay* state_data, rea
 	state_data->scene_objects.clear();
 	state_data->player.m_transform.reset();
 	state_data->player.m_transform.scale *= 0.5f;
-	c_object& dummy = state_data->scene_objects.push();
-	dummy.m_transform.reset();
-	dummy.m_transform.position.set(1, 0, 0, 1);
+	{
+		c_object& dummy = state_data->scene_objects.push();
+		dummy.m_transform.reset();
+		dummy.m_transform.position.set(1, 0, 0, 1);
+	}
+	{
+		c_object& dummy = state_data->scene_objects.push();
+		dummy.m_transform.reset();
+		dummy.m_transform.position.set(-1, 0, 0, 1);
+	}
+
 	state_data->camera.set_transform(s_transform::default_values());
 	state_data->camera.set_zoom(1.0f);
 	state_data->camera.set_width(10.0f);
@@ -131,23 +104,28 @@ void c_game_flow_state_gameplay::on_update(s_flow_state_gameplay* state_data, re
 
 	t_string_128 title("Gameplay!");
 	engine_render_draw_string(title, 600, 300, 5, k_color_white, render_layer_ui);
-	
+
 	auto input_state = engine_input_get_input_state();
 	t_vector_4d_real32 player_velocity;
 	get_arrow_key_move_delta(input_state, player_velocity);
 
-	const real32 player_speed_meters_per_second = 15;
+	const real32 player_speed_meters_per_second = 5;
 	player_velocity *= player_speed_meters_per_second;
-	t_vector_4d_real32 new_player_position = state_data->player.m_transform.position + (player_velocity * dt);
+	state_data->player.apply_force(player_velocity);
+	t_vector_4d_real32 new_player_position = state_data->player.get_move_delta(dt);
 
 	s_collision_info collision_info;
-	bool collides = aabb_intersect_test(
-		state_data->player.m_transform.position,
-		new_player_position,
-		state_data->player.get_collision_rect().to_aabb(),
-		state_data->scene_objects[0].get_collision_rect().to_aabb(),
-		collision_info);
+	bool collides = false;
 
+	for (const auto& object : state_data->scene_objects)
+	{
+		collides |= aabb_intersect_test(
+			state_data->player.m_transform.position,
+			new_player_position,
+			state_data->player.get_collision_rect().to_aabb(),
+			object.get_collision_rect().to_aabb(),
+			collision_info);
+	}
 
 	engine_render_draw_line(
 		state_data->camera.world_position_to_screen_space(state_data->player.m_transform.position),
@@ -155,21 +133,19 @@ void c_game_flow_state_gameplay::on_update(s_flow_state_gameplay* state_data, re
 		k_color_white,
 		render_layer_debug);
 
-	
 	if (collides)
 	{
 		s_render_shape_circle hit_mark;
 		hit_mark.center = state_data->camera.world_position_to_screen_space(collision_info.position);
 		hit_mark.radius = 15;
 		engine_render_draw_circle(hit_mark, k_color_white, true, render_layer_debug);
+		state_data->player.set_velocity(t_vector_4d_real32::zero());
 		new_player_position = state_data->player.m_transform.position + (player_velocity * dt *(collision_info.t - 0.01f));
 	}
-	
-	state_data->player.m_transform.position = new_player_position;
-	//state_data->player.set_velocity(player_velocity *= player_speed_meters_per_second);
-	//state_data->player.move(dt);
-	//state_data->player.move(player_velocity);
-
+	else
+	{
+		state_data->player.apply_move_delta(dt);
+	}
 
 #ifdef CONFIG_DEBUG
 	engine_render_draw_rect(

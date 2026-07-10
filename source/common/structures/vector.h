@@ -228,7 +228,7 @@ class c_vector_4d
 public:
 	c_vector_4d()
 	{
-		zero();
+		set_zero();
 	}
 
 	c_vector_4d(t_type x, t_type y, t_type z, t_type w)
@@ -246,6 +246,19 @@ public:
 	const t_type& z() const { return m_z; }
 	const t_type& w() const { return m_w; }
 
+	t_type& operator[](const int32 i)
+	{
+		switch (i)
+		{
+		case 0: return m_x;
+		case 1: return m_y;
+		case 2: return m_z;
+		case 3: return m_w;
+		default:
+			HALT("unreachable");
+		}
+	}
+
 	c_vector_2d<t_type, t_scalar_type, k_default_epsilon> xy() const
 	{
 		c_vector_2d<t_type, t_scalar_type, k_default_epsilon> out(x(), y());
@@ -260,10 +273,17 @@ public:
 		m_w = w;
 	}
 
-	c_vector_4d& zero()
+	c_vector_4d& set_zero()
 	{
 		set(0, 0, 0, 0);
 		return *this;
+	}
+
+	static_member_function c_vector_4d zero()
+	{
+		c_vector_4d out;
+		out.set_zero();
+		return out;
 	}
 
 	bool operator==(const c_vector_4d& other) const

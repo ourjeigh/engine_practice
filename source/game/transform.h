@@ -26,7 +26,7 @@ struct s_transform
 	void reset()
 	{
 		position.set(0, 0, 0, 1);
-		rotation.zero();
+		rotation.set_zero();
 		scale.set(1, 1, 1, 0);
 	}
 

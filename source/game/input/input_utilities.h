@@ -6,7 +6,7 @@
 
 inline void get_arrow_key_move_delta(const s_input_state const_ptr input_state, t_vector_4d_real32& out_move_delta)
 {
-	out_move_delta.zero();
+	out_move_delta.set_zero();
 
 	if (input_state->get_key_state(input_key_arrow_up).is_down)
 	{
@@ -33,7 +33,7 @@ inline void get_arrow_key_move_delta(const s_input_state const_ptr input_state, 
 
 inline void get_wads_key_move_delta(const s_input_state const_ptr input_state, t_vector_4d_real32& out_move_delta)
 {
-	out_move_delta.zero();
+	out_move_delta.set_zero();
 
 	if (input_state->get_key_state(input_key_char_w).is_down)
 	{

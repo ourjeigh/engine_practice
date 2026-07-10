@@ -11,6 +11,12 @@ inline constexpr bool in_range_inclusive(t_type min, t_type max, t_type value)
 	return min <= value && value <= max;
 }
 
+template<typename t_type>
+inline constexpr bool in_range_inc_l_exc_r(t_type min, t_type max, t_type value)
+{
+	return min <= value && value < max;
+}
+
 inline constexpr bool in_range_inclusive_int32(int32 min, int32 max, int32 value)
 {
 	return in_range_inclusive(min, max, value);

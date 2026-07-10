@@ -179,10 +179,9 @@ void process_input_event_queue_internal()
 			}
 			else
 			{
-				// leaving this here for now even tho we set it again just after this in c_input_system::update().
 				// once we get a stead message pump for the key while it's being held down, we could go back to
 				// just setting this here.
-				key.time_in_state = c_engine_time_span::to_time_span(g_key_timestamps[data.key], current_time);
+				//key.time_in_state = c_engine_time_span::to_time_span(g_key_timestamps[data.key], current_time);
 			}
 
 			log_message(verbose, "input system: key:{i} {s} time:{f.2})",
