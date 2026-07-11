@@ -16,6 +16,10 @@
 #include "platform/platform_file.h"
 #include "platform/platform_thread.h"
 
+#ifdef FEATURE_TODO_MESSAGES
+#include "todo.h"
+#endif // FEATURE_TODO_MESSAGES
+
 const real32 k_max_fps = 60.0f;
 const real32 k_max_frame_interval_seconds = 1 / k_max_fps;
 const real32 k_max_frame_interval_ms = 1000 / k_max_fps;
@@ -25,7 +29,7 @@ const int32 k_default_window_height = 720;
 
 // todo: should we have the game dll expose a function to get it's dll name instead of hardcoding "game" ?
 const c_file_path k_built_dll_path("game_" CONFIG_NAME "_" PLATFORM_NAME ".dll");
-const char* k_runtime_dll_name_base = "game_" CONFIG_NAME "_" PLATFORM_NAME "_temp_";
+const char* k_runtime_dll_name_base = "game_" CONFIG_NAME "_" PLATFORM_NAME "_temp_"; 
 
 struct s_game_info_internal
 {

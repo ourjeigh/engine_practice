@@ -24,3 +24,10 @@ if(WIN32)
 endif()
 
 target_compile_definitions(engine PRIVATE ENGINE_SOURCE)
+
+add_custom_command(
+	TARGET engine
+	PRE_BUILD
+	COMMAND powershell -ExecutionPolicy Bypass -File "${CMAKE_SOURCE_DIR}/build_todo.ps1"
+	VERBATIM
+)

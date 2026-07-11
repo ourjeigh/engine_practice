@@ -10,7 +10,6 @@
 #include "time/time.h"
 #include "structures/string/string_id.h"
 
-
 class c_perf_system : public c_engine_system<c_perf_system>
 {
 public:
