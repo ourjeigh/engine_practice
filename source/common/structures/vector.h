@@ -288,10 +288,10 @@ public:
 
 	bool operator==(const c_vector_4d& other) const
 	{
-		return equals(other);
+		return is_equal(other);
 	}
 
-	bool equals(const c_vector_4d& other, t_type epsilon = k_default_epsilon) const
+	bool is_equal(const c_vector_4d& other, t_type epsilon = k_default_epsilon) const
 	{
 		return
 			math_abs(other.m_x - m_x) <= k_default_epsilon &&

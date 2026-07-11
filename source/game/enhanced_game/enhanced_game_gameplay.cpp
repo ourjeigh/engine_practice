@@ -8,30 +8,27 @@ struct s_collision_info
 	t_vector_4d_real32 position;
 };
 
-
-bool ray_intersect_test(
-	const t_vector_4d_real32& p1,
-	const t_vector_4d_real32& p2,
+bool ray_aabb_intersect_test_2d(
+	const t_vector_2d_real32& origin,
+	const t_vector_2d_real32& direction,
 	const t_aabb_2d_real32& static_aabb,
 	s_collision_info& out_collision_info)
 {
-	t_vector_4d_real32 direction = p2 - p1;
-
-	const real32 top_y = static_aabb.max_xy.y();
-	const real32 bottom_y = static_aabb.min_xy.y();
-	const real32 left_x = static_aabb.min_xy.x();
-	const real32 right_x = static_aabb.max_xy.x();
+	const real32 top_y = static_aabb.max.y();
+	const real32 bottom_y = static_aabb.min.y();
+	const real32 left_x = static_aabb.min.x();
+	const real32 right_x = static_aabb.max.x();
 
 	real32 t_min = 1.0f;
 
 	{
 		// top/bottom
-		real32 t_top = safe_divide(top_y - p1.y(), direction.y(), k_real32_max);
-		real32 t_bottom = safe_divide(bottom_y - p1.y(), direction.y(), k_real32_max);
+		real32 t_top = safe_divide(top_y - origin.y(), direction.y(), k_real32_max);
+		real32 t_bottom = safe_divide(bottom_y - origin.y(), direction.y(), k_real32_max);
 		real32 t = math_min(t_top, t_bottom);
 		if (in_range_inc_l_exc_r(0.0f, t_min, t))
 		{
-			t_vector_4d_real32 collision_position = p1 + (direction * t);
+			t_vector_2d_real32 collision_position = origin + (direction * t);
 			if (in_range_inclusive(left_x, right_x, collision_position.x()))
 			{
 				t_min = t;
@@ -40,12 +37,12 @@ bool ray_intersect_test(
 	}
 	{
 		// left/right
-		real32 t_left = safe_divide(left_x - p1.x(), direction.x(), k_real32_max);
-		real32 t_right = safe_divide(right_x - p1.x(), direction.x(), k_real32_max);
+		real32 t_left = safe_divide(left_x - origin.x(), direction.x(), k_real32_max);
+		real32 t_right = safe_divide(right_x - origin.x(), direction.x(), k_real32_max);
 		real32 t = math_min(t_left, t_right);
 		if (in_range_inc_l_exc_r(0.0f, t_min, t))
 		{ 
-			t_vector_4d_real32 collision_position = p1 + (direction * t);
+			t_vector_2d_real32 collision_position = origin + (direction * t);
 			if (in_range_inclusive(bottom_y, top_y, collision_position.y()))
 			{
 				t_min = t;
@@ -57,22 +54,102 @@ bool ray_intersect_test(
 	if (in_range_inc_l_exc_r(0.0f, 1.0f, t_min))
 	{
 		collides = true;
-		out_collision_info.position = p1 + (direction * t_min);
+		t_vector_2d_real32 hit_position = origin + (direction * t_min);
+		out_collision_info.position.set(hit_position.x(), hit_position.y(), 0, 1);
 		out_collision_info.t = t_min;
 	}
 
 	return collides;
 }
 
-bool aabb_intersect_test(
-	const t_vector_4d_real32& p1,
-	const t_vector_4d_real32& p2,
+bool aabb_intersect_test_2d(
+	const t_vector_2d_real32& origin,
+	const t_vector_2d_real32& direction,
 	const t_aabb_2d_real32& moving_aabb,
 	const t_aabb_2d_real32& static_aabb,
 	s_collision_info& out_collision_info)
 {
 	t_aabb_2d_real32 aabb_sum = static_aabb.add(moving_aabb);
-	return ray_intersect_test(p1, p2, aabb_sum, out_collision_info);
+	return ray_aabb_intersect_test_2d(origin, direction, aabb_sum, out_collision_info);
+}
+
+bool ray_intersect_test_3d(
+	const t_vector_4d_real32& origin,
+	const t_vector_4d_real32& direction,
+	const t_aabb_3d_real32& static_aabb,
+	s_collision_info& out_collision_info)
+{
+	const real32 bottom_y = static_aabb.min.y();
+	const real32 top_y = static_aabb.max.y();
+	const real32 left_x = static_aabb.min.x();
+	const real32 right_x = static_aabb.max.x();
+	const real32 front_z = static_aabb.min.z();
+	const real32 back_z = static_aabb.max.z();
+	real32 t_min = 1.0f;
+
+	{
+		// top/bottom
+		real32 t_top = safe_divide(top_y - origin.y(), direction.y(), k_real32_max);
+		real32 t_bottom = safe_divide(bottom_y - origin.y(), direction.y(), k_real32_max);
+		real32 t = math_min(t_top, t_bottom);
+		if (in_range_inc_l_exc_r(0.0f, t_min, t))
+		{
+			t_vector_4d_real32 collision_position = origin + (direction * t);
+			if (in_range_inclusive(left_x, right_x, collision_position.x()))
+			{
+				t_min = t;
+			}
+		}
+	}
+	{
+		// left/right
+		real32 t_left = safe_divide(left_x - origin.x(), direction.x(), k_real32_max);
+		real32 t_right = safe_divide(right_x - origin.x(), direction.x(), k_real32_max);
+		real32 t = math_min(t_left, t_right);
+		if (in_range_inc_l_exc_r(0.0f, t_min, t))
+		{
+			t_vector_4d_real32 collision_position = origin + (direction * t);
+			if (in_range_inclusive(bottom_y, top_y, collision_position.y()))
+			{
+				t_min = t;
+			}
+		}
+	}
+	{
+		// front/back
+		real32 t_back = safe_divide(back_z - origin.z(), direction.z(), k_real32_max);
+		real32 t_front = safe_divide(front_z - origin.z(), direction.z(), k_real32_max);
+		real32 t = math_min(t_back, t_front);
+		if (in_range_inc_l_exc_r(0.0f, t_min, t))
+		{
+			t_vector_4d_real32 collision_position = origin + (direction * t);
+			if (in_range_inclusive(front_z, back_z, collision_position.z()))
+			{
+				t_min = t;
+			}
+		}
+	}
+
+	bool collides = false;
+	if (in_range_inc_l_exc_r(0.0f, 1.0f, t_min))
+	{
+		collides = true;
+		out_collision_info.position = origin + (direction * t_min);
+		out_collision_info.t = t_min;
+	}
+
+	return collides;
+}
+
+bool aabb_intersect_test_3d(
+	const t_vector_4d_real32& origin,
+	const t_vector_4d_real32& direction,
+	const t_aabb_3d_real32& moving_aabb,
+	const t_aabb_3d_real32& static_aabb,
+	s_collision_info& out_collision_info)
+{
+	t_aabb_3d_real32 aabb_sum = static_aabb.grow_by_other(moving_aabb);
+	return ray_intersect_test_3d(origin, direction, aabb_sum, out_collision_info);
 }
 
 void c_game_flow_state_gameplay::on_enter(s_flow_state_gameplay* state_data, real32 dt, bool& out_continue)
@@ -119,11 +196,11 @@ void c_game_flow_state_gameplay::on_update(s_flow_state_gameplay* state_data, re
 
 	for (const auto& object : state_data->scene_objects)
 	{
-		collides |= aabb_intersect_test(
+		collides |= aabb_intersect_test_3d(
 			state_data->player.m_transform.position,
-			new_player_position,
-			state_data->player.get_collision_rect().to_aabb(),
-			object.get_collision_rect().to_aabb(),
+			new_player_position - state_data->player.m_transform.position,
+			state_data->player.get_collision_rect_3d().to_aabb(),
+			object.get_collision_rect_3d().to_aabb(),
 			collision_info);
 	}
 
@@ -141,6 +218,9 @@ void c_game_flow_state_gameplay::on_update(s_flow_state_gameplay* state_data, re
 		engine_render_draw_circle(hit_mark, k_color_white, true, render_layer_debug);
 		state_data->player.set_velocity(t_vector_4d_real32::zero());
 		new_player_position = state_data->player.m_transform.position + (player_velocity * dt *(collision_info.t - 0.01f));
+		
+		// sanity check for now since we're not actually moving anything in the z dimension
+		ASSERT(collision_info.position.z() == 0.0f);
 	}
 	else
 	{
@@ -149,17 +229,17 @@ void c_game_flow_state_gameplay::on_update(s_flow_state_gameplay* state_data, re
 
 #ifdef CONFIG_DEBUG
 	engine_render_draw_rect(
-		state_data->camera.world_rect_to_screen_space(state_data->player.get_collision_rect()),
+		state_data->camera.world_rect_to_screen_space(state_data->player.get_collision_rect_2d()),
 		k_color_red,
 		false,
 		render_layer_debug);
 
 	t_vector_2d_real32 player_center = state_data->player.m_transform.position.xy();
-	t_aabb_2d_real32 player_aabb = state_data->player.get_collision_rect().to_aabb();
+	t_aabb_3d_real32 player_aabb = state_data->player.get_collision_rect_3d().to_aabb();
 	for (const auto& object : state_data->scene_objects)
 	{
 		c_color color = k_color_blue;
-		auto aabb = object.get_collision_rect().to_aabb();
+		auto aabb = object.get_collision_rect_3d().to_aabb();
 
 		if (aabb.is_valid())
 		{
@@ -169,7 +249,7 @@ void c_game_flow_state_gameplay::on_update(s_flow_state_gameplay* state_data, re
 			}
 
 			engine_render_draw_rect(
-				state_data->camera.world_rect_to_screen_space(object.get_collision_rect()),
+				state_data->camera.world_rect_to_screen_space(object.get_collision_rect_3d()),
 				color,
 				false,
 				render_layer_debug);

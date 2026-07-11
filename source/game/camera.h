@@ -90,6 +90,12 @@ public:
 		return m_screen_dimensions.width > 0 && m_screen_dimensions.height > 0 && m_width > 0;
 	}
 
+	t_render_shape_rect world_rect_to_screen_space(const t_rect_3d_real32& rect) const
+	{
+		t_rect_2d_real32 rect_2d{ rect.x, rect.y, rect.width, rect.height };
+		return world_rect_to_screen_space(rect_2d);
+	}
+
 private:
 	void update_view_matrix()
 	{
