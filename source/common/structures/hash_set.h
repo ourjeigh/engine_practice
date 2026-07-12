@@ -431,6 +431,20 @@ public:
 		m_table.clear();
 	}
 
+	// make const iterator
+	void to_array(c_array<t_value> out_array)
+	{
+		// technically it just needs to be used(), but this is a more deterministic check
+		ASSERT(out_array.capacity() >= usabale_capacity());
+
+		int32 out_index = 0;
+
+		for (auto it = begin(); it != end(); ++it)
+		{
+			out_array[out_index++] = (*it).value;
+		}
+	}
+
 	t_value& operator[](const t_key& key)
 	{
 		bool found;

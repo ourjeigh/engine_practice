@@ -81,3 +81,23 @@ TEST(ALGORITHMS, FVN1_COMPILE_TIME)
 {
 	COMPILE_ASSERT(MAKE_STRING_HASH("hello world") != 0);
 }
+
+bool compare_int32(const void* l, const void* r)
+{
+	int32 left = *(static_cast<const int32*>(l));
+	int32 right = *(static_cast<const int32*>(r));
+
+	return left < right;
+}
+
+TEST(ALGORITHMS, QUICK_SORT)
+{
+	c_static_array<int32, 10> test = { 8, 0, 3, 6, 4, 9, 1, 7, 2, 5 };
+
+	quick_sort(test.as_array(), compare_int32, 0, test.capacity());
+
+	for (int32 i = 0; i < test.capacity(); i++)
+	{
+		EXPECT_EQ(test[i], i);
+	}
+}

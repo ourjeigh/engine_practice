@@ -21,9 +21,12 @@ const uint32 k_byte_tib = math_pow(k_byte_kib, 4);
 template<typename t_type>
 inline void memory_swap(t_type* left, t_type* right)
 {
-	t_type temp = *left;
-	*left = *right;
-	*right = temp;
+	if (left != right)
+	{
+		t_type temp = *left;
+		*left = *right;
+		*right = temp;
+	}
 }
 
 void memory_zero(void* obj, size_t size);

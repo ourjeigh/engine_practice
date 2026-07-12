@@ -103,31 +103,42 @@ void c_perf_system::set_capture_state(bool active)
 	m_is_capture_active = active;
 }
 
+bool compare_measurements(const void* l, const void* r)
+{
+	const s_perf_measurement_set* left = static_cast<const s_perf_measurement_set*>(l);
+	const s_perf_measurement_set* right = static_cast<const s_perf_measurement_set*>(r);
+
+	return (left->total_time_microseconds / left->count) > (right->total_time_microseconds / right->count);
+}
+
 void c_perf_system::generate_report()
 {
 	// dump to file...
 	log_message(verbose, "::: PERF REPORT :::");
 
-	// TODO: sort this by decreasing avg time
-	for (auto it = g_measurements.begin(); it != g_measurements.end(); ++it)
+	c_static_array<s_perf_measurement_set, 1024> measurements;
+	g_measurements.to_array(measurements);
+
+	// why does this need as_array()?
+	quick_sort(measurements.as_array(), compare_measurements, 0, g_measurements.used());
+
+	for (int32 i = 0; i < g_measurements.used(); i++)
 	{
-		const s_perf_measurement_set& set = it->value;
+		const s_perf_measurement_set& set = measurements[i];
 		const char* name = set.unique_id.measurement_id.get_debug_string();
 
 		// all times in microseconds
-		c_engine_time_span span(0, set.total_time_microseconds);
-		real64 total_time = span.get_duration_microseconds();
+		real64 total_time = set.total_time_microseconds;
 		real64 avg_time = total_time / set.count;
 
 		real64 max_time = c_engine_time_span(0, set.max_duration).get_duration_microseconds();
 		real64 min_time = c_engine_time_span(0, set.min_duration).get_duration_microseconds();
 
-		int32 calls_per_tick = math_ceil<real32>(set.count / static_cast<real32>(g_ticks));
+		int32 calls_per_tick = math_max<int32>(1, math_floor<real32>(set.count / static_cast<real32>(g_ticks)));
 		real64 avg_time_per_tick = avg_time * calls_per_tick;
 
-		log_message(verbose, "{s50}: total time: {f8}(us),\tavg time: {f8}(us)\tmin time: {f8}(us)\tmax time: {f8}(us)\tcalls per tick: {i5}\tavg time/tick:{f8}(us)",
+		log_message(verbose, "{s45}: avg time: {f6}(us)\tmin time: {f6}(us)\tmax time: {f6}(us)\tcalls per tick: {i5}\tavg time/tick:{f6}(us)",
 			name,
-			total_time,
 			avg_time,
 			min_time,
 			max_time,
