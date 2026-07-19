@@ -7,6 +7,14 @@ const char* k_int64_max_string =   "9223372036854775807";
 const char* k_int64_min_string =  "-9223372036854775808";
 const char* k_uint64_max_string = "18446744073709551615";
 
+TEST(STRING, STR_COMPARE)
+{
+	const char* string1 = "hello world";
+	const char* string2 = "hello world";
+
+	EXPECT_EQ(str_compare(string1, string2), 0);
+}
+
 TEST(STRING_TEST, STRING_TEST_PRINT)
 {
 	const char* test_string = "hey this is a test string";
