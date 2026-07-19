@@ -16,6 +16,18 @@
 const int32 k_max_asset_load_requests = 32;
 const int32 k_max_active_assets = 128;
 
+// TODO: Streamable assets
+// - long wavs should only load & prep the "next" chunk needed.
+// - it would be cool to have a very large bmp and only load requested chunks of it at a time
+//		- this could let us have a continuous background that we just load and unload from a single file in chunks
+//		- it would need to track individual chunks non-contiguously (so that we could unload chunk 1 and load chunk 4
+//		- caller declares chunk size (eg rect pixels) and max concurrent chunks needed, for allocation and indexing into file
+//		- the logic would be basically the same for wavs, wavs would just presumably only need 2 chunks, this and next.
+//		- need a way to access the chunk in a way that the existing render_bitmap can handle (or rework)
+//		- would need to be able to render a portion of multiple chunks (eg you're in the middle of chunks 2 & 3), and be able to clip the offscreen portion
+// - asset_system_load_streamed_asset(chunk_size, chunk_count)
+// - asset_system_load_streamed_asset_chunk(chunk_index)
+// - asset_system_unload_streamed_asset_chunk(chunk_index)
 
 struct s_load_asset_request
 {

@@ -14,11 +14,11 @@
 class c_camera_2d
 {
 public:
-	const s_transform& get_transform() { return m_transform; }
+	s_transform& get_transform() { return m_transform; }
 	const s_screen_dimensions& get_screen_dimensions() { return m_screen_dimensions; }
 	const s_matrix_4x4_real32& get_viewport() { return m_viewport; }
 	real32 get_zoom() { return m_zoom; }
-	real32 get_width() { return m_width; }
+	real32 get_width() { return m_world_width; }
 
 #ifdef CONFIG_DEBUG
 	void get_viewport_debug_string(c_string& out_string)
@@ -51,7 +51,7 @@ public:
 
 	void set_width(const real32 width)
 	{
-		m_width = width;
+		m_world_width = width;
 		update_view_matrix();
 	}
 
@@ -85,9 +85,36 @@ public:
 		return out;
 	}
 
+	s_render_shape_line world_plane_to_screen_space(const t_plane_3d_real32& plane) const
+	{
+		// this would just fill the whole screen
+		ASSERT(plane.abcd.z() == 0);
+
+		const real32 view_ratio = m_screen_dimensions.width / m_screen_dimensions.height;
+		const real32 world_width = m_world_width;
+		const real32 world_height = world_width / view_ratio;
+
+		const real32 left = m_transform.position.x() - world_width / 2;
+		const real32 right = m_transform.position.x() + world_width / 2;
+		const real32 top = m_transform.position.y() + world_height / 2;
+		const real32 bottom = m_transform.position.y() - world_height / 2;
+
+		t_vector_4d_real32 bottom_left = { left, bottom, 0, 1 };
+		t_vector_4d_real32 top_right = { right, top, 0, 1 };
+
+		t_vector_4d_real32 p1 = plane.closest_point_on_plane(bottom_left);
+		t_vector_4d_real32 p2 = plane.closest_point_on_plane(top_right);
+
+		s_render_shape_line out;
+		out.p1 = world_position_to_screen_space(p1);
+		out.p2 = world_position_to_screen_space(p2);
+
+		return out;
+	}
+
 	bool is_valid()
 	{
-		return m_screen_dimensions.width > 0 && m_screen_dimensions.height > 0 && m_width > 0;
+		return m_screen_dimensions.width > 0 && m_screen_dimensions.height > 0 && m_world_width > 0;
 	}
 
 	t_render_shape_rect world_rect_to_screen_space(const t_rect_3d_real32& rect) const
@@ -117,7 +144,7 @@ private:
 		}};
 
 		const real32 view_ratio = m_screen_dimensions.width / m_screen_dimensions.height;
-		const real32 world_width = m_width;
+		const real32 world_width = m_world_width;
 		const real32 world_height = world_width / view_ratio;
 
 		const real32 left = -world_width / 2;
@@ -151,7 +178,7 @@ private:
 
 	s_transform m_transform;
 	real32 m_zoom;
-	real32 m_width;
+	real32 m_world_width;
 	s_screen_dimensions m_screen_dimensions;
 	s_matrix_4x4_real32 m_viewport;
 };

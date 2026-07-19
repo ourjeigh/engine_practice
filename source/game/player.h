@@ -59,12 +59,16 @@ public:
 	{
 		const real32 hack_drag = 0.90f;
 		m_velocity = (force * (1.0f - hack_drag)) + (m_velocity * hack_drag);
+		//t_vector_4d_real32 new_acceleration = force / m_mass;
+		//m_acceleration += new_acceleration;
 	}
 
 	s_transform m_transform;
 
 private:
 	t_vector_4d_real32 m_velocity;
+	t_vector_4d_real32 m_acceleration;
+	const real32 m_mass = 1.0f;
 };
 
 class c_player : public c_object

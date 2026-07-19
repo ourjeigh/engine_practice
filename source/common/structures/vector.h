@@ -428,13 +428,19 @@ public:
 		return divide_scalar(magnitude());
 	}
 
-	t_scalar_type* dot(const c_vector_4d& other)
+	t_scalar_type dot(const c_vector_4d& other) const
 	{
 		t_scalar_type x = static_cast<t_scalar_type>(m_x);
 		t_scalar_type y = static_cast<t_scalar_type>(m_y);
 		t_scalar_type z = static_cast<t_scalar_type>(m_z);
 		t_scalar_type w = static_cast<t_scalar_type>(m_w);
-		return (x * other.m_x) + (y * other.m_y) + (z * other.m_z) + (w + other.m_w);
+
+		t_scalar_type x_part = (x * other.m_x);
+		t_scalar_type y_part = (y * other.m_y);
+		t_scalar_type z_part = (z * other.m_z);
+		t_scalar_type w_part = (w * other.m_w);
+
+		return x_part + y_part + z_part + w_part;
 	}
 
 private:

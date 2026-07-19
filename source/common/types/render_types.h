@@ -92,6 +92,13 @@ struct s_screen_dimensions
 	int32 height;
 };
 
+// TODO: make render_line take this
+struct s_render_shape_line
+{
+	t_render_shape_point p1;
+	t_render_shape_point p2;
+};
+
 struct s_render_shape_circle
 {
 	t_render_shape_point center;
