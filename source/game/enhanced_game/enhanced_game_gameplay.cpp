@@ -152,26 +152,100 @@ bool aabb_intersect_test_3d(
 	return ray_intersect_test_3d(origin, direction, aabb_sum, out_collision_info);
 }
 
+bool ray_intersect_plane_test_3d(
+	const t_vector_4d_real32& origin,
+	const t_vector_4d_real32& direction,
+	const t_plane_3d_real32& plane,
+	s_collision_info& out_collision_info)
+{
+	ASSERT(direction.w() == 0);
+	if (direction.is_zero())
+	{
+		return false;
+	}
+
+	t_vector_4d_real32 plane_normal = plane.normal();
+	real32 denom = direction.dot(plane_normal);
+
+	if (math_abs(denom) < 0.001f)
+	{
+		return false;
+	}
+
+	real32 t = (plane.d() + origin.dot(plane_normal)) / -denom;
+
+	if (in_range_inclusive<real32>(0, 1, t))
+	{
+		out_collision_info.position = origin + (direction * t);
+		out_collision_info.t = t;
+		return true;
+	}
+	return false;
+}
+
+bool aabb_intersect_plane_test_3d(
+	const t_vector_4d_real32& origin,
+	const t_vector_4d_real32& direction,
+	const t_aabb_3d_real32& aabb,
+	const t_plane_3d_real32& plane,
+	s_collision_info& out_collision_info)
+{
+	ASSERT(direction.w() == 0);
+	if (direction.is_zero())
+	{
+		return false;
+	}
+
+	c_static_array<t_vector_4d_real32, 8> extents;
+	aabb.get_extents(extents);
+
+	real32 t_min = k_real32_max;
+
+	for (auto& extent : extents)
+	{
+		s_collision_info collision_info;
+		if (ray_intersect_plane_test_3d(extent, direction, plane, collision_info) &&
+			collision_info.t < t_min)
+		{
+			out_collision_info = collision_info;
+			t_min = collision_info.t;
+		}
+	}
+
+	return t_min <= 1.0;
+}
+
+const t_vector_4d_real32 k_world_up = { 0,1,0,0 };
+const t_vector_4d_real32 k_world_down = { 0,1,0,0 };
+const t_vector_4d_real32 k_world_left = { -1,0,0,0 };
+const t_vector_4d_real32 k_world_right = { 1,0,0,0 };
+
+const t_plane_3d_real32 k_ground_plane = t_plane_3d_real32::from_point_and_normal(t_vector_4d_real32::zero(), k_world_up);
+const t_plane_3d_real32 k_ramp_plane = t_plane_3d_real32::from_point_and_normal({ 4,0,0,1 }, {1,1,0,0});
+
 void c_game_flow_state_gameplay::on_enter(s_flow_state_gameplay* state_data, real32 dt, bool& out_continue)
 {
 	state_data->scene_objects.clear();
 	state_data->player.m_transform.reset();
+	state_data->player.m_transform.position.y() = 2;
 	state_data->player.m_transform.scale *= 0.5f;
 	{
 		c_object& dummy = state_data->scene_objects.push();
 		dummy.m_transform.reset();
-		dummy.m_transform.position.set(1, 0, 0, 1);
+		dummy.m_transform.position.set(1, 0.5f, 0, 1);
 	}
 	{
 		c_object& dummy = state_data->scene_objects.push();
 		dummy.m_transform.reset();
-		dummy.m_transform.position.set(-1, 0, 0, 1);
+		dummy.m_transform.position.set(-1, 0.5f, 0, 1);
 	}
 
 	state_data->camera.set_transform(s_transform::default_values());
+	state_data->camera.get_transform().position.y() = 2;
 	state_data->camera.set_zoom(1.0f);
 	state_data->camera.set_width(10.0f);
 	state_data->camera.set_screen_dimensions(engine_get_screen_dimensions());
+
 	out_continue = false;
 }
 
@@ -194,6 +268,10 @@ void c_game_flow_state_gameplay::on_update(s_flow_state_gameplay* state_data, re
 	s_collision_info collision_info;
 	bool collides = false;
 
+	t_vector_4d_real32 origin = { 0, 2, 0, 1 };
+	t_vector_4d_real32 end = new_player_position;
+	
+
 	for (const auto& object : state_data->scene_objects)
 	{
 		collides |= aabb_intersect_test_3d(
@@ -204,10 +282,31 @@ void c_game_flow_state_gameplay::on_update(s_flow_state_gameplay* state_data, re
 			collision_info);
 	}
 
+	/*collides |= aabb_intersect_plane_test_3d(
+		state_data->player.m_transform.position,
+		new_player_position - state_data->player.m_transform.position,
+		state_data->player.get_collision_rect_3d().to_aabb(),
+		k_ground_plane,
+		collision_info);*/
+
+	collides |= aabb_intersect_plane_test_3d(
+		state_data->player.m_transform.position,
+		new_player_position - state_data->player.m_transform.position,
+		state_data->player.get_collision_rect_3d().to_aabb(),
+		k_ground_plane,
+		collision_info);
+
+	collides |= aabb_intersect_plane_test_3d(
+		state_data->player.m_transform.position,
+		new_player_position - state_data->player.m_transform.position,
+		state_data->player.get_collision_rect_3d().to_aabb(),
+		k_ramp_plane,
+		collision_info);
+
 	engine_render_draw_line(
-		state_data->camera.world_position_to_screen_space(state_data->player.m_transform.position),
+		state_data->camera.world_position_to_screen_space(origin),
 		state_data->camera.world_position_to_screen_space(new_player_position),
-		k_color_white,
+		collides ? k_color_blue : k_color_white,
 		render_layer_debug);
 
 	if (collides)
@@ -217,15 +316,18 @@ void c_game_flow_state_gameplay::on_update(s_flow_state_gameplay* state_data, re
 		hit_mark.radius = 15;
 		engine_render_draw_circle(hit_mark, k_color_white, true, render_layer_debug);
 		state_data->player.set_velocity(t_vector_4d_real32::zero());
-		new_player_position = state_data->player.m_transform.position + (player_velocity * dt *(collision_info.t - 0.01f));
-		
-		// sanity check for now since we're not actually moving anything in the z dimension
-		ASSERT(collision_info.position.z() == 0.0f);
+		new_player_position = state_data->player.m_transform.position + (player_velocity * dt *(collision_info.t - 0.1f));
 	}
-	else
+	//else
 	{
 		state_data->player.apply_move_delta(dt);
 	}
+
+	s_render_shape_line ground_line = state_data->camera.world_plane_to_screen_space(k_ground_plane);
+	engine_render_draw_line(ground_line.p1, ground_line.p2, k_color_red, render_layer_main);
+
+	s_render_shape_line ramp_line = state_data->camera.world_plane_to_screen_space(k_ramp_plane);
+	engine_render_draw_line(ramp_line.p1, ramp_line.p2, k_color_red, render_layer_main);
 
 #ifdef CONFIG_DEBUG
 	engine_render_draw_rect(
@@ -256,7 +358,7 @@ void c_game_flow_state_gameplay::on_update(s_flow_state_gameplay* state_data, re
 		}
 	}
 
-	draw_debug_world_grid(20, state_data->camera);
+	//draw_debug_world_grid(20, state_data->camera);
 
 	const int32 align_x = 1170;
 	{

@@ -111,6 +111,68 @@ using t_rect_2d_real32 = s_rect_2d<real32, real32, k_default_epsilon_real32>;
 using t_rect_2d_int32 = s_rect_2d<int32, real32, k_default_epsilon_int32>;
 
 template<typename t_type, typename t_scalar, t_type k_default_epsilon>
+struct s_plane_3d
+{
+	using t_vector_4d = c_vector_4d<t_type, t_scalar, k_default_epsilon>;
+
+	t_vector_4d abcd;
+
+	t_type& a() { return abcd.x(); }
+	t_type& b() { return abcd.y(); }
+	t_type& c() { return abcd.z(); }
+	t_type& d() { return abcd.w(); }
+
+	const t_type& a() const { return abcd.x(); }
+	const t_type& b() const { return abcd.y(); }
+	const t_type& c() const { return abcd.z(); }
+	const t_type& d() const { return abcd.w(); }
+
+	static_member_function s_plane_3d from_normal_and_distance(const t_vector_4d& normal, t_type distance)
+	{
+		s_plane_3d out;
+		out.abcd = normal;
+		out.d() = distance;
+		return out;
+	}
+
+	static_member_function s_plane_3d from_point_and_normal(const t_vector_4d& point, const t_vector_4d& normal)
+	{
+		t_vector_4d normalized = normal.normal();
+		s_plane_3d out { normalized };
+		out.d() = -1 * point.dot(normalized);
+		return out;
+	}
+
+	t_vector_4d normal() const
+	{
+		t_vector_4d out = abcd;
+		out.w() = 0;
+		return out;
+	}
+
+	t_type distance_from_origin() { return abcd.w(); }
+
+	t_type distance_to_point_signed(t_vector_4d& point) const
+	{
+		return a() * point.x() + b() * point.y() + c() * point.z() + d();
+	}
+
+	t_type distance_to_point_unsigned(t_vector_4d& point) const
+	{
+		return math_abs(distance_to_point_signed);
+	}
+
+	t_vector_4d closest_point_on_plane(t_vector_4d& point) const
+	{
+		t_vector_4d out = point - (normal() * distance_to_point_signed(point));
+		return out;
+	}
+};
+
+using t_plane_3d_real32 = s_plane_3d<real32, real32, k_default_epsilon_real32>;
+using t_plane_3d_int32 = s_plane_3d<int32, real32, k_default_epsilon_int32>;
+
+template<typename t_type, typename t_scalar, t_type k_default_epsilon>
 struct s_aabb_3d
 {
 	using t_vector_4d = c_vector_4d<t_type, t_scalar, k_default_epsilon>;
@@ -164,6 +226,21 @@ struct s_aabb_3d
 	t_type width() const { return max.x() - min.x(); }
 	t_type height() const { return max.y() - min.y(); }
 	t_type depth() const { return max.z() - min.z(); }
+
+	void get_extents(c_array<t_vector_4d> out_extents) const
+	{
+		ASSERT(out_extents.capacity() >= 8);
+
+		out_extents[0] = min;
+		out_extents[1] = { min.x(), max.y(), min.z(), 1 };
+		out_extents[2] = { min.x(), min.y(), max.z(), 1 };
+		out_extents[3] = { min.x(), max.y(), max.z(), 1 };
+		out_extents[4] = { max.x(), min.y(), min.z(), 1 };
+		out_extents[5] = { max.x(), max.y(), min.z(), 1 };
+		out_extents[6] = { max.x(), min.y(), max.z(), 1 };
+		out_extents[7] = max;
+	}
+	
 
 	bool contains_point(const t_vector_4d& point) const
 	{
