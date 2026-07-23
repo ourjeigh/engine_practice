@@ -86,11 +86,11 @@ void c_game_flow_state_gameplay::on_update(s_flow_state_gameplay* state_data, re
 		k_ramp_plane,
 		collision_info);
 
-	engine_render_draw_line(
+	/*engine_render_draw_line(
 		state_data->camera.world_position_to_screen_space(origin),
 		state_data->camera.world_position_to_screen_space(new_player_position),
 		collides ? k_color_blue : k_color_white,
-		render_layer_debug);
+		render_layer_debug);*/
 
 	if (collides)
 	{
@@ -105,8 +105,9 @@ void c_game_flow_state_gameplay::on_update(s_flow_state_gameplay* state_data, re
 		engine_render_draw_line(hit_normal.p1, hit_normal.p2, k_color_white, render_layer_debug);
 		state_data->player.set_velocity(t_vector_4d_real32::zero());
 		new_player_position = state_data->player.m_transform.position + (player_velocity * dt *(collision_info.t - 0.1f));
+		//state_data->player.m_transform.position = new_player_position;
 	}
-	//else
+	else
 	{
 		state_data->player.apply_move_delta(dt);
 	}

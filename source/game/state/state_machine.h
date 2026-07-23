@@ -25,7 +25,7 @@ enum e_state_machine_phase
 
 struct s_game_flow_state_machine_data
 {
-	c_game_state_machine_state_base* current_state;
+	c_string_id current_state_id;
 	e_state_machine_phase phase;
 	real32 pre_post_wait;
 	byte current_state_data[k_state_machine_state_data_size_bytes];
@@ -91,23 +91,25 @@ public:
 	{
 		data->phase = state_machine_phase_pre_enter;
 		data->pre_post_wait = 0.0f;
-		data->current_state = get_next_state(data->current_state);
+		data->current_state_id = get_next_state_id(data->current_state_id);
 	}
 
 	void init_with_state(s_game_flow_state_machine_data* data, c_string_id state_id)
 	{
 		init(data);
-		set_state(data, state_id);
+		set_state_id(data, state_id);
 	}
 
 	void update(s_game_flow_state_machine_data* data, real32 dt, bool& out_continue)
 	{
 		bool state_continue = true;
 
-		c_string_id last_state = "none";
-		if (data->current_state)
+		c_string_id last_state_id = "";
+		c_game_state_machine_state_base* current_state = get_state(data->current_state_id);
+
+		if (current_state)
 		{
-			last_state = data->current_state->state_id();
+			last_state_id = current_state->state_id();
 
 			switch (data->phase)
 			{
@@ -115,14 +117,14 @@ public:
 			{
 				handle_wait_internal(
 					data,
-					data->current_state->pre_enter_wait_seconds(),
+					current_state->pre_enter_wait_seconds(),
 					dt,
 					state_machine_phase_enter); 
 				break;
 			}
 			case state_machine_phase_enter:
 			{
-				data->current_state->enter(data->current_state_data, dt, state_continue);
+				current_state->enter(data->current_state_data, dt, state_continue);
 				if (!state_continue)
 				{
 					data->phase = state_machine_phase_in_state;
@@ -131,7 +133,7 @@ public:
 			}
 			case state_machine_phase_in_state:
 			{
-				data->current_state->update(data->current_state_data, dt, state_continue);
+				current_state->update(data->current_state_data, dt, state_continue);
 				if (!state_continue)
 				{
 					data->phase = state_machine_phase_exit;
@@ -140,7 +142,7 @@ public:
 			}
 			case state_machine_phase_exit:
 			{
-				data->current_state->exit(data->current_state_data, dt, state_continue);
+				current_state->exit(data->current_state_data, dt, state_continue);
 				if (!state_continue)
 				{
 					data->phase = state_machine_phase_post_exit;
@@ -151,14 +153,14 @@ public:
 			{
 				handle_wait_internal(
 					data,
-					data->current_state->post_exit_wait_seconds(),
+					current_state->post_exit_wait_seconds(),
 					dt,
 					state_machine_phase_finished);
 				break;
 			}
 			case state_machine_phase_finished:
 			{
-				data->current_state = get_next_state(data->current_state);
+				data->current_state_id = get_next_state_id(data->current_state_id);
 				data->phase = state_machine_phase_pre_enter;
 				break;
 			}
@@ -169,12 +171,12 @@ public:
 			out_continue = false;
 		}
 
-		if (data->current_state && last_state != data->current_state->state_id())
+		if (last_state_id != data->current_state_id)
 		{
 			zero_object(data->current_state_data);
 			engine_log_verbose("game_flow: state changed from {s} to {s}",
-				last_state.get_debug_string(),
-				data->current_state->debug_state_name());
+				last_state_id.get_debug_string(),
+				current_state->debug_state_name());
 		}
 	}
 
@@ -182,8 +184,9 @@ public:
 	{
 	}
 
-	virtual void set_state(s_game_flow_state_machine_data* data, c_string_id state_id) = 0;
-	virtual c_game_state_machine_state_base* get_next_state(const c_game_state_machine_state_base* current_state) = 0;
+	virtual void set_state_id(s_game_flow_state_machine_data* data, c_string_id state_id) = 0;
+	virtual c_string_id get_next_state_id(const c_string_id& current_state_id) = 0;
+	virtual c_game_state_machine_state_base* get_state(const c_string_id& state_id) = 0;
 
 protected:
 
@@ -207,6 +210,4 @@ private:
 		}
 	}
 };
-
-
 #endif // !__STATE_MACHINE_H__

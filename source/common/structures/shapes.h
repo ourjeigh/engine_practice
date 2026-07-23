@@ -269,10 +269,13 @@ struct s_aabb_3d
 
 	t_vector_4d get_closest_point_on_bounds(t_vector_4d& point) const
 	{
+		// project the point past the bounds (even if it already is outside)
 		t_vector_4d c = center();
 		t_vector_4d direction = point - c;
 		direction *= radius();
 		t_vector_4d projection = c + direction;
+
+		// clamp the projected point to the bounds
 		t_type x = math_pin<t_type>(min.x(), max.x(), projection.x());
 		t_type y = math_pin<t_type>(min.y(), max.y(), projection.y());
 		t_type z = math_pin<t_type>(min.z(), max.z(), projection.z());

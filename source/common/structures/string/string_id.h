@@ -58,16 +58,7 @@ public:
 
 	constexpr bool operator==(const c_string_id& other) const
 	{
-		const bool equals = m_hash == other.m_hash;
-
-#ifdef CONFIG_DEBUG
-		if (equals)
-		{
-			ASSERT(str_compare(d_debug_string, other.d_debug_string) == 0);
-		}
-#endif // CONFIG_DEBUG
-
-		return equals;
+		return m_hash == other.m_hash;
 	}
 
 	constexpr bool operator!=(const c_string_id& other) const

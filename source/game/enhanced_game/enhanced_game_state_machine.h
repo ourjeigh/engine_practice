@@ -46,7 +46,7 @@ struct s_flow_state_gameplay
 	c_static_stack<c_object, 8> scene_objects;
 };
 
-class c_game_flow_state_gameplay : public c_game_state_machine_state< s_flow_state_gameplay>
+class c_game_flow_state_gameplay : public c_game_state_machine_state<s_flow_state_gameplay>
 {
 public:
 	real32 pre_enter_wait_seconds() { return 0.0f; }
@@ -64,47 +64,51 @@ public:
 class c_game_flow_state_machine_enhanced : public c_state_machine_fsm
 {
 public:
-	void set_state(s_game_flow_state_machine_data* data, c_string_id state_id)
+	void set_state_id(s_game_flow_state_machine_data* data, c_string_id state_id)
 	{
-		if (state_id == m_state_logo.state_id())
-		{
-			data->current_state = &m_state_logo;
-		}
-		else if (state_id == m_state_main_menu.state_id())
-		{
-			data->current_state = &m_state_main_menu;
-		}
-		else if (state_id == m_state_gameplay.state_id())
-		{
-			data->current_state = &m_state_gameplay;
-		}
+		data->current_state_id = state_id;
 	}
 
-	c_game_state_machine_state_base* get_next_state(const c_game_state_machine_state_base* current_state)
+	c_string_id get_next_state_id(const c_string_id& current_state_id)
 	{
-		if (current_state == nullptr)
+		if (current_state_id == c_game_flow_state_logo::id)
+		{
+			return m_state_main_menu.id;
+		}
+
+		if (current_state_id == c_game_flow_state_main_menu::id)
+		{
+			return m_state_gameplay.id;
+		}
+
+		if (current_state_id == c_game_flow_state_gameplay::id)
+		{
+			return m_state_main_menu.id;
+		}
+
+		return m_state_logo.id;
+	}
+
+	c_game_state_machine_state_base* get_state(const c_string_id& state_id)
+	{
+		if (state_id == c_game_flow_state_logo::id)
 		{
 			return &m_state_logo;
 		}
 
-		if (current_state->is_type<c_game_flow_state_logo>())
+		if (state_id == c_game_flow_state_main_menu::id)
 		{
 			return &m_state_main_menu;
 		}
 
-		if (current_state->is_type<c_game_flow_state_main_menu>())
+		if (state_id == c_game_flow_state_gameplay::id)
 		{
 			return &m_state_gameplay;
 		}
 
-		if (current_state->is_type<c_game_flow_state_gameplay>())
-		{
-			return &m_state_main_menu;
-		}
-
-		HALT_UNIMPLEMENTED();
-		return nullptr;
+		return &m_state_logo;
 	}
+
 
 private:
 	c_game_flow_state_logo m_state_logo;
