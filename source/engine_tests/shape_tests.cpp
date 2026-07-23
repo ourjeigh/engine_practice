@@ -54,6 +54,19 @@ TEST(SHAPE, AABB_3D_WIDTH_HEIGHT_DEPTH)
 	EXPECT_FLOAT_EQ(test.depth(), 9.0f);
 }
 
+TEST(SHAPE, AABB_CENTER)
+{
+	t_aabb_3d_real32 aabb
+	{
+		{ 0, 0, 0, 1 },
+		{ 2, 2, 2, 1 }
+	};
+
+	t_vector_4d_real32 expected_center = { 1,1,1,1 };
+
+	EXPECT_EQ(expected_center, aabb.center());
+}
+
 TEST(SHAPE, AABB_3D_CONTAINS_POINT)
 {
 	t_aabb_3d_real32 test;
@@ -428,4 +441,19 @@ TEST(SHAPE, RECT_3D_TO_AABB_ASSERTS_ON_NEGATIVE_DEPTH)
 	t_rect_3d_real32 test;
 	test.set(0.0f, 0.0f, 0.0f, 4.0f, 5.0f, -1.0f);
 	EXPECT_DEATH(test.to_aabb(), "");
+}
+
+
+TEST(SHAPE, SPHERE_FROM_AABB)
+{
+	t_aabb_3d_real32 aabb
+	{
+		{0,0,0,1},
+		{2,2,2,1}
+	};
+
+	t_sphere_3d_real32 sphere = t_sphere_3d_real32::from_aabb(aabb);
+
+	EXPECT_EQ(sphere.center, t_vector_4d_real32(1,1,1,1));
+	EXPECT_EQ(sphere.radius, 1);
 }

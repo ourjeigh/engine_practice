@@ -227,6 +227,23 @@ struct s_aabb_3d
 	t_type height() const { return max.y() - min.y(); }
 	t_type depth() const { return max.z() - min.z(); }
 
+	t_vector_4d center() const
+	{
+		t_vector_4d out = min;
+		out += half_extents();
+		return out;
+	}
+
+	t_scalar radius() const
+	{
+		return math_max<t_scalar>(math_max<t_scalar>(width() * 0.5f, height() * 0.5f), depth() * 0.5f);
+	}
+
+	t_vector_4d half_extents() const
+	{
+		return { width() * 0.5f, height() * 0.5f, depth() * 0.5f, 0 };
+	}
+
 	void get_extents(c_array<t_vector_4d> out_extents) const
 	{
 		ASSERT(out_extents.capacity() >= 8);
@@ -240,7 +257,6 @@ struct s_aabb_3d
 		out_extents[6] = { max.x(), min.y(), max.z(), 1 };
 		out_extents[7] = max;
 	}
-	
 
 	bool contains_point(const t_vector_4d& point) const
 	{
@@ -249,6 +265,18 @@ struct s_aabb_3d
 			in_range_inclusive<t_type>(min.x(), max.x(), point.x()) &&
 			in_range_inclusive<t_type>(min.y(), max.y(), point.y()) &&
 			in_range_inclusive<t_type>(min.z(), max.z(), point.z()) ;
+	}
+
+	t_vector_4d get_closest_point_on_bounds(t_vector_4d& point) const
+	{
+		t_vector_4d c = center();
+		t_vector_4d direction = point - c;
+		direction *= radius();
+		t_vector_4d projection = c + direction;
+		t_type x = math_pin<t_type>(min.x(), max.x(), projection.x());
+		t_type y = math_pin<t_type>(min.y(), max.y(), projection.y());
+		t_type z = math_pin<t_type>(min.z(), max.z(), projection.z());
+		return { x, y, z, 1 };
 	}
 
 	bool overlaps_plane_xy_at_z(t_type z) const
@@ -340,5 +368,37 @@ struct s_rect_3d
 
 using t_rect_3d_real32 = s_rect_3d<real32, real32, k_default_epsilon_real32>;
 using t_rect_3d_int32 = s_rect_3d<int32, real32, k_default_epsilon_int32>;
+
+template<typename t_type, typename t_scalar, t_type k_default_epsilon>
+struct s_sphere_3d
+{
+	using t_vector_4d = c_vector_4d<t_type, t_scalar, k_default_epsilon>;
+
+	t_vector_4d center;
+	t_type radius;
+
+	static_member_function s_sphere_3d from_aabb(s_aabb_3d<t_type, t_scalar, k_default_epsilon>& aabb)
+	{
+		s_sphere_3d out;
+		t_vector_4d half_extents = aabb.half_extents();
+		out.center = aabb.center();
+		out.radius = math_max(math_max(half_extents.x(), half_extents.y()), half_extents.z());
+		return out;
+	}
+
+	void enclose_point(t_vector_4d& point)
+	{
+		radius = math_max(radius, (point - center).magnitude());
+	}
+
+	bool contains_point(t_vector_4d& point)
+	{
+		t_scalar distance_to_point = (point - center).magnitude_squared();
+		return distance_to_point <= radius;
+	}
+};
+
+using t_sphere_3d_real32 = s_sphere_3d<real32, real32, k_default_epsilon_real32>;
+using t_sphere_3d_int32 = s_sphere_3d<int32, real32, k_default_epsilon_int32>;
 
 #endif //__SHAPES_H__
