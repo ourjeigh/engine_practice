@@ -28,6 +28,15 @@ inline void get_arrow_key_move_delta(const s_input_state const_ptr input_state, 
 		out_move_delta.x() += 1;
 	}
 
+	if (input_state->get_key_state(input_mouse_left).is_down)
+	{
+		out_move_delta.z() += 1;
+	}
+	else if (input_state->get_key_state(input_mouse_right).is_down)
+	{
+		out_move_delta.z() -= 1;
+	}
+
 	out_move_delta.normalize();
 }
 

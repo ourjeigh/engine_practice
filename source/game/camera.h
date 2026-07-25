@@ -14,32 +14,38 @@
 class c_camera_2d
 {
 public:
-	s_transform& get_transform() { return m_transform; }
+	const s_transform& get_transform() { return m_transform; }
 	const s_screen_dimensions& get_screen_dimensions() { return m_screen_dimensions; }
 	const s_matrix_4x4_real32& get_viewport() { return m_viewport; }
 	real32 get_zoom() { return m_zoom; }
 	real32 get_width() { return m_world_width; }
 
-#ifdef CONFIG_DEBUG
-	void get_viewport_debug_string(c_string& out_string)
+	bool is_valid()
 	{
-		out_string.printf(
-			"{f6.2}, {f6.2}, {f6.2}, {f6.2}\n"
-			"{f6.2}, {f6.2}, {f6.2}, {f6.2}\n"
-			"{f6.2}, {f6.2}, {f6.2}, {f6.2}\n"
-			"{f6.2}, {f6.2}, {f6.2}, {f6.2}",
-			m_viewport[0][0], m_viewport[0][1], m_viewport[0][2], m_viewport[0][3],
-			m_viewport[1][0], m_viewport[1][1], m_viewport[1][2], m_viewport[1][3],
-			m_viewport[2][0], m_viewport[2][1], m_viewport[2][2], m_viewport[2][3],
-			m_viewport[3][0], m_viewport[3][1], m_viewport[3][2], m_viewport[3][3]);
+		return m_screen_dimensions.width > 0 && m_screen_dimensions.height > 0 && m_world_width > 0;
 	}
-#endif // CONFIG_DEBUG
 
 	void set_transform(const s_transform& transform)
 	{
-		// we can only support z-axis rotation until we are ready for much more complicated rendering
-		ASSERT(transform.rotation.x() == 0.0f && transform.rotation.y() == 0.0f);
 		m_transform = transform;
+		update_view_matrix();
+	}
+
+	void set_position(const t_vector_4d_real32 position)
+	{
+		m_transform.position = position;
+		update_view_matrix();
+	}
+
+	void set_rotation(const t_vector_4d_real32 rotation)
+	{
+		m_transform.rotation = rotation;
+		update_view_matrix();
+	}
+
+	void set_scale(const t_vector_4d_real32 scale)
+	{
+		m_transform.scale = scale;
 		update_view_matrix();
 	}
 
@@ -69,7 +75,8 @@ public:
 		return out;
 	}
 
-	t_render_shape_rect world_rect_to_screen_space(const t_rect_2d_real32& rect) const
+	// remove
+	t_render_shape_rect world_rect_to_screen_space_2d(const t_rect_2d_real32& rect) const
 	{
 		// converting from world to screen space involves flipping top/bottom
 		t_vector_4d_real32 world_top_left(rect.x, rect.y , 0, 1);
@@ -82,6 +89,21 @@ public:
 		int32 height = screen_top_left.y() - screen_bottom_right.y();
 
 		t_render_shape_rect out(screen_top_left.x(), screen_bottom_right.y(), width, height);
+		return out;
+	}
+	
+	t_render_shape_rect world_rect_to_screen_space(const t_rect_3d_real32& rect) const
+	{
+		// TODO still incorrect in some rotations - can result in negative height
+		t_aabb_3d_real32 aabb = rect.to_aabb();
+		t_render_shape_point min = world_position_to_screen_space(aabb.min);
+		t_render_shape_point max = world_position_to_screen_space(aabb.max);
+
+		// world up to top down
+		int32 height = min.y() - max.y();
+		int32 width = max.x() - min.x();
+
+		t_render_shape_rect out(min.x(), min.y() - height, width, height);
 		return out;
 	}
 
@@ -112,16 +134,20 @@ public:
 		return out;
 	}
 
-	bool is_valid()
+#ifdef CONFIG_DEBUG
+	void get_viewport_debug_string(c_string& out_string)
 	{
-		return m_screen_dimensions.width > 0 && m_screen_dimensions.height > 0 && m_world_width > 0;
+		out_string.printf(
+			"{f6.2}, {f6.2}, {f6.2}, {f6.2}\n"
+			"{f6.2}, {f6.2}, {f6.2}, {f6.2}\n"
+			"{f6.2}, {f6.2}, {f6.2}, {f6.2}\n"
+			"{f6.2}, {f6.2}, {f6.2}, {f6.2}",
+			m_viewport[0][0], m_viewport[0][1], m_viewport[0][2], m_viewport[0][3],
+			m_viewport[1][0], m_viewport[1][1], m_viewport[1][2], m_viewport[1][3],
+			m_viewport[2][0], m_viewport[2][1], m_viewport[2][2], m_viewport[2][3],
+			m_viewport[3][0], m_viewport[3][1], m_viewport[3][2], m_viewport[3][3]);
 	}
-
-	t_render_shape_rect world_rect_to_screen_space(const t_rect_3d_real32& rect) const
-	{
-		t_rect_2d_real32 rect_2d{ rect.x, rect.y, rect.width, rect.height };
-		return world_rect_to_screen_space(rect_2d);
-	}
+#endif // CONFIG_DEBUG
 
 private:
 	void update_view_matrix()
@@ -131,46 +157,59 @@ private:
 		const real32 pos_x = m_transform.position.x();
 		const real32 pos_y = m_transform.position.y();
 		const real32 pos_z = m_transform.position.z();
+		const real32 rot_sin_x = math_sin(m_transform.rotation.x());
+		const real32 rot_cos_x = math_cos(m_transform.rotation.x());
+		const real32 rot_sin_y = math_sin(m_transform.rotation.y());
+		const real32 rot_cos_y = math_cos(m_transform.rotation.y());
 		const real32 rot_sin_z = math_sin(m_transform.rotation.z());
 		const real32 rot_cos_z = math_cos(m_transform.rotation.z());
 
-		// combined translation and rotation matrices
-		s_matrix_4x4_real32 view_matrix =
+		s_matrix_4x4_real32 rotation_matrix =
 		{{
-			{ rot_cos_z, rot_sin_z, 0, 0 },
-			{ -rot_sin_z, rot_cos_z, 0, 0 },
-			{ 0, 0, 1, 0},
+			{ (rot_cos_y * rot_cos_z),  (rot_cos_x * rot_sin_z + rot_sin_x * rot_sin_y * rot_cos_z), (rot_sin_x * rot_sin_z - rot_cos_x * rot_sin_y * rot_cos_z), 0 },
+			{ (-rot_cos_y * rot_sin_z), (rot_cos_x * rot_cos_z - rot_sin_x * rot_sin_y * rot_sin_z), (rot_sin_x * rot_cos_z + rot_cos_x * rot_sin_y * rot_sin_z), 0 },
+			{ rot_sin_y, (-rot_sin_x * rot_cos_y), (rot_cos_x * rot_cos_y), 0 },
+			{ 0, 0, 0, 1 },
+		}};
+		
+		s_matrix_4x4_real32 translation_matrix =
+		{{
+			{ 1, 0, 0, 0 },
+			{ 0, 1, 0, 0 },
+			{ 0, 0, 1, 0 },
 			{ -pos_x, -pos_y, -pos_z, 1 },
 		}};
+
+		s_matrix_4x4_real32 view_matrix = translation_matrix * rotation_matrix;
 
 		const real32 view_ratio = m_screen_dimensions.width / m_screen_dimensions.height;
 		const real32 world_width = m_world_width;
 		const real32 world_height = world_width / view_ratio;
 
-		const real32 left = -world_width / 2;
-		const real32 right = world_width / 2;
-		const real32 top = world_height / 2;
-		const real32 bottom = -world_height / 2;
-		const real32 near = -1;
-		const real32 far = 1;
+		const real32 left = -world_width * 0.5f;
+		const real32 right = world_width * 0.5f;
+		const real32 top = world_height * 0.5f;
+		const real32 bottom = -world_height * 0.5f;
+		const real32 near = 0;
+		const real32 far = 10;
 
 		s_matrix_4x4_real32 projection_matrix =
 		{{
-			{2/(right - left), 0, 0, 0},
-			{0, 2/(top - bottom), 0 , 0},
-			{0, 0, -2/(far - near), 0},
-			{-(right + left) / (right - left), -(top + bottom) / (top - bottom), -(far + near) / (far - near), 1}
+			{ 2/(right - left), 0, 0, 0 },
+			{ 0, 2/(top - bottom), 0 , 0 },
+			{ 0, 0, -2/(far - near), 0 },
+			{ -(right + left) / (right - left), -(top + bottom) / (top - bottom), -(far + near) / (far - near), 1 }
 		}};
 
-		const real32 screen_width = m_screen_dimensions.width;
-		const real32 screen_height = m_screen_dimensions.height;
+		const real32 half_screen_width = m_screen_dimensions.width * 0.5f;
+		const real32 half_screen_height = m_screen_dimensions.height * 0.5f;
 
 		s_matrix_4x4_real32 viewport_matrix =
 		{{
-			{(screen_width / 2), 0, 0, 0},
-			{0, (-screen_height / 2), 0, 0},
-			{0, 0, 1, 0},
-			{(screen_width / 2), (screen_height / 2), 0, 1}
+			{ half_screen_width, 0, 0, 0 },
+			{ 0, -half_screen_height, 0, 0 },
+			{ 0, 0, 1, 0 },
+			{ half_screen_width, half_screen_height, 0, 1 }
 		}};
 
 		m_viewport = view_matrix * projection_matrix * viewport_matrix;

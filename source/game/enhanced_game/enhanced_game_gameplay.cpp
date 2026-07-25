@@ -6,6 +6,14 @@
 const t_plane_3d_real32 k_ground_plane = t_plane_3d_real32::from_point_and_normal(t_vector_4d_real32::zero(), k_world_up);
 const t_plane_3d_real32 k_ramp_plane = t_plane_3d_real32::from_point_and_normal({ 4,0,0,1 }, {1,1,0,0});
 
+const t_vector_4d_real32 k_rotation_forward = { 0, 0, 0, 0 };
+const t_vector_4d_real32 k_rotation_backward = { 0, k_math_real32_pi, 0, 0 };
+const t_vector_4d_real32 k_rotation_left = { 0, k_math_real32_half_pi, 0, 0 };
+const t_vector_4d_real32 k_rotation_right = { 0, -k_math_real32_half_pi, 0, 0 };
+const t_vector_4d_real32 k_rotation_up = { -k_math_real32_half_pi, 0, 0, 0 };
+const t_vector_4d_real32 k_rotation_down = { k_math_real32_half_pi, 0, 0, 0 };
+
+
 void c_game_flow_state_gameplay::on_enter(s_flow_state_gameplay* state_data, real32 dt, bool& out_continue)
 {
 	state_data->scene_objects.clear();
@@ -24,7 +32,8 @@ void c_game_flow_state_gameplay::on_enter(s_flow_state_gameplay* state_data, rea
 	}
 
 	state_data->camera.set_transform(s_transform::default_values());
-	state_data->camera.get_transform().position.y() = 2;
+	state_data->camera.set_position({ 0, 2,0,1 });
+	state_data->camera.set_rotation(k_rotation_forward);
 	state_data->camera.set_zoom(1.0f);
 	state_data->camera.set_width(10.0f);
 	state_data->camera.set_screen_dimensions(engine_get_screen_dimensions());
@@ -119,8 +128,9 @@ void c_game_flow_state_gameplay::on_update(s_flow_state_gameplay* state_data, re
 	engine_render_draw_line(ramp_line.p1, ramp_line.p2, k_color_red, render_layer_main);
 
 #ifdef CONFIG_DEBUG
+	t_render_shape_rect player_rect = state_data->camera.world_rect_to_screen_space(state_data->player.get_collision_rect_3d());
 	engine_render_draw_rect(
-		state_data->camera.world_rect_to_screen_space(state_data->player.get_collision_rect_2d()),
+		player_rect,
 		k_color_red,
 		false,
 		render_layer_debug);
@@ -172,7 +182,7 @@ void c_game_flow_state_gameplay::on_update(s_flow_state_gameplay* state_data, re
 		t_string_128 camera_viewport_title("Camera Viewport");
 		engine_render_draw_string(camera_viewport_title, align_x, 25, 1, k_color_white, render_layer_debug);
 		const int32 view_align_x = align_x + 65;
-		t_string_128 camera_viewport_string;
+		t_string_256 camera_viewport_string;
 		state_data->camera.get_viewport_debug_string(camera_viewport_string);
 		engine_render_draw_string(camera_viewport_string, view_align_x, 35, 1, k_color_white, render_layer_debug);
 	}
