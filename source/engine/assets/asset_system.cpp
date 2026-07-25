@@ -204,14 +204,14 @@ void c_asset_loader_thread::asset_loader_thread_entry_point(c_asset_loader_threa
 
 void c_asset_loader_thread::process_asset_loads()
 {
-	s_load_asset_request request;
 
-	while (g_asset_load_requests->pop_front(request))
+	while (!g_asset_load_requests->empty())
 	{
-		// first check if we have the asset loaded already
-		
+		s_load_asset_request request;
+		g_asset_load_requests->pop_front(request);
 		c_string_id asset_id = request.asset_definition.id;
 
+		// first check if we have the asset loaded already
 		bool found;
 		s_asset_internal& asset = g_active_assets->find_or_insert(asset_id.get_id(), found);
 
@@ -254,7 +254,7 @@ void c_asset_loader_thread::process_asset_loads()
 					ASSERT(bytes_read == file_info.size_bytes);
 					file.close();
 
-					asset.ref_count = 1;
+					asset.ref_count++;
 					asset.asset_id = asset_id;
 
 					switch (request.asset_definition.type)
@@ -293,7 +293,7 @@ void c_asset_loader_thread::process_asset_loads()
 				}
 				else
 				{
-					g_active_assets->remove(asset.asset_id.get_id());
+					g_active_assets->remove(asset_id.get_id());
 					log_message(critical, "asset_system: failed to open asset file! [asset: {s}, file: {s}]",
 						request.asset_definition.id.get_debug_string(),
 						request.asset_definition.path.get_full_path());
@@ -301,6 +301,7 @@ void c_asset_loader_thread::process_asset_loads()
 			}
 			else
 			{
+				ASSERT(g_active_assets->remove(asset_id.get_id()));
 				log_message(warning, "asset_system: file not found [asset: {s}, file: {s}]",
 					request.asset_definition.id.get_debug_string(),
 					request.asset_definition.path.get_full_path());
