@@ -35,8 +35,8 @@ struct s_game_flow_state_machine_data
 class c_game_state_machine_state_base
 {
 public:
-	virtual real32 pre_enter_wait_seconds() = 0;
-	virtual real32 post_exit_wait_seconds() = 0;
+	virtual real32 pre_enter_wait_seconds() { return 0.0f; };
+	virtual real32 post_exit_wait_seconds() { return 0.0f; };
 	virtual void enter(byte* state_data, real32 dt, bool& out_continue) = 0;
 	virtual void update(byte* state_data, real32 dt, bool& out_continue) = 0;
 	virtual void exit(byte* state_data, real32 dt, bool& out_continue) = 0;

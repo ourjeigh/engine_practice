@@ -27,7 +27,6 @@ struct s_flow_state_main_menu
 class c_game_flow_state_main_menu : public c_game_state_machine_state<s_flow_state_main_menu>
 {
 public:
-	real32 pre_enter_wait_seconds() { return 0.0f; }
 	real32 post_exit_wait_seconds() { return 0.2f; }
 
 	void on_enter(s_flow_state_main_menu* state_data, real32 dt, bool& out_continue);
@@ -49,9 +48,6 @@ struct s_flow_state_gameplay
 class c_game_flow_state_gameplay : public c_game_state_machine_state<s_flow_state_gameplay>
 {
 public:
-	real32 pre_enter_wait_seconds() { return 0.0f; }
-	real32 post_exit_wait_seconds() { return 0.0f; }
-
 	void on_enter(s_flow_state_gameplay* state_data, real32 dt, bool& out_continue);
 	void on_update(s_flow_state_gameplay* state_data, real32 dt, bool& out_continue);
 	void on_exit(s_flow_state_gameplay* state_data, real32 dt, bool& out_continue);
