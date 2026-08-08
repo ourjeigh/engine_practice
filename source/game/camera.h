@@ -94,16 +94,28 @@ public:
 	
 	t_render_shape_rect world_rect_to_screen_space(const t_rect_3d_real32& rect) const
 	{
-		// TODO still incorrect in some rotations - can result in negative height
 		t_aabb_3d_real32 aabb = rect.to_aabb();
 		t_render_shape_point min = world_position_to_screen_space(aabb.min);
 		t_render_shape_point max = world_position_to_screen_space(aabb.max);
 
-		// world up to top down
-		int32 height = min.y() - max.y();
+		int32 left = min.x();
+		int32 top = min.y();
+		int32 height = max.y() - min.y();
 		int32 width = max.x() - min.x();
 
-		t_render_shape_rect out(min.x(), min.y() - height, width, height);
+		if (min.x() > max.x())
+		{
+			left = max.x();
+			width *= -1;
+		}
+
+		if (min.y() > max.y())
+		{
+			top = max.y();
+			height *= -1;
+		}
+
+		t_render_shape_rect out(left, top, width, height);
 		return out;
 	}
 

@@ -6,12 +6,7 @@
 #include "structures/vector.h"
 #include "structures/shapes.h"
 
-const t_vector_4d_real32 k_world_up = { 0, 1, 0, 0 };
-const t_vector_4d_real32 k_world_down = { 0, -1, 0, 0 };
-const t_vector_4d_real32 k_world_left = { -1, 0, 0, 0 };
-const t_vector_4d_real32 k_world_right = { 1, 0, 0, 0 };
-const t_vector_4d_real32 k_world_forward = { 0, 0, 1, 0 };
-const t_vector_4d_real32 k_world_backward = { 0, 0, -1, 0 };
+
 
 struct s_collision_info
 {

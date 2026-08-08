@@ -3,16 +3,8 @@
 #include "input/input_utilities.h"
 #include "collision/collision.h"
 
-const t_plane_3d_real32 k_ground_plane = t_plane_3d_real32::from_point_and_normal(t_vector_4d_real32::zero(), k_world_up);
-const t_plane_3d_real32 k_ramp_plane = t_plane_3d_real32::from_point_and_normal({ 4,0,0,1 }, {1,1,0,0});
-
-const t_vector_4d_real32 k_rotation_forward = { 0, 0, 0, 0 };
-const t_vector_4d_real32 k_rotation_backward = { 0, k_math_real32_pi, 0, 0 };
-const t_vector_4d_real32 k_rotation_left = { 0, k_math_real32_half_pi, 0, 0 };
-const t_vector_4d_real32 k_rotation_right = { 0, -k_math_real32_half_pi, 0, 0 };
-const t_vector_4d_real32 k_rotation_up = { -k_math_real32_half_pi, 0, 0, 0 };
-const t_vector_4d_real32 k_rotation_down = { k_math_real32_half_pi, 0, 0, 0 };
-
+const t_plane_3d_real32 k_ground_plane = t_plane_3d_real32::from_point_and_normal(t_vector_4d_real32::zero(), k_vector_4d_direction_up);
+//const t_plane_3d_real32 k_ramp_plane = t_plane_3d_real32::from_point_and_normal({ 4,0,0,1 }, {1,1,0,0});
 
 void c_game_flow_state_gameplay::on_enter(s_flow_state_gameplay* state_data, real32 dt, bool& out_continue)
 {
@@ -32,8 +24,8 @@ void c_game_flow_state_gameplay::on_enter(s_flow_state_gameplay* state_data, rea
 	}
 
 	state_data->camera.set_transform(s_transform::default_values());
-	state_data->camera.set_position({ 0, 2,0,1 });
-	state_data->camera.set_rotation(k_rotation_forward);
+	state_data->camera.set_position({ 0, 2, 0, 1 });
+	state_data->camera.set_rotation(k_vector_4d_rotation_forward);
 	state_data->camera.set_zoom(1.0f);
 	state_data->camera.set_width(10.0f);
 	state_data->camera.set_screen_dimensions(engine_get_screen_dimensions());
@@ -48,9 +40,18 @@ void c_game_flow_state_gameplay::on_update(s_flow_state_gameplay* state_data, re
 	t_string_128 title("Gameplay!");
 	engine_render_draw_string(title, 600, 300, 5, k_color_white, render_layer_ui);
 
-	auto input_state = engine_input_get_input_state();
+	const s_input_state* input_state = engine_input_get_input_state();
 	t_vector_4d_real32 player_velocity;
 	get_arrow_key_move_delta(input_state, player_velocity);
+
+	// update camera
+	{
+		t_vector_4d_real32 camera_rotation = state_data->camera.get_transform().rotation;
+		if (try_update_camera_direction_from_input(input_state, camera_rotation))
+		{
+			state_data->camera.set_rotation(camera_rotation);
+		}
+	}
 
 	const real32 player_speed_meters_per_second = 5;
 	player_velocity *= player_speed_meters_per_second;
@@ -62,7 +63,6 @@ void c_game_flow_state_gameplay::on_update(s_flow_state_gameplay* state_data, re
 
 	t_vector_4d_real32 origin = { 0, 2, 0, 1 };
 	t_vector_4d_real32 end = new_player_position;
-	
 
 	for (const auto& object : state_data->scene_objects)
 	{
@@ -88,12 +88,12 @@ void c_game_flow_state_gameplay::on_update(s_flow_state_gameplay* state_data, re
 		k_ground_plane,
 		collision_info);
 
-	collides |= aabb_intersect_plane_test_3d(
+	/*collides |= aabb_intersect_plane_test_3d(
 		state_data->player.m_transform.position,
 		new_player_position - state_data->player.m_transform.position,
 		state_data->player.get_collision_rect_3d().to_aabb(),
 		k_ramp_plane,
-		collision_info);
+		collision_info);*/
 
 	/*engine_render_draw_line(
 		state_data->camera.world_position_to_screen_space(origin),
@@ -124,8 +124,8 @@ void c_game_flow_state_gameplay::on_update(s_flow_state_gameplay* state_data, re
 	s_render_shape_line ground_line = state_data->camera.world_plane_to_screen_space(k_ground_plane);
 	engine_render_draw_line(ground_line.p1, ground_line.p2, k_color_red, render_layer_main);
 
-	s_render_shape_line ramp_line = state_data->camera.world_plane_to_screen_space(k_ramp_plane);
-	engine_render_draw_line(ramp_line.p1, ramp_line.p2, k_color_red, render_layer_main);
+	/*s_render_shape_line ramp_line = state_data->camera.world_plane_to_screen_space(k_ramp_plane);
+	engine_render_draw_line(ramp_line.p1, ramp_line.p2, k_color_red, render_layer_main);*/
 
 #ifdef CONFIG_DEBUG
 	t_render_shape_rect player_rect = state_data->camera.world_rect_to_screen_space(state_data->player.get_collision_rect_3d());

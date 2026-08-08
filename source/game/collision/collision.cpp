@@ -92,7 +92,7 @@ bool ray_intersect_aabb_test_3d(
 			if (in_range_inclusive(left_x, right_x, collision_position.x()))
 			{
 				t_min = t;
-				normal = t == t_top ? k_world_up : k_world_down;
+				normal = t == t_top ? k_vector_4d_direction_up : k_vector_4d_direction_down;
 			}
 		}
 	}
@@ -107,7 +107,7 @@ bool ray_intersect_aabb_test_3d(
 			if (in_range_inclusive(bottom_y, top_y, collision_position.y()))
 			{
 				t_min = t;
-				normal = t == t_left ? k_world_left : k_world_right;
+				normal = t == t_left ? k_vector_4d_direction_left : k_vector_4d_direction_right;
 			}
 		}
 	}
@@ -122,7 +122,7 @@ bool ray_intersect_aabb_test_3d(
 			if (in_range_inclusive(front_z, back_z, collision_position.z()))
 			{
 				t_min = t;
-				normal = t == t_front ? k_world_forward : k_world_backward;
+				normal = t == t_front ? k_vector_4d_direction_forward : k_vector_4d_direction_backward;
 			}
 		}
 	}

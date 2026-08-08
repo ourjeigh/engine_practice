@@ -463,4 +463,18 @@ private:
 using t_vector_4d_int32 = c_vector_4d<int32, real32, k_default_epsilon_int32>;
 using t_vector_4d_real32 = c_vector_4d<real32, real32, k_default_epsilon_real32>;
 
+
+const t_vector_4d_real32 k_vector_4d_direction_up = { 0, 1, 0, 0 };
+const t_vector_4d_real32 k_vector_4d_direction_down = { 0, -1, 0, 0 };
+const t_vector_4d_real32 k_vector_4d_direction_left = { -1, 0, 0, 0 };
+const t_vector_4d_real32 k_vector_4d_direction_right = { 1, 0, 0, 0 };
+const t_vector_4d_real32 k_vector_4d_direction_forward = { 0, 0, 1, 0 };
+const t_vector_4d_real32 k_vector_4d_direction_backward = { 0, 0, -1, 0 };
+
+const t_vector_4d_real32 k_vector_4d_rotation_forward = { 0, 0, 0, 0 };
+const t_vector_4d_real32 k_vector_4d_rotation_backward = { 0, k_math_real32_pi, 0, 0 };
+const t_vector_4d_real32 k_vector_4d_rotation_left = { 0, k_math_real32_half_pi, 0, 0 };
+const t_vector_4d_real32 k_vector_4d_rotation_right = { 0, -k_math_real32_half_pi, 0, 0 };
+const t_vector_4d_real32 k_vector_4d_rotation_up = { -k_math_real32_half_pi, 0, 0, 0 };
+const t_vector_4d_real32 k_vector_4d_rotation_down = { k_math_real32_half_pi, 0, 0, 0 };
 #endif //_
