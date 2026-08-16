@@ -7,8 +7,8 @@
 
 c_platform_handle platform_process_load_library(c_file_path& library_path);
 bool platform_process_unload_library(c_platform_handle& library);
-void* platform_process_get_library_function_address(c_platform_handle& library, c_string& function);
-bool platform_process_start_process_and_wait(c_file_path& process_path, c_string& command);
+void* platform_process_get_library_function_address(c_platform_handle& library, c_string function);
+bool platform_process_start_process_and_wait(c_file_path& process_path, c_string command);
 
 #endif // !__PLATFORM_PROCESS_H__
 

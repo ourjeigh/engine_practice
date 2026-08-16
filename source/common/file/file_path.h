@@ -38,13 +38,13 @@ public:
 	void get_directory_path(t_string_256& out_directory_path) const;
 	void get_directory_name(t_string_256& out_directory_name) const;
 
-	void get_path_string(c_string& out_path) const
+	void get_path_string(c_string out_path) const
 	{
 		out_path.copy_from(m_data);
 	}
 
-	bool contains(const c_string substring) const { return m_data.contains(substring); }
-	bool ends_with(const c_string substring) const { return m_data.ends_with(substring); }
+	bool contains(const c_string_const substring) const { return m_data.contains(substring); }
+	bool ends_with(const c_string_const substring) const { return m_data.ends_with(substring); }
 
 private:
 	void split_path(uint8& out_parent_directory_index, uint8& out_filename_index, uint8& out_ext_index) const;

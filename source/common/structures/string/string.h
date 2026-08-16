@@ -11,38 +11,37 @@ custom string class and related functionality. for const char* functions, see st
 #include "structures/string/string_format.h"
 #include "types/types.h"
 
-// TODO: create a c_string_base which imherits c_stack_base and
-// make c_string and c_satic_string inherit that
-class c_string : public c_stack<char>
+template<class t_derived>
+class c_string_base : public c_stack_base<char, t_derived>
 {
 public:
-	using c_stack<char>::empty;
+	using t_stack_base = c_stack_base<char, t_derived>;
 
-	c_string() { this->clear(); }
-
-	explicit c_string(char* data, int32 size, int32* top) : c_stack<char>(data, size, top) {}
+	using t_stack_base::empty;
 
 	void clear()
 	{
-		c_stack::clear();
+		t_stack_base::clear();
 	}
 
 	int32 used() const 
 	{ 
-		return c_stack::used(); 
+		return t_stack_base::used();
 	}
 
-	void copy_from(const c_string& other)
+	template<typename t_other>
+	void copy_from(const c_string_base<t_other>& other)
 	{
 		ASSERT(other.is_terminated());
-		c_stack<char>::copy_from(other);
+		t_stack_base::copy_from(other);
 		ASSERT(is_terminated());
 	}
 
-	void copy_from_range(const c_string& other, int32 start, int32 end)
+	template<typename t_other>
+	void copy_from_range(const c_string_base<t_other>& other, int32 start, int32 end)
 	{
 		ASSERT(other.is_terminated());
-		c_stack::copy_from_range(other, start, end);
+		t_stack_base::copy_from_range(other, start, end);
 		terminate();
 	}
 
@@ -56,7 +55,7 @@ public:
 	{
 		if (!empty() && is_terminated())
 		{
-			pop();
+			t_stack_base::pop();
 		}
 
 		if (string != nullptr)
@@ -85,7 +84,7 @@ public:
 
 		if (!empty() && is_terminated())
 		{
-			pop();
+			t_stack_base::pop();
 		}
 
 		appendf_internal(format, args...);
@@ -105,9 +104,9 @@ public:
 		return this->data();
 	}
 
-	void assert_valid()
+	void assert_valid() const
 	{
-		assert_valid_index(this->top_index());
+		this->assert_valid_index(this->top_index());
 		ASSERT(is_terminated());
 	}
 
@@ -119,7 +118,8 @@ public:
 		}
 	}
 	
-	bool contains(c_string substring) const
+	template<typename t_other>
+	bool contains(const c_string_base<t_other>& substring) const
 	{
 		bool matched = false;
 		int32 string_index = 0;
@@ -133,7 +133,7 @@ public:
 
 		while (!matched && string_index < this->used())
 		{
-			if (*get_item_const(string_index) == *substring.get_item_const(substring_index))
+			if (*t_stack_base::get_item_const(string_index) == *substring.get_item_const(substring_index))
 			{ 
 				substring_index++;
 				matched = substring_index == substring_length;
@@ -149,7 +149,8 @@ public:
 		return matched;
 	}
 
-	bool ends_with(const c_string substring) const
+	template<typename t_other>
+	bool ends_with(const c_string_base<t_other>& substring) const
 	{
 		if (empty()) return false;
 
@@ -158,7 +159,7 @@ public:
 
 		while (string_index >= 0 && substring_index >= 0)
 		{
-			if (*get_item_const(string_index) != *substring.get_item_const(substring_index))
+			if (*t_stack_base::get_item_const(string_index) != *substring.get_item_const(substring_index))
 			{
 				return false;
 			}
@@ -170,13 +171,15 @@ public:
 		return true;
 	}
 
-private:
-
 	bool is_terminated() const
 	{
-		return top() == k_null_char;
+		return t_stack_base::top() == k_null_char;
 	}
+	
+	c_stack<char> as_stack() { return c_stack<char>(this->data(), this->capacity(), &this->top_index()); }
+	operator c_stack<char>() { return as_stack(); }
 
+private:
 	void appendf_internal(const char*& format)
 	{
 		push_unformatted_string(format);
@@ -195,7 +198,7 @@ private:
 
 		t_arg_format_buffer arg_format_buffer;
 		parse_format_buffer(format, arg_format_buffer);
-		format_arg(arg_format_buffer, first, *this);
+		format_arg(arg_format_buffer, first, this->as_stack());
 		
 		format += arg_format_buffer.used();
 
@@ -210,33 +213,92 @@ private:
 		// todo: handle escaped (eg "{{blah}}") 
 		while (*format != k_null_char && *format != k_string_format_char_begin)
 		{
-			push(*format++);
+			t_stack_base::push(*format++);
 		}
 	}
 
 	template<typename t_type>
-	inline void format_arg(t_arg_format_buffer format, const t_type& value, t_char_stack& out)
+	inline void format_arg(t_arg_format_buffer format, const t_type& value, t_char_stack out)
 	{
 		const s_format_spec spec = parse_spec(format);
 		s_string_formatter<t_type>::format(spec, value, out);
 	}
+
+};
+
+class c_string_const : public c_string_base<c_string_const>
+{
+public:
+	c_string_const() : m_data_reference(nullptr), m_size(k_invalid), m_top_reference(nullptr) {}
+	explicit c_string_const(const char* data, int32 size, const int32* top) : m_data_reference(data), m_size(size), m_top_reference(top) {}
+
+	const int32& top_index() const { return *m_top_reference; }
+
+	// unusuable non-const c_string_base methods
+	void clear() = delete;
+	void print(const char* string) = delete;
+	void append(const char* string) = delete;
+	template<typename... t_args>
+	void printf(const char* format, t_args... args) = delete;
+	template<typename... t_args>
+	void appendf(const char* format, t_args... args) = delete;
+	template<typename t_other>
+	void copy_from(const c_string_base<t_other>& other) = delete;
+	template<typename t_other>
+	void copy_from_range(const c_string_base<t_other>& other, int32 start, int32 end) = delete;
+	void terminate() = delete;
+
+private:
+	const int32* m_top_reference;
+
+	using t_type = char;
+	ARRAY_DECLARE_REFERENCE_MEMBERS_CONST
+};
+
+class c_string : public c_string_base<c_string>
+{
+public:
+	c_string() : m_data_reference(nullptr), m_size(k_invalid), m_top_reference(nullptr) {}
+	explicit c_string(char* data, int32 size, int32* top) : m_data_reference(data), m_size(size), m_top_reference(top) {}
+
+	int32& top_index() { return *m_top_reference; }
+	const int32& top_index() const { return *m_top_reference; }
+
+private:
+	int32* m_top_reference;
+
+	using t_type = char;
+	ARRAY_DECLARE_REFERENCE_MEMBERS
 };
 
 template<int32 k_max_size>
-class c_static_string : public c_string
+class c_static_string : public c_string_base<c_static_string<k_max_size>>
 {
 public:
-	c_static_string() : c_string(m_data, k_max_size, &m_top) { this->clear(); }
+	using t_string_base = c_string_base<c_static_string<k_max_size>>;
 
-	constexpr c_static_string(const char* string) : c_string(m_data, k_max_size, &m_top)
+	c_static_string() { this->clear(); }
+
+	constexpr c_static_string(const char* string)
 	{
 		this->clear();
-		print(string);
+		this->print(string);
 	}
 
+	c_string as_string() { return c_string(this->data(), this->capacity(), &this->top_index()); }
+	operator c_string() { return as_string(); }
+
+	c_string_const as_string_const() const { return c_string_const(this->data(), this->capacity(), &this->top_index()); }
+	operator c_string_const() const { return as_string_const(); }
+
+	int32& top_index() { return m_top; }
+	const int32& top_index() const { return m_top; }
+
 private:
-	char m_data[k_max_size];
 	int32 m_top;
+
+	using t_type = char;
+	ARRAY_DECLARE_STORAGE_MEMBERS
 };
 
 typedef c_static_string<128> t_string_128;

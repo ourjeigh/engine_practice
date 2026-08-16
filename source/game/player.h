@@ -65,10 +65,28 @@ public:
 
 	s_transform m_transform;
 
+#ifdef CONFIG_DEBUG
+	void set_name(const c_string& name)
+	{
+		// hacks
+		d_name = *(new t_string_128());
+		d_name.copy_from(name);
+	}
+
+	c_string_const get_name() /*const*/
+	{
+		return d_name.as_string_const();
+	}
+
+#endif //CONFIG_DEBUG
 private:
 	t_vector_4d_real32 m_velocity;
 	t_vector_4d_real32 m_acceleration;
 	const real32 m_mass = 1.0f;
+
+#ifdef CONFIG_DEBUG
+	t_string_128 d_name;
+#endif //CONFIG_DEBUG
 };
 
 class c_player : public c_object

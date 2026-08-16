@@ -20,13 +20,13 @@ bool platform_process_unload_library(c_platform_handle& library)
 	return FreeLibrary(library_handle) != 0;
 }
 
-void* platform_process_get_library_function_address(c_platform_handle& library, c_string& function)
+void* platform_process_get_library_function_address(c_platform_handle& library, c_string function)
 {
 	HMODULE library_handle = c_platform_handle_factory::get_native_handle_from_platform_handle<HMODULE>(library);
 	return GetProcAddress(library_handle, function.get_const_char());
 }
 
-bool platform_process_start_process_and_wait(c_file_path& process_path, c_string& command)
+bool platform_process_start_process_and_wait(c_file_path& process_path, c_string command)
 {
 	bool success = false;
 

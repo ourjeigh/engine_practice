@@ -115,7 +115,7 @@ inline int64 atoi(c_array<char> string)
 }
 
 // formatters
-inline void string_format_from_bool(bool input, int8 width, t_char_stack& out_buffer)
+inline void string_format_from_bool(bool input, int8 width, t_char_stack out_buffer)
 {
 	if (width == 0)
 	{
@@ -136,7 +136,7 @@ inline void string_format_from_bool(bool input, int8 width, t_char_stack& out_bu
 }
 
 template<typename t_type>
-inline void string_format_from_int(const t_type input, int8 width, t_char_stack& out_buffer)
+inline void string_format_from_int(const t_type input, int8 width, t_char_stack out_buffer)
 {
 	constexpr int32 max_digits = math_digit_count(k_uint64_max);
 	c_static_stack<char, max_digits> temp;
@@ -173,18 +173,18 @@ inline void string_format_from_int(const t_type input, int8 width, t_char_stack&
 	}
 }
 
-inline void string_format_from_int(const int64 input, int8 width, t_char_stack& out_buffer)
+inline void string_format_from_int(const int64 input, int8 width, t_char_stack out_buffer)
 {
 	return string_format_from_int<int64>(input, width, out_buffer);
 }
 
-inline void string_format_from_uint(const uint64 input, int8 width, t_char_stack& out_buffer)
+inline void string_format_from_uint(const uint64 input, int8 width, t_char_stack out_buffer)
 {
 	return string_format_from_int<uint64>(input, width, out_buffer);
 }
 
 template<typename t_type>
-inline void string_format_to_hex(t_type input, int8 width, t_char_stack& out_buffer)
+inline void string_format_to_hex(t_type input, int8 width, t_char_stack out_buffer)
 {
 	ASSERT(sizeof(t_type) <= 8);
 
@@ -231,7 +231,7 @@ inline void string_format_from_real(
 	real64 input, 
 	int8 width,
 	int8 precision,
-	t_char_stack& out_buffer)
+	t_char_stack out_buffer)
 {
 	if (input < 0.0f)
 	{
@@ -270,12 +270,12 @@ inline void string_format_from_real(
 	}
 }
 
-inline void string_format_from_char(const char input, t_char_stack& out_buffer)
+inline void string_format_from_char(const char input, t_char_stack out_buffer)
 {
 	out_buffer.push(input);
 }
 
-inline void string_format_from_string(const char* input, int8 width, t_char_stack& out_buffer)
+inline void string_format_from_string(const char* input, int8 width, t_char_stack out_buffer)
 {
 	int32 length = str_length(input);
 
@@ -291,7 +291,7 @@ inline void string_format_from_string(const char* input, int8 width, t_char_stac
 	}
 }
 
-inline void string_format_from_string_wide(const wchar* input, t_char_stack& out_buffer)
+inline void string_format_from_string_wide(const wchar* input, t_char_stack out_buffer)
 {
 	while (*input != k_null_char)
 	{
@@ -307,7 +307,7 @@ inline const void* to_format_ptr(const void* in)
 template<typename t_type>
 struct s_string_formatter
 {
-	static_member_function void format(const s_format_spec& spec, const t_type& value, t_char_stack& out)
+	static_member_function void format(const s_format_spec& spec, const t_type& value, t_char_stack out)
 	{
 		// it may be an enum, try to parse as an int
 		if (spec.type == 'i')
@@ -328,7 +328,7 @@ struct s_string_formatter
 template<>
 struct s_string_formatter<bool>
 {
-	static_member_function void format(const s_format_spec& spec, const bool value, t_char_stack& out)
+	static_member_function void format(const s_format_spec& spec, const bool value, t_char_stack out)
 	{
 		ASSERT(spec.type == 'b');
 		string_format_from_bool(value, spec.width, out);
@@ -338,7 +338,7 @@ struct s_string_formatter<bool>
 template<>
 struct s_string_formatter<const wchar*>
 {
-	static_member_function void format(const s_format_spec& spec, const wchar* value, t_char_stack& out)
+	static_member_function void format(const s_format_spec& spec, const wchar* value, t_char_stack out)
 	{
 		ASSERT(spec.type == 's');
 		string_format_from_string_wide(value, out);
@@ -348,7 +348,7 @@ struct s_string_formatter<const wchar*>
 template<>
 struct s_string_formatter<const char*>
 {
-	static_member_function void format(const s_format_spec& spec, const char* value, t_char_stack& out)
+	static_member_function void format(const s_format_spec& spec, const char* value, t_char_stack out)
 	{
 		ASSERT(spec.type == 's');
 		string_format_from_string(value, spec.width, out);
@@ -358,7 +358,7 @@ struct s_string_formatter<const char*>
 template<>
 struct s_string_formatter<char*>
 {
-	static_member_function void format(const s_format_spec& spec, char* value, t_char_stack& out)
+	static_member_function void format(const s_format_spec& spec, char* value, t_char_stack out)
 	{
 		s_string_formatter<const char*>::format(spec, value, out);
 	}
@@ -367,7 +367,7 @@ struct s_string_formatter<char*>
 template<>
 struct s_string_formatter<int32>
 {
-	static_member_function void format(const s_format_spec& spec, int32 value, t_char_stack& out)
+	static_member_function void format(const s_format_spec& spec, int32 value, t_char_stack out)
 	{
 		if (spec.type == 'i')
 		{
@@ -387,7 +387,7 @@ struct s_string_formatter<int32>
 template<>
 struct s_string_formatter<int64>
 {
-	static_member_function void format(const s_format_spec& spec, int64 value, t_char_stack& out)
+	static_member_function void format(const s_format_spec& spec, int64 value, t_char_stack out)
 	{
 		if (spec.type == 'i')
 		{
@@ -407,7 +407,7 @@ struct s_string_formatter<int64>
 template<>
 struct s_string_formatter<uint32>
 {
-	static_member_function void format(const s_format_spec& spec, uint64 value, t_char_stack& out)
+	static_member_function void format(const s_format_spec& spec, uint64 value, t_char_stack out)
 	{
 		// if we format a uint with 'i' this will halt, do we care?
 		if (spec.type == 'u')
@@ -428,7 +428,7 @@ struct s_string_formatter<uint32>
 template<>
 struct s_string_formatter<uint64>
 {
-	static_member_function void format(const s_format_spec& spec, uint64 value, t_char_stack& out)
+	static_member_function void format(const s_format_spec& spec, uint64 value, t_char_stack out)
 	{
 		// if we format a uint with 'i' this will halt, do we care?
 		if (spec.type == 'u')
@@ -449,7 +449,7 @@ struct s_string_formatter<uint64>
 template<>
 struct s_string_formatter<real32>
 {
-	static_member_function void format(const s_format_spec& spec, real32 value, t_char_stack& out)
+	static_member_function void format(const s_format_spec& spec, real32 value, t_char_stack out)
 	{
 		ASSERT(spec.type == 'f');
 		string_format_from_real(value, spec.width, spec.precision, out);
@@ -459,7 +459,7 @@ struct s_string_formatter<real32>
 template<>
 struct s_string_formatter<real64>
 {
-	static_member_function void format(const s_format_spec& spec, real64 value, t_char_stack& out)
+	static_member_function void format(const s_format_spec& spec, real64 value, t_char_stack out)
 	{
 		ASSERT(spec.type == 'f');
 		string_format_from_real(value, spec.width, spec.precision, out);
@@ -469,7 +469,7 @@ struct s_string_formatter<real64>
 template<>
 struct s_string_formatter<const void*>
 {
-	static_member_function void format(const s_format_spec& spec, const void* value, t_char_stack& out)
+	static_member_function void format(const s_format_spec& spec, const void* value, t_char_stack out)
 	{
 		ASSERT(spec.type == 'p');
 		string_format_to_hex(reinterpret_cast<uint64>(value), spec.width, out);

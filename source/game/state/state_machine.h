@@ -9,7 +9,7 @@
 
 class c_game_state_machine_state_base;
 
-const int32 k_state_machine_state_data_size_bytes = k_byte_kib;
+const int32 k_state_machine_state_data_size_bytes = k_byte_mib;
 
 enum e_state_machine_phase
 {

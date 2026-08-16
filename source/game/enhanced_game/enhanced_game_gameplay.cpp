@@ -16,11 +16,15 @@ void c_game_flow_state_gameplay::on_enter(s_flow_state_gameplay* state_data, rea
 		c_object& dummy = state_data->scene_objects.push();
 		dummy.m_transform.reset();
 		dummy.m_transform.position.set(1, 0.5f, 0, 1);
+		t_string_128 name("dummy 1");
+		dummy.set_name(name);
 	}
 	{
 		c_object& dummy = state_data->scene_objects.push();
 		dummy.m_transform.reset();
 		dummy.m_transform.position.set(-1, 0.5f, 0, 1);
+		t_string_128 name("dummy 2");
+		dummy.set_name(name);
 	}
 
 	state_data->camera.set_transform(s_transform::default_values());
@@ -64,14 +68,20 @@ void c_game_flow_state_gameplay::on_update(s_flow_state_gameplay* state_data, re
 	t_vector_4d_real32 origin = { 0, 2, 0, 1 };
 	t_vector_4d_real32 end = new_player_position;
 
-	for (const auto& object : state_data->scene_objects)
+	for (/*const*/ auto& object : state_data->scene_objects)
 	{
-		collides |= aabb_intersect_aabb_test_3d(
+		bool object_collides = aabb_intersect_aabb_test_3d(
 			state_data->player.m_transform.position,
 			new_player_position - state_data->player.m_transform.position,
 			state_data->player.get_collision_rect_3d().to_aabb(),
 			object.get_collision_rect_3d().to_aabb(),
 			collision_info);
+
+		if (object_collides)
+		{
+			engine_log_verbose("player collision: {s}", object.get_name().get_const_char());
+			collides = true;
+		}
 	}
 
 	/*collides |= aabb_intersect_plane_test_3d(

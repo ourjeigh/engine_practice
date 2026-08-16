@@ -147,7 +147,7 @@ public:
 	}
 
 #ifdef CONFIG_DEBUG
-	void get_viewport_debug_string(c_string& out_string)
+	void get_viewport_debug_string(c_string out_string)
 	{
 		out_string.printf(
 			"{f6.2}, {f6.2}, {f6.2}, {f6.2}\n"

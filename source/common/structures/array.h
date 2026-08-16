@@ -23,6 +23,14 @@
 		t_type* m_data_reference; \
 		int32 m_size; \
 
+#define ARRAY_DECLARE_REFERENCE_MEMBERS_CONST \
+	public: \
+		const t_type* data() const { return m_data_reference; } \
+		int32 capacity() const { return m_size; } \
+	private: \
+		const char* m_data_reference; \
+		int32 m_size;
+
 // forward declare
 template<class t_type>
 class c_array;
@@ -381,7 +389,9 @@ public:
 	void copy_from(const c_stack_base<t_type, t_other>& other)
 	{
 		ASSERT(!other.empty());
-		ASSERT(this->capacity() >= other.used());
+		int32 this_capacity = this->capacity();
+		int32 other_used = other.used();
+		ASSERT(this_capacity >= other_used);
 		c_array_base<t_type, t_derived>::copy_from_range(other, 0, other.used());
 		this->top_index() = other.used() - 1;
 	}
@@ -400,8 +410,6 @@ public:
 
 	int32& top_index() { return this->self().top_index(); }
 	const int32& top_index() const { return this->self().top_index(); }
-protected:
-	//int32 m_top = k_index_empty;
 
 private:
 	static_member_data const int32 k_index_empty = -1;
@@ -412,10 +420,10 @@ template<class t_type>
 class c_stack : public c_stack_base<t_type, c_stack<t_type>>
 {
 public:
-	c_stack() : m_data_reference(nullptr), m_size(k_invalid), m_top_ref(nullptr) {}
+	c_stack() : m_data_reference(nullptr), m_size(k_invalid), m_top_reference(nullptr) {}
 	c_stack(t_type* data, int32 size, int32* top) : m_data_reference(data), m_size(size) 
 	{
-		m_top_ref = top;
+		m_top_reference = top;
 	}
 
 	c_stack& operator=(const c_stack& other)
@@ -424,15 +432,15 @@ public:
 
 		m_data_reference = other.m_data_reference;
 		m_size = other.m_size;
-		m_top_ref = other.m_top_ref;
+		m_top_reference = other.m_top_reference;
 		return *this;
 	}
 
-	int32& top_index() { return *m_top_ref; }
-	const int32& top_index() const { return *m_top_ref; }
+	int32& top_index() { return *m_top_reference; }
+	const int32& top_index() const { return *m_top_reference; }
 
 private:
-	int32* m_top_ref;
+	int32* m_top_reference;
 
 	ARRAY_DECLARE_REFERENCE_MEMBERS
 };
@@ -443,8 +451,9 @@ class c_static_stack : public c_stack_base<t_type, c_static_stack<t_type, k_max_
 public:
 	c_static_stack() { this->clear(); }
 
+	// TODO: make const versions
 	c_stack<t_type> as_stack() { return c_stack<t_type>(this->data(), this->capacity(), &m_top); }
-	operator c_stack<t_type>() { return c_stack<t_type>(this->data(), this->capacity(), &m_top); }
+	operator c_stack<t_type>() { return as_stack(); }
 
 	int32& top_index() { return m_top; }
 	const int32& top_index() const { return m_top; }
@@ -455,8 +464,8 @@ private:
 	ARRAY_DECLARE_STORAGE_MEMBERS
 };
 
-#undef ARRAY_DECLARE_STORAGE_MEMBERS
-#undef ARRAY_DECLARE_REFERENCE_MEMBERS
+//#undef ARRAY_DECLARE_STORAGE_MEMBERS
+//#undef ARRAY_DECLARE_REFERENCE_MEMBERS
 
 template <size_t k_size>
 class c_bit_array
