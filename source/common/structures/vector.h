@@ -6,6 +6,9 @@
 #include "types/types.h"
 #include "structures/array.h"
 
+#define VECTOR_4D_REAL32_FORMAT "{f.2}, {f.2}, {f.2}, {f.2}"
+#define VECTOR_4D_REAL32_ARGS(vector) vector.x(), vector.y(), vector.z(), vector.w()
+
 const real32 k_default_epsilon_real32 = 1e-5f;
 const int32 k_default_epsilon_int32 = 0;
 

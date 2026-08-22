@@ -162,9 +162,9 @@ constexpr real64 math_sin(real64 x)
 
 	real64 x_squared = x * x;
 
-	const real64 component_3 = -1.0f / 6.0f;	// -1/3!
-	const real64 component_5 = 1.0f / 120.0f;	//  1/5!
-	const real64 component_7 = -1.0f / 5040.0f;	// -1/7!
+	const real64 component_3 = -1.0 / 6.0;	// -1/3!
+	const real64 component_5 = 1.0 / 120.0;	//  1/5!
+	const real64 component_7 = -1.0 / 5040.0;	// -1/7!
 
 	return x * (1 + x_squared * (component_3 + x_squared * (component_5 + x_squared * component_7)));
 }
@@ -172,6 +172,17 @@ constexpr real64 math_sin(real64 x)
 constexpr real64 math_cos(real64 x)
 {
 	return math_sin(x + k_math_real32_half_pi);
+}
+
+constexpr real64 math_inverse_cos(real64 x)
+{
+	ASSERT(in_range_inclusive(-1.0, 1.0, x));
+
+	const real64 component_3 = 1.0 / 6.0;
+	const real64 component_5 = 3.0 / 40.0;
+	const real64 component_7 = 5.0 / 112.0;
+
+	return k_math_real32_half_pi - (x + component_3 * math_pow(x, 3) + component_5 * math_pow(x, 5) + component_7 * math_pow(x, 7));
 }
 
 constexpr real32 math_sin(real32 x)
@@ -182,6 +193,11 @@ constexpr real32 math_sin(real32 x)
 constexpr real32 math_cos(real32 x)
 {
 	return static_cast<real32>(math_cos(static_cast<real64>(x)));
+}
+
+constexpr real32 math_inverse_cos(real32 x)
+{
+	return static_cast<real32>(math_inverse_cos(static_cast<real64>(x)));
 }
 
 template<typename t_type>

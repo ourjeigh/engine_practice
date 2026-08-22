@@ -42,7 +42,6 @@ struct s_flow_state_gameplay
 {
 	c_player player;
 	c_camera_2d camera;
-	c_static_stack<c_object, 8> scene_objects;
 };
 
 class c_game_flow_state_gameplay : public c_game_state_machine_state<s_flow_state_gameplay>
@@ -65,19 +64,19 @@ public:
 		data->current_state_id = state_id;
 	}
 
-	c_string_id get_next_state_id(const c_string_id& current_state_id)
+	c_string_id get_next_state_id(const s_game_flow_state_machine_data* data) const
 	{
-		if (current_state_id == c_game_flow_state_logo::id)
+		if (data->current_state_id == c_game_flow_state_logo::id)
 		{
 			return m_state_main_menu.id;
 		}
 
-		if (current_state_id == c_game_flow_state_main_menu::id)
+		if (data->current_state_id == c_game_flow_state_main_menu::id)
 		{
 			return m_state_gameplay.id;
 		}
 
-		if (current_state_id == c_game_flow_state_gameplay::id)
+		if (data->current_state_id == c_game_flow_state_gameplay::id)
 		{
 			return m_state_main_menu.id;
 		}

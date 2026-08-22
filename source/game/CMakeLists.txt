@@ -2,7 +2,12 @@
 ### GAME ###
 ############
 
-file(GLOB_RECURSE GAME_SOURCES *.cpp *.h)
+file(GLOB_RECURSE GAME_SOURCES 
+	*.h	
+	*.cpp
+	*.inl)
+
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${GAME_SOURCES})
 
 if(HOT_RELOAD)
 	# Build as DLL for dev

@@ -261,6 +261,9 @@ public:
 	c_string() : m_data_reference(nullptr), m_size(k_invalid), m_top_reference(nullptr) {}
 	explicit c_string(char* data, int32 size, int32* top) : m_data_reference(data), m_size(size), m_top_reference(top) {}
 
+	c_string_const as_string_const() const { return c_string_const(this->data(), this->capacity(), &this->top_index()); }
+	operator c_string_const() const { return as_string_const(); }
+
 	int32& top_index() { return *m_top_reference; }
 	const int32& top_index() const { return *m_top_reference; }
 

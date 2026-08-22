@@ -91,7 +91,7 @@ public:
 	{
 		data->phase = state_machine_phase_pre_enter;
 		data->pre_post_wait = 0.0f;
-		data->current_state_id = get_next_state_id(data->current_state_id);
+		data->current_state_id = get_next_state_id(data);
 	}
 
 	void init_with_state(s_game_flow_state_machine_data* data, c_string_id state_id)
@@ -160,7 +160,7 @@ public:
 			}
 			case state_machine_phase_finished:
 			{
-				data->current_state_id = get_next_state_id(data->current_state_id);
+				data->current_state_id = get_next_state_id(data);
 				data->phase = state_machine_phase_pre_enter;
 				break;
 			}
@@ -185,7 +185,7 @@ public:
 	}
 
 	virtual void set_state_id(s_game_flow_state_machine_data* data, c_string_id state_id) = 0;
-	virtual c_string_id get_next_state_id(const c_string_id& current_state_id) = 0;
+	virtual c_string_id get_next_state_id(const s_game_flow_state_machine_data* data) const = 0;
 	virtual c_game_state_machine_state_base* get_state(const c_string_id& state_id) = 0;
 
 protected:

@@ -1,9 +1,9 @@
 #include "game_api.h"
 #include "engine_api.h"
-#include "enhanced_game/enhanced_game.h"
-#include "game/demo_game.h"
+#include "game/enhanced_game/enhanced_game.h"
+#include "game/demo_game/demo_game.h"
 
-//#define CONFIG_DEMO_GAME
+#define CONFIG_DEMO_GAME
 
 #ifdef CONFIG_DEMO_GAME
 static_global c_demo_game g_game;

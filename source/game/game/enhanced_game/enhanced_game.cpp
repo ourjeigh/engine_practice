@@ -5,11 +5,10 @@
 #include "player.h"
 #include "types/asset_types.h" 
 #include "state/state_machine.h"
-#include "enhanced_game/enhanced_game_state_machine.h"
+#include "game/enhanced_game/enhanced_game_state_machine.h"
 
 struct s_game_state
 {
-	
 	s_game_flow_state_machine_data game_flow_state_machine_data;
 };
 

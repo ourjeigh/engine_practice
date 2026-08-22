@@ -50,6 +50,11 @@ public:
 		return out;
 	}
 	
+	t_vector_4d_real32 get_velocity() const
+	{
+		return m_velocity;
+	}
+
 	void set_velocity(const t_vector_4d_real32& velocity)
 	{
 		m_velocity = velocity;
@@ -73,7 +78,7 @@ public:
 		d_name.copy_from(name);
 	}
 
-	c_string_const get_name() /*const*/
+	c_string_const get_name() const
 	{
 		return d_name.as_string_const();
 	}
