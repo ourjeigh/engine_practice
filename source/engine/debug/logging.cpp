@@ -40,6 +40,7 @@ void c_logging_system::init(s_log_config config)
 	t_string_128 header = "Timestamp\t\tTime\tThread\tLevel\tMessage\n";
 	header.pop();
 	m_file.write_string(k_invalid, header.make_array());
+	m_tick = 0;
 }
 
 void c_logging_system::term()
@@ -51,6 +52,7 @@ void c_logging_system::term()
 
 void c_logging_system::update()
 {
+	m_tick++;
 	process_log_events();
 }
 
@@ -64,8 +66,9 @@ void c_logging_system::log_internal(
 
 	c_static_string<k_max_log_string_length> output;
 
-	output.printf("{u} {f2.3} {s}: {s}\n", 
+	output.printf("{u} {u} {f2.3} {s}: {s}\n", 
 		current_time, 
+		m_tick,
 		time_since_start.get_duration_seconds(), 
 		get_log_level_string(level),
 		message.get_const_char());

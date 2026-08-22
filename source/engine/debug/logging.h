@@ -55,6 +55,7 @@ private:
 
 	s_log_config m_config;
 	c_file_static_buffered<k_log_file_buffer_size> m_file;
+	uint64 m_tick;
 };
 
 #ifdef FEATURE_LOGGING
