@@ -1,17 +1,19 @@
-#include "audio_system.h"
 #include "assets/asset_system.h"
-#include "debug/logging.h"
+#include "audio_source.h"
+#include "audio_system.h"
 #include "debug/asserts.h"
-#include "threads/threads.h"
-#include "time/time.h"
-#include "platform/platform.h"
+#include "debug/logging.h"
+#include "engine/audio/audio_threadsafe_buffer.h"
 #include "memory/allocator.h"
 #include "memory/memory_system.h"
-#include "engine/audio/audio_threadsafe_buffer.h"
-#include "rendering/render_system.h"
 #include "platform/platform_thread.h"
+#include "rendering/render_system.h"
+#include "structures/hash_set.h"
+#include "threads/threads.h"
+#include "time/time.h"
 
-// move
+
+// move to audio helper
 constexpr real32 db_to_linear_amplitude(real32 db)
 {
 	return math_pow(10, db / 20);
@@ -20,30 +22,36 @@ constexpr real32 db_to_linear_amplitude(real32 db)
 const int32 k_audio_engine_buffer_size = 512;
 const int32 k_audio_output_buffer_size = k_audio_engine_buffer_size * 16;
 const int32 k_audio_engine_sample_rate = 48000;
+
+const real32 k_max_output_level_db = 24;
+constexpr real32 k_max_output_level_linear = db_to_linear_amplitude(k_max_output_level_db);
+
+struct s_audio_playback
+{
+	s_audio_playback() : id(k_invalid), source(nullptr) {}
+
+	t_sound_playback_id id;
+	c_audio_source* source;
+};
+
+// private prototypes
+void stop_audio_playback_internal(s_audio_playback* playback);
+
+// data
 c_audio_engine_thread g_audio_engine_thread;
 
 // TODO: move this, maybe to application, that's what owns the graphics renderer
 c_audio_render_thread g_audio_render_thread;
 s_audio_device_format g_audio_format;
 
-//c_audio_threadsafe_static_ring_buffer<real32, 2, k_audio_output_buffer_size> g_audio_output_ring_buffer;
+// TODO: move this all to an allocated state
 c_audio_threadsafe_ring_buffer<real32>* g_audio_output_ring_buffer;
 
-c_static_stack_allocator<k_byte_mb>* g_audio_source_allocator;
 t_sound_playback_id g_sound_id_top = 0;
 
-const real32 k_max_output_level_db = 24;
-constexpr real32 k_max_output_level_linear = db_to_linear_amplitude(k_max_output_level_db);
-
-struct s_sound_playback
-{
-	s_sound_playback() : id(k_invalid), source(nullptr) {}
-
-	t_sound_playback_id id;
-	c_audio_source* source;
-};
-
-c_static_array<s_sound_playback, 64> g_audio_playbacks;
+c_static_array<s_audio_playback, 64> g_audio_playbacks;
+c_hash_map<t_sound_playback_id, c_audio_source_file, 128> g_audio_playback_source_file_map;
+c_hash_map<t_sound_playback_id, c_audio_source_sine, 8> g_audio_playback_source_sine_map;
 
 // public methods
 void c_audio_system::init()
@@ -66,8 +74,6 @@ void c_audio_system::init()
 
 		g_audio_output_ring_buffer->init(g_audio_format.channel_count, k_audio_output_buffer_size, buffer_data);
 	}
-
-	g_audio_source_allocator = ALLOCATE_NEW_GLOBAL(c_static_stack_allocator<k_byte_mb>, memory_arena_system);
 
 	g_audio_engine_thread.init();
 
@@ -107,76 +113,84 @@ void c_audio_system::update()
 
 t_sound_playback_id c_audio_system::play_sound(const s_wav_asset& asset)
 {
-	c_audio_source_file* source = ALLOCATE_NEW(c_audio_source_file, *g_audio_source_allocator);
-	source->set_buffer(asset.buffer);
+	// todo: This either needs to go faster than iterating thru g_audio_playbacks, or (preferrably) it should just add
+	// the playrequest to a queue that we'll process in update()
 
 	for (auto it = g_audio_playbacks.begin(); it != g_audio_playbacks.end(); ++it)
 	{
 		if (it->id == k_invalid)
 		{
-			it->id = g_sound_id_top++;
-			it->source = source;
+			if (!g_audio_playback_source_file_map.full())
+			{
+				t_sound_playback_id new_id = g_sound_id_top++;
+				bool found = false;
+				c_audio_source_file& source = g_audio_playback_source_file_map.find_or_insert(new_id, found);
+				source.set_buffer(asset.buffer);
+				
+				it->id = new_id;
+				it->source = &source;
 
-			//log_message(verbose, "audio_system: play_sound: [id:{u} name:{s}]", it->id, info.asset_id.get_debug_string()); // make this the string when it's a string_id
+				// TODO: this should have a human-readable name to output
+				log_message(verbose, "audio_system: play_sound: [id:{u}]", it->id);
 
-			return it->id;
+				return it->id;
+			}
+			else
+			{
+				log_message(error, "audio_system: could not create new playback source file, map full ({d} sources)",
+					g_audio_playback_source_file_map.used());
+				return k_invalid;
+			}
 		}
 	}
+	
+	log_message(warning, "audio_system: could not start playback, playbacks list is full!");
 	return k_invalid;
 }
 
 // todo: this should take in a s_sound_properties, so we can start playback with correct gain, etc;
 t_sound_playback_id c_audio_system::play_sound(s_sound_info& info)
 {
-	// todo: This either needs to go faster than iterating thru g_audio_playbacks, or (preferrably) it should just add
-	// the playrequest to a queue that we'll process in update()
-	c_audio_source_file* source =  ALLOCATE_NEW(c_audio_source_file, *g_audio_source_allocator);
-	
 	const s_wav_asset* asset = static_cast<const s_wav_asset*>(c_asset_system::get_asset(info.asset_id));
 
 	if (asset != nullptr)
 	{
-		source->set_buffer(asset->buffer);
-	
-		for (auto it = g_audio_playbacks.begin(); it != g_audio_playbacks.end(); ++it)
-		{
-			if (it->id == k_invalid)
-			{
-				it->id = g_sound_id_top++;
-				it->source = source;
-
-				log_message(verbose, "audio_system: play_sound: [id:{u} name:{s}]", it->id, info.asset_id.get_debug_string());
-
-				return it->id;
-			}
-		}
+		return play_sound(*asset);
 	}
 	else
 	{
-		log_message(warning, "audio_system: play_sound: could not get asset data for sound [id {u}], name: {s}", info.asset_id.get_id(), info.asset_id.get_debug_string()); // make this string
+		log_message(warning, "audio_system: play_sound: could not get asset data for sound [id {u}], name: {s}", info.asset_id.get_id(), info.asset_id.get_debug_string());
 		return k_invalid;
 	}
 
-	log_message(warning, "audio_system: could not start playback, playbacks list is full! [file:{s}]", info.asset_id.get_debug_string());
 	return k_invalid;
 }
 
 t_sound_playback_id c_audio_system::play_debug_pip()
 {
-	//return k_invalid;
-
-	c_audio_source_sine* sine = ALLOCATE_NEW(c_audio_source_sine, *g_audio_source_allocator, 1000);
-	
 	for (auto it = g_audio_playbacks.begin(); it != g_audio_playbacks.end(); ++it)
 	{
 		if (it->id == k_invalid)
 		{
-			it->id = g_sound_id_top++;
-			it->source = sine;
+			if (!g_audio_playback_source_sine_map.full())
+			{
+				t_sound_playback_id new_id = g_sound_id_top++;
+				bool found = false;
+				c_audio_source_sine& source = g_audio_playback_source_sine_map.find_or_insert(new_id, found);
+				source.set_frequency(1000);
+				it->id = new_id;
+				it->source = &source;
 
-			log_message(verbose, "audio_system: play_pip: [id:{u}]", it->id);
+				log_message(verbose, "audio_system: play_pip: [id:{u}]", it->id);
 
-			return it->id;
+				return it->id;
+			}
+			else
+			{
+				log_message(error, "audio_system: could not create new playback source sine, map full ({d} sources)",
+					g_audio_playback_source_sine_map.used());
+				return k_invalid;
+			}
 		}
 	}
 
@@ -195,10 +209,7 @@ void c_audio_system::stop_sound(t_sound_playback_id playback_id)
 	{
 		if (it->id == playback_id)
 		{
-			it->id = k_invalid;
-			it->source = nullptr;
-
-			log_message(verbose, "audio_system:stop_sound stopped sound: [id:{u}]", playback_id);
+			stop_audio_playback_internal(it.get_item());
 
 			return;
 		}
@@ -206,7 +217,6 @@ void c_audio_system::stop_sound(t_sound_playback_id playback_id)
 
 	log_message(verbose, "audio_system:stop_sound couldn't find playback id: [id:{u}]", playback_id);
 }
-
 
 void c_audio_engine_thread::init()
 {
@@ -255,11 +265,6 @@ void c_audio_engine_thread::audio_engine_thread_entry_point(c_audio_engine_threa
 			ASSERT(platform_thread_start_waitable_timer(timer_handle, real64_to_uint32(wait_duration_ms), 0));
 			platform_thread_wait_for_signalled_object(timer_handle);
 		}
-
-		//while (update_period_ms - timer.get_time_span().get_duration_milliseconds() > 0.5f)
-		//{
-		//	NOP();
-		//}
 	}
 }
 
@@ -273,18 +278,17 @@ void c_audio_engine_thread::process_audio()
 	{
 		if (it->id != k_invalid)
 		{
-			//log_message(verbose, "audio_system: processing sound: {u}", it->id);
-
 			playbacks_processed++;
 			c_static_audio_buffer<real32, 2, k_audio_engine_buffer_size> temp_buffer;
 			temp_buffer.zero();
 
 			it->source->get_samples(temp_buffer);
 			
-			if (it->source->HACK_finished())
+			if (it->source->HACK_finished() ||
+				// temp - stop a pip after a single buffer
+				it->source->type() == audio_source_type_sine)
 			{
-				it->source = nullptr;
-				it->id = k_invalid;
+				stop_audio_playback_internal(it.get_item());
 			}
 
 			// this should be turned into a helper add_a_into_b()
@@ -453,4 +457,25 @@ uint32 audio_system_get_sample_rate()
 const s_audio_device_format& audio_get_format()
 {
 	return g_audio_format;
+}
+
+// private
+void stop_audio_playback_internal(s_audio_playback* playback)
+{
+	log_message(verbose, "audio_system:stop_sound stopped sound: [id:{u}]", playback->id);
+
+	switch (playback->source->type())
+	{
+	case audio_source_type_file:
+		g_audio_playback_source_file_map.remove(playback->id);
+		break;
+	case audio_source_type_sine:
+		g_audio_playback_source_sine_map.remove(playback->id);
+		break;
+	default:
+		HALT_UNIMPLEMENTED();
+	}
+
+	playback->id = k_invalid;
+	playback->source = nullptr;
 }

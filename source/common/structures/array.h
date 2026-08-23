@@ -49,6 +49,7 @@ struct iterator
 	bool operator== (const iterator& other) const { return m_ptr == other.m_ptr; }
 	bool operator!= (const iterator& other) const { return !(*this == other); }
 
+	t_type* get_item() { return m_ptr; }
 private:
 	t_type* m_ptr;
 };

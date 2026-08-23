@@ -7,6 +7,15 @@
 #include "types/types.h"
 #include "engine/file_system/file.h"
 
+enum e_audio_source_type
+{
+	audio_source_type_file,
+	audio_source_type_sine,
+	audio_source_type_noise,
+
+	k_audio_source_type_count
+};
+
 class c_audio_source
 {
 public:
@@ -18,6 +27,7 @@ public:
 	// this probably wants to be included in the result of get_samples since that's
 	// likely the only time we need that info.
 	virtual bool HACK_finished() const = 0;
+	virtual e_audio_source_type type() const = 0;
 };
 
 class c_audio_source_sine : public c_audio_source
@@ -39,6 +49,12 @@ public:
 
 	void get_samples(t_audio_buffer_real32& out_buffer);
 	bool HACK_finished() const { return false; }
+	void set_frequency(real32 frequency)
+	{
+		m_frequency = frequency;
+	}
+
+	e_audio_source_type type() const { return audio_source_type_sine; };
 
 private:
 	uint32 m_sample_position;
@@ -52,6 +68,7 @@ public:
 
 	void get_samples(t_audio_buffer_real32& out_buffer);
 	bool HACK_finished() const { return false; }
+	e_audio_source_type type() const { return audio_source_type_noise; };
 
 private:
 
@@ -76,6 +93,7 @@ public:
 
 	void get_samples(t_audio_buffer_real32& out_buffer);
 	bool HACK_finished() const { return m_HACK_finished; }
+	e_audio_source_type type() const { return audio_source_type_file; };
 
 private:
 	c_array<byte> m_memory;
@@ -98,6 +116,7 @@ public:
 	void get_samples(t_audio_buffer_real32& out_buffer);
 	bool HACK_finished() const { return m_HACK_finished; }
 
+	e_audio_source_type type() const { return audio_source_type_file; };
 private:
 	// todo: either make this a templatized size or allow the buffer to be dynamically allocated
 	c_file_static_buffered<30 * k_byte_kb> m_file;

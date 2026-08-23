@@ -283,9 +283,16 @@ private:
 			{
 				for (int32 i2 = i1 + 1; i2 < m_data.capacity(); i2++)
 				{
-					if (i1 != i2 && m_data[i1].state == cell_state_occupied)
+					s_cell& i1_type = m_data[i1];
+					s_cell& i2_type = m_data[i2];
+					t_key i1_key = f_get_key{}(i1_type.data);
+					t_key i2_key = f_get_key{}(i2_type.data);
+
+					if (i1_type.state == cell_state_occupied &&
+						i2_type.state == cell_state_occupied &&
+						i1 != i2)
 					{
-						ASSERT(!f_comparator{}(f_get_key{}(m_data[i1].data), f_get_key{}(m_data[i2].data)));
+						ASSERT(!f_comparator{}(i1_key, i2_key));
 					}
 				}
 			}
