@@ -1,8 +1,8 @@
 #include "logo_state.h"
 #include "engine_api.h"
 
-const s_asset_definition k_simm_logo_bmp_asset_def = { "logo_bmp", asset_scope_global, asset_type_bitmap, R"(C:\Users\RJ\git\simm_engine\assets\simm_logo.bmp)" };
-const s_asset_definition k_simm_logo_wav_asset_def = { "logo_wav", asset_scope_global, asset_type_wav, R"(C:\Users\RJ\git\simm_engine\assets\logo_24_48k.wav)" };
+const s_asset_definition k_simm_logo_bmp_asset_def = { "logo_bmp", asset_scope_global, asset_type_bitmap, R"(..\assets\simm_logo.bmp)" };
+const s_asset_definition k_simm_logo_wav_asset_def = { "logo_wav", asset_scope_global, asset_type_wav, R"(..\assets\logo_24_48k.wav)" };
 /////////////////////////////////////////////////////
 // TEMP MOVE
 
@@ -64,8 +64,8 @@ constexpr auto make_asset_definition_list(s_asset_definition(&& list)[asset_coun
 
 
 MAKE_ASSET_DEF_LIST(k_logo_asset_list,
-	{ "logo_bmp", asset_scope_global, asset_type_bitmap, R"(C:\Users\RJ\git\simm_engine\assets\simm_logo.bmp)" },
-	{ "logo_wav", asset_scope_global, asset_type_wav, R"(C:\Users\RJ\git\simm_engine\assets\logo_24_48k.wav)" });
+	{ "logo_bmp", asset_scope_global, asset_type_bitmap, R"(..\assets\simm_logo.bmp)" },
+	{ "logo_wav", asset_scope_global, asset_type_wav, R"(..\assets\logo_24_48k.wav)" });
 
 inline void render_full_screen_fade(real32 fade_value)
 {

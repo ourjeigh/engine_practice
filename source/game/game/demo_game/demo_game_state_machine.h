@@ -10,12 +10,6 @@
 #include "player.h"
 #include "state/logo_state.h"
 
-/// <summary>
-/// TODO:
-/// -- Fix sound playbacks to be able to free active playbacks (switch to hash map)
-/// -- Add some UI sounds & collision sounds (if possible)
-/// </summary>
-
 enum e_demo_game_menu_selection
 {
 	demo_game_menu_selection_camera_scene,

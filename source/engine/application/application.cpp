@@ -361,7 +361,7 @@ static_global void handle_game_reload(bool down)
 
 static_global void cleanup_temp_game_dlls()
 {
-	c_file_path directory("C:\\Users\\RJ\\git\\simm_engine\\build");
+	c_file_path directory("..\\build");
 	c_static_stack<c_file_path, 128> files;
 	platform_file_directory_get_files(directory, files);
 

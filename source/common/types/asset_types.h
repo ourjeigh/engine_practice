@@ -8,6 +8,7 @@
 
 struct s_asset
 {
+	// TODO: add debug info for asset name / filepath
 };
 
 struct s_bitmap_asset : s_asset

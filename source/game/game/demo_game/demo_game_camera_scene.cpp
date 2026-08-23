@@ -15,7 +15,7 @@ void c_demo_game_flow_menu_scene::on_update(s_demo_game_state_menu_scene* state_
 
 	engine_render_fill_screen(k_color_black.to_uint32());
 
-	t_string_128 title("TITLE");
+	t_string_128 title("SIMM ENGINE DEMO");
 	engine_render_draw_string(title, 200, 200, 4, k_color_white, render_layer_main);
 
 	auto menu_items = make_static_array<t_string_128>({
@@ -28,11 +28,13 @@ void c_demo_game_flow_menu_scene::on_update(s_demo_game_state_menu_scene* state_
 	if (engine_input_get_key_state(input_key_arrow_up).is_down)
 	{
 		state_data->selection--;
+		engine_audio_play_debug_pip();
 		engine_input_consume_key_state(input_key_arrow_up);
 	}
 	else if (engine_input_get_key_state(input_key_arrow_down).is_down)
 	{
 		state_data->selection++;
+		engine_audio_play_debug_pip();
 		engine_input_consume_key_state(input_key_arrow_down);
 	}
 
@@ -76,7 +78,7 @@ void c_demo_game_flow_menu_scene::on_exit(s_demo_game_state_menu_scene* state_da
 
 // camera scene
 
-const s_asset_definition k_test_bmp_asset_def = { "test_bmp", asset_scope_global, asset_type_bitmap, R"(C:\Users\RJ\git\simm_engine\assets\test\dude.bmp)" };
+const s_asset_definition k_test_bmp_asset_def = { "test_bmp", asset_scope_global, asset_type_bitmap, R"(..\assets\test\dude.bmp)" };
 
 void c_demo_game_flow_camera_scene::on_enter(s_demo_game_state_camera_scene* state_data, real32 dt, bool& out_continue)
 {
@@ -286,10 +288,10 @@ void c_demo_game_flow_collision_scene::on_update(s_demo_game_state_collision_sce
 			// always get the latest move
 			real32 dt_actual = dt * dt_remaining;
 			new_player_position = state_data->player.get_move_delta(dt_actual);
-			engine_log_verbose("player collision: checking {s}. remaining: {f.3} velocity: " VECTOR_4D_REAL32_FORMAT,
+			/*engine_log_verbose("player collision: checking {s}. remaining: {f.3} velocity: " VECTOR_4D_REAL32_FORMAT,
 				object.get_name().get_const_char(),
 				dt_remaining,
-				VECTOR_4D_REAL32_ARGS(state_data->player.get_velocity()));
+				VECTOR_4D_REAL32_ARGS(state_data->player.get_velocity()));*/
 
 			bool object_collides = aabb_intersect_aabb_test_3d(
 				state_data->player.m_transform.position,

@@ -101,6 +101,18 @@ struct s_key_combo_delegate
 /// - we almost certainly just want edge triggering
 /// </summary>
 
+#ifdef CONFIG_DEBUG
+enum e_input_replay_state
+{
+	replay_state_none,
+	replay_state_recording,
+	replay_state_playback,
+
+	k_input_replay_state_count
+};
+#endif // CONFIG_DEBUG
+
+
 class c_input_system : public c_engine_system<c_input_system>
 {
 public:
