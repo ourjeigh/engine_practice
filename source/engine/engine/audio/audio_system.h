@@ -52,11 +52,11 @@ public:
 	void term() override;
 	void update() override;
 
-	static_member_function t_sound_playback_id play_sound(const s_wav_asset& asset);
+	static_member_function t_sound_playback_id play_sound(const s_wav_asset& asset, const s_sound_properties const_ptr properties);
 	static_member_function t_sound_playback_id play_sound(s_sound_info& info);
 	static_member_function t_sound_playback_id play_debug_pip();
 
-	static_member_function void update_sound(t_sound_playback_id playback_id, s_sound_properties& properties);
+	static_member_function void update_sound(t_sound_playback_id playback_id, const s_sound_properties const_ptr properties);
 	static_member_function void stop_sound(t_sound_playback_id playback_id);
 };
 
@@ -120,9 +120,14 @@ inline t_sound_playback_id audio_system_play_sound(s_sound_info& info)
 	return c_audio_system::play_sound(info);
 }
 
-inline t_sound_playback_id audio_system_play_sound(const s_wav_asset& asset)
+inline t_sound_playback_id audio_system_play_sound(const s_wav_asset& asset, const s_sound_properties const_ptr properties)
 {
-	return c_audio_system::play_sound(asset);
+	return c_audio_system::play_sound(asset, properties);
+}
+
+inline void audio_system_update_sound(t_sound_playback_id playback_id, const s_sound_properties const_ptr properties)
+{
+	c_audio_system::update_sound(playback_id, properties);
 }
 
 inline void audio_system_stop_sound(t_sound_playback_id playback_id)

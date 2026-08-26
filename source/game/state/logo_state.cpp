@@ -134,7 +134,7 @@ void c_game_flow_state_logo::on_update(s_flow_state_logo_data* state_data, real3
 		const s_wav_asset* logo_wav_asset = static_cast<const s_wav_asset * >(engine_get_asset(k_simm_logo_wav_asset_def.id));
 		if (logo_wav_asset != nullptr)
 		{
-			engine_audio_play_sound(*logo_wav_asset);
+			engine_audio_play_sound(*logo_wav_asset, nullptr);
 		}
 	}
 

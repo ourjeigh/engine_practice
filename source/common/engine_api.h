@@ -36,7 +36,8 @@ struct i_engine
 	virtual t_render_shape_point get_screen_center() = 0;
 
 	virtual t_sound_playback_id play_sound(s_sound_info& info) = 0;
-	virtual t_sound_playback_id play_sound(const s_wav_asset& asset) = 0;
+	virtual t_sound_playback_id play_sound(const s_wav_asset& asset, const s_sound_properties const_ptr properties) = 0;
+	virtual void update_sound(t_sound_playback_id playback_id, const s_sound_properties const_ptr properties) = 0;
 	virtual void stop_sound(t_sound_playback_id playback_id) = 0;
 	virtual t_sound_playback_id play_debug_pip() = 0;
 
@@ -96,8 +97,9 @@ inline void engine_render_draw_string(const c_string string, int32 x, int32 y, i
 inline s_screen_dimensions engine_get_screen_dimensions() { return g_engine_ptr->get_screen_dimensions(); }
 inline t_render_shape_point engine_get_screen_center() { return g_engine_ptr->get_screen_center(); }
 
-inline t_sound_playback_id engine_audio_play_sound(const s_wav_asset& asset) { return g_engine_ptr->play_sound(asset); }
+inline t_sound_playback_id engine_audio_play_sound(const s_wav_asset& asset, const s_sound_properties const_ptr properties) { return g_engine_ptr->play_sound(asset, properties); }
 inline t_sound_playback_id engine_audio_play_sound(s_sound_info& info) { return g_engine_ptr->play_sound(info); }
+inline void engine_audio_update_sound(t_sound_playback_id playback_id, const s_sound_properties const_ptr properties) { g_engine_ptr->update_sound(playback_id, properties); }
 inline void engine_audio_stop_sound(t_sound_playback_id playback_id) { return g_engine_ptr->stop_sound(playback_id); }
 inline t_sound_playback_id engine_audio_play_debug_pip() { return g_engine_ptr->play_debug_pip(); }
 

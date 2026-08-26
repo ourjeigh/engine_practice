@@ -4,7 +4,6 @@
 #include "debug/asserts.h"
 #include "debug/logging.h"
 #include "engine/audio/audio_threadsafe_buffer.h"
-#include "memory/allocator.h"
 #include "memory/memory_system.h"
 #include "platform/platform_thread.h"
 #include "rendering/render_system.h"
@@ -20,7 +19,7 @@ constexpr real32 db_to_linear_amplitude(real32 db)
 }
 
 const int32 k_audio_engine_buffer_size = 512;
-const int32 k_audio_output_buffer_size = k_audio_engine_buffer_size * 16;
+const int32 k_audio_output_buffer_size = k_audio_engine_buffer_size * 2;
 const int32 k_audio_engine_sample_rate = 48000;
 
 const real32 k_max_output_level_db = 24;
@@ -32,6 +31,7 @@ struct s_audio_playback
 
 	t_sound_playback_id id;
 	c_audio_source* source;
+	s_sound_properties properties;
 };
 
 // private prototypes
@@ -111,7 +111,7 @@ void c_audio_system::update()
 	}
 }
 
-t_sound_playback_id c_audio_system::play_sound(const s_wav_asset& asset)
+t_sound_playback_id c_audio_system::play_sound(const s_wav_asset& asset, const s_sound_properties const_ptr properties)
 {
 	// todo: This either needs to go faster than iterating thru g_audio_playbacks, or (preferrably) it should just add
 	// the playrequest to a queue that we'll process in update()
@@ -129,6 +129,7 @@ t_sound_playback_id c_audio_system::play_sound(const s_wav_asset& asset)
 				
 				it->id = new_id;
 				it->source = &source;
+				it->properties = properties != nullptr ? *properties : k_default_sound_properties;
 
 				// TODO: this should have a human-readable name to output
 				log_message(verbose, "audio_system: play_sound: [id:{u}]", it->id);
@@ -155,7 +156,7 @@ t_sound_playback_id c_audio_system::play_sound(s_sound_info& info)
 
 	if (asset != nullptr)
 	{
-		return play_sound(*asset);
+		return play_sound(*asset, nullptr);
 	}
 	else
 	{
@@ -180,6 +181,7 @@ t_sound_playback_id c_audio_system::play_debug_pip()
 				source.set_frequency(1000);
 				it->id = new_id;
 				it->source = &source;
+				it->properties.gain = 1.0f;
 
 				log_message(verbose, "audio_system: play_pip: [id:{u}]", it->id);
 
@@ -198,9 +200,15 @@ t_sound_playback_id c_audio_system::play_debug_pip()
 	return k_invalid;
 }
 
-void c_audio_system::update_sound(t_sound_playback_id playback_id, s_sound_properties& properties)
+void c_audio_system::update_sound(t_sound_playback_id playback_id, const s_sound_properties const_ptr properties)
 {
-	// TODO
+	for (auto it = g_audio_playbacks.begin(); it != g_audio_playbacks.end(); ++it)
+	{
+		if (it->id == playback_id)
+		{
+			it->properties = *properties;
+		}
+	}
 }
 
 void c_audio_system::stop_sound(t_sound_playback_id playback_id)
@@ -283,6 +291,21 @@ void c_audio_engine_thread::process_audio()
 			temp_buffer.zero();
 
 			it->source->get_samples(temp_buffer);
+
+			const real32 gain = it->properties.gain;
+			if (gain < 1.0f)
+			{
+
+				for (int32 channel_index = 0; channel_index < temp_buffer.channel_count(); channel_index++)
+				{
+					real32* temp_channel = temp_buffer.get_channel(channel_index);
+
+					for (int32 sample_index = 0; sample_index < k_audio_engine_buffer_size; sample_index++)
+					{
+						temp_channel[sample_index] *= gain;
+					}
+				}
+			}
 			
 			if (it->source->HACK_finished() ||
 				// temp - stop a pip after a single buffer

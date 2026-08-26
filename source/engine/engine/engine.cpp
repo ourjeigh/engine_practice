@@ -118,9 +118,14 @@ t_sound_playback_id c_engine::play_sound(s_sound_info& info)
 	return audio_system_play_sound(info);
 }
 
-t_sound_playback_id c_engine::play_sound(const s_wav_asset& asset)
+t_sound_playback_id c_engine::play_sound(const s_wav_asset& asset, const s_sound_properties const_ptr properties)
 {
-	return audio_system_play_sound(asset);
+	return audio_system_play_sound(asset, properties);
+}
+
+void c_engine::update_sound(t_sound_playback_id playback_id, const s_sound_properties const_ptr properties)
+{
+	return audio_system_update_sound(playback_id, properties);
 }
 
 void c_engine::stop_sound(t_sound_playback_id playback_id)

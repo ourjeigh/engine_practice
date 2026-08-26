@@ -28,7 +28,7 @@ struct s_demo_game_state_menu_scene
 class c_demo_game_flow_menu_scene: public c_game_state_machine_state<s_demo_game_state_menu_scene>
 {
 public:
-	real32 post_exit_wait_seconds() { return 0.2f; }
+	real32 post_exit_wait_seconds() { return 0.5f; }
 
 	void on_enter(s_demo_game_state_menu_scene* state_data, real32 dt, bool& out_continue);
 	void on_update(s_demo_game_state_menu_scene* state_data, real32 dt, bool& out_continue);
@@ -113,12 +113,12 @@ public:
 
 		if (data->current_state_id == c_demo_game_flow_camera_scene::id)
 		{
-			return m_state_camera_scene.id;
+			return m_state_menu.id;
 		}
 
 		if (data->current_state_id == c_demo_game_flow_collision_scene::id)
 		{
-			return m_state_collision_scene.id;
+			return m_state_menu.id;
 		}
 
 		return m_state_logo.id;

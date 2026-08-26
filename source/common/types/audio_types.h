@@ -32,6 +32,11 @@ struct s_sound_properties
 	real32 gain;
 };
 
+const s_sound_properties k_default_sound_properties =
+{
+	1.0f
+};
+
 // none of this stuff actually needs to be in common...
 enum e_audio_sample_type
 {

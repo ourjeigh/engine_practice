@@ -4,9 +4,28 @@
 #include "collision/collision.h"
 
 // menu (MOVE)
+const s_asset_definition k_click_asset_def = { "click_wav", asset_scope_global, asset_type_wav, R"(..\assets\click_24_48k.wav)" };
+const s_asset_definition k_select_asset_def = { "select_wav", asset_scope_global, asset_type_wav, R"(..\assets\select_24_48k.wav)" };
+const s_asset_definition k_back_asset_def = { "back_wav", asset_scope_global, asset_type_wav, R"(..\assets\back_24_48k.wav)" };
+
 void c_demo_game_flow_menu_scene::on_enter(s_demo_game_state_menu_scene* state_data, real32 dt, bool& out_continue)
 {
-	out_continue = false;
+	if (engine_get_asset(k_click_asset_def.id) == nullptr)
+	{
+		engine_load_asset(&k_click_asset_def, nullptr, nullptr);
+	}
+	else if (engine_get_asset(k_select_asset_def.id) == nullptr)
+	{
+		engine_load_asset(&k_select_asset_def, nullptr, nullptr);
+	}
+	else if (engine_get_asset(k_back_asset_def.id) == nullptr)
+	{
+		engine_load_asset(&k_back_asset_def, nullptr, nullptr);
+	}
+	else
+	{
+		out_continue = false;
+	}
 }
 
 void c_demo_game_flow_menu_scene::on_update(s_demo_game_state_menu_scene* state_data, real32 dt, bool& out_continue)
@@ -25,16 +44,22 @@ void c_demo_game_flow_menu_scene::on_update(s_demo_game_state_menu_scene* state_
 
 	menu_items[state_data->selection].append("-");
 
+	const s_wav_asset* click_asset = static_cast<const s_wav_asset*>(engine_get_asset(k_click_asset_def.id));
+
 	if (engine_input_get_key_state(input_key_arrow_up).is_down)
 	{
 		state_data->selection--;
-		engine_audio_play_debug_pip();
+		s_sound_properties sound_properties;
+		sound_properties.gain = 0.25f;
+		t_sound_playback_id playback= engine_audio_play_sound(*click_asset, &sound_properties);
 		engine_input_consume_key_state(input_key_arrow_up);
 	}
 	else if (engine_input_get_key_state(input_key_arrow_down).is_down)
 	{
 		state_data->selection++;
-		engine_audio_play_debug_pip();
+		s_sound_properties sound_properties;
+		sound_properties.gain = 0.25f;
+		t_sound_playback_id playback = engine_audio_play_sound(*click_asset, &sound_properties);
 		engine_input_consume_key_state(input_key_arrow_down);
 	}
 
@@ -54,8 +79,14 @@ void c_demo_game_flow_menu_scene::on_update(s_demo_game_state_menu_scene* state_
 		{
 		case demo_game_menu_selection_camera_scene:
 		case demo_game_menu_selection_collision_scene:
+		{
+			const s_wav_asset* select_asset = static_cast<const s_wav_asset*>(engine_get_asset(k_select_asset_def.id));
+			s_sound_properties sound_properties;
+			sound_properties.gain = 0.35f;
+			t_sound_playback_id playback = engine_audio_play_sound(*select_asset, &sound_properties);
 			out_continue = false;
 			break;
+		}
 		case demo_game_menu_selection_exit:
 			engine_request_exit();
 			break;
@@ -103,6 +134,14 @@ void c_demo_game_flow_camera_scene::on_update(s_demo_game_state_camera_scene* st
 {
 	engine_render_fill_screen(k_color_black);
 	const s_input_state* input_state = engine_input_get_input_state();
+
+	if (input_state->get_key_state(input_key_special_esc).is_down)
+	{
+		const s_wav_asset* back_asset = static_cast<const s_wav_asset*>(engine_get_asset(k_back_asset_def.id));
+		engine_audio_play_sound(*back_asset, nullptr);
+		out_continue = false;
+		return;
+	}
 
 	// update camera
 	{
@@ -250,11 +289,19 @@ void resolve_collision(c_object& in_out_object, s_collision_info& collision, rea
 void c_demo_game_flow_collision_scene::on_update(s_demo_game_state_collision_scene* state_data, real32 dt, bool& out_continue)
 {
 	engine_render_fill_screen(k_color_black);
+	const s_input_state* input_state = engine_input_get_input_state();
+
+	if (input_state->get_key_state(input_key_special_esc).is_down)
+	{
+		const s_wav_asset* back_asset = static_cast<const s_wav_asset*>(engine_get_asset(k_back_asset_def.id));
+		engine_audio_play_sound(*back_asset, nullptr);
+		out_continue = false;
+		return;
+	}
 
 	t_string_128 title("Gameplay!");
 	engine_render_draw_string(title, 600, 300, 5, k_color_white, render_layer_ui);
 
-	const s_input_state* input_state = engine_input_get_input_state();
 	t_vector_4d_real32 player_velocity;
 	get_arrow_key_move_delta(input_state, player_velocity);
 

@@ -34,7 +34,8 @@ public:
 	t_render_shape_point get_screen_center();
 
 	t_sound_playback_id play_sound(s_sound_info& info);
-	t_sound_playback_id play_sound(const s_wav_asset& asset);
+	t_sound_playback_id play_sound(const s_wav_asset& asset, const s_sound_properties const_ptr properties);
+	void update_sound(t_sound_playback_id playback_id, const s_sound_properties const_ptr properties);
 	t_sound_playback_id play_debug_pip();
 	void stop_sound(t_sound_playback_id playback_id);
 
