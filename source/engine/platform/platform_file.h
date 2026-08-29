@@ -21,7 +21,7 @@ int32 platform_file_write_bytes(
 	c_platform_handle& file_handle,
 	t_file_open_mode_flags flags,
 	int32 start,
-	const c_array<byte>& buffer);
+	const c_array<const byte>& buffer);
 
 int32 platform_file_read_string(
 	c_platform_handle& file_handle,
@@ -34,7 +34,7 @@ int32 platform_file_write_string(
 	c_platform_handle& file_handle,
 	t_file_open_mode_flags flags,
 	int32 start,
-	const c_array<char>& buffer);
+	const c_array<const char>& buffer);
 
 
 bool platform_file_copy(const c_file_path& source, const c_file_path& dest, bool overwrite);

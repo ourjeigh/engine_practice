@@ -42,10 +42,9 @@ struct s_perf_measurement_set
 	uint64 max_duration;
 };
 
+// we don't want to store perf data in allocated memory because it would get stomped by record
 static_global c_static_stack<s_perf_measurement, 1024> g_measurement_messages;
-
 static_global c_hash_map<s_perf_measurement_set::s_unique_id, s_perf_measurement_set, 1024> g_measurements;
-
 uint64 g_ticks;
 
 void c_perf_system::init() 

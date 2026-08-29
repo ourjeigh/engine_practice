@@ -40,10 +40,12 @@ public:
 	bool is_open() const { return m_file_handle.is_valid(); }
 
 	int32 read_bytes(int32 start, int32 length, c_array<byte> out_buffer);
+	int32 read_memory(int32 start, int32 length, void* out_memory);
 
 	// todo: the default writes should be append (start = k_invalid), make new write_at_position or something for explicit start
-	int32 write_bytes(int32 start, const c_array<byte>& buffer);
-	int32 write_string(int32 start, const c_array<char>& buffer);
+	int32 write_bytes(int32 start, const c_array<const byte>& buffer);
+	int32 write_string(int32 start, const c_array<const char>& buffer);
+	int32 write_memory(int32 start, const void* memory, int32 size);
 
 protected:
 	c_file_path m_path;
@@ -86,7 +88,7 @@ public:
 		return c_file::read_bytes(start, length, out_buffer);
 	}
 
-	int32 write_string(int32 start, const c_array<char>& buffer)
+	int32 write_string(int32 start, const c_array<const char>& buffer)
 	{
 		return c_file::write_string(start, buffer);
 	}

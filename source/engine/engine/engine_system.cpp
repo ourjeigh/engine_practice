@@ -7,6 +7,7 @@
 #include "rendering/render_system.h"
 #include "engine.h"
 #include "memory/memory_system.h"
+#include "debug/replay.h"
 
 // TODO: make dev only
 static_global c_logging_system g_logging_system;
@@ -14,6 +15,11 @@ static_global c_logging_system g_logging_system;
 #ifdef FEATURE_PERF_MEASUREMENT
 static_global c_perf_system g_perf_system;
 #endif //FEATURE_PERF_MEASUREMENT
+
+#ifdef FEATURE_REPLAY
+static_global c_replay_system g_replay_system;
+#endif // FEATURE_REPLAY
+
 
 static_global c_memory_system g_memory_system;
 static_global c_asset_system g_asset_system;
@@ -33,7 +39,13 @@ void engine_systems_init()
 	// init logging first so it's available for all other systems to use
 	g_logging_system.init(log_settings);
 	g_memory_system.init();
+
+#ifdef FEATURE_PERF_MEASUREMENT
+	g_perf_system.init();
+#endif //FEATURE_PERF_MEASUREMENT
+
 	g_asset_system.init();
+
 #ifdef FEATURE_PERF_MEASUREMENT
 	g_perf_system.init();
 #endif //FEATURE_PERF_MEASUREMENT
@@ -56,7 +68,13 @@ void engine_systems_term()
 #ifdef FEATURE_PERF_MEASUREMENT
 	g_perf_system.term();
 #endif //FEATURE_PERF_MEASUREMENT
+
 	g_asset_system.term();
+
+#ifdef FEATURE_PERF_MEASUREMENT
+	g_perf_system.term();
+#endif //FEATURE_PERF_MEASUREMENT
+
 	g_memory_system.term();
 
 	log_message(verbose, "Engine System Term Complete");
@@ -67,6 +85,10 @@ void engine_systems_term()
 void engine_systems_pregame_update()
 {
 	// anything that will be needed for the game to update
+#ifdef FEATURE_PERF_MEASUREMENT
+	g_replay_system.update();
+#endif //FEATURE_PERF_MEASUREMENT
+
 	g_input_system.update();
 	g_asset_system.update();
 }

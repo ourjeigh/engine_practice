@@ -7,15 +7,15 @@
 
 void* platform_memory_allocate(uint32 size)
 {
-    LPVOID base = 0;
+	LPVOID base = 0;
 
-    LPVOID out = VirtualAlloc(
-        base,
-        size,
-        MEM_COMMIT | MEM_RESERVE,
-        PAGE_READWRITE);
+	LPVOID out = VirtualAlloc(
+		base,
+		size,
+		MEM_COMMIT | MEM_RESERVE,
+		PAGE_READWRITE);
 	
-    return out;
+	return out;
 }
 
 #endif //PLATFORM_WIN64

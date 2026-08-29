@@ -7,6 +7,7 @@
 #include "memory/memory.h"
 #include "memory/allocator.h"
 #include "platform/platform.h"
+#include <memory/memory_system.h>
 
 // definitions
 struct s_input_queued_event
@@ -31,19 +32,28 @@ void process_input_event_queue_internal();
 // todo this needs to be thread safe
 c_static_stack<s_input_queued_event, 256> g_input_event_queue;
 
-s_input_state g_input_state;
 
-// these let us calculate timespans for key state without needing to maintain
-// a separate internal key state struct
-c_static_array<t_timestamp, k_input_key_count> g_key_timestamps;
+struct s_input_system_state
+{
+	s_input_state input_state;
+
+	// these let us calculate timespans for key state without needing to maintain
+	// a separate internal key state struct
+	c_static_array<t_timestamp, k_input_key_count> key_timestamps;
+};
+
+s_input_system_state* g_input_system_state;
 
 // public methods
 void c_input_system::init()
 {
-	g_input_event_queue.clear();
-	g_input_state.clear();
+	g_input_system_state = ALLOCATE_NEW_GLOBAL(s_input_system_state, memory_arena_engine_state);
+	ASSERT(g_input_system_state != nullptr);
 
-	for (auto& timestamp : g_key_timestamps)
+	g_input_event_queue.clear();
+	g_input_system_state->input_state.clear();
+
+	for (auto& timestamp : g_input_system_state->key_timestamps)
 	{
 		timestamp = k_invalid;
 	}
@@ -53,7 +63,7 @@ void c_input_system::init()
 
 void c_input_system::term()
 {
-	g_input_state.clear();
+	g_input_system_state->input_state.clear();
 	log_message(verbose, "Input System Terminated");
 }
 
@@ -66,12 +76,12 @@ void c_input_system::update()
 	// TODO: look into why keys being held down don't always get very frequent windows events.
 	// for now we'll just assume that once a key is in a given state, we need to update it's 
 	// time in state every frame to provide a smooth and up-to-date value here.
-	ASSERT(g_input_state.key_states.capacity() == g_key_timestamps.capacity());
-	for (int32 key_index = 0; key_index < g_input_state.key_states.capacity(); key_index++)
+	ASSERT(g_input_system_state->input_state.key_states.capacity() == g_input_system_state->key_timestamps.capacity());
+	for (int32 key_index = 0; key_index < g_input_system_state->input_state.key_states.capacity(); key_index++)
 	{
-		if (g_key_timestamps[key_index] != k_invalid)
+		if (g_input_system_state->key_timestamps[key_index] != k_invalid)
 		{
-			g_input_state.key_states[key_index].time_in_state = c_engine_time_span::to_time_span(g_key_timestamps[key_index], current_time);
+			g_input_system_state->input_state.key_states[key_index].time_in_state = c_engine_time_span::to_time_span(g_input_system_state->key_timestamps[key_index], current_time);
 		}
 	}
 
@@ -83,7 +93,7 @@ void c_input_system::update()
 		// mask and we just compare them instead of iterating each key in the combo
 		for (auto& key : combo.combo.keys)
 		{
-			new_down &= g_input_state.get_key_state(key).is_down;
+			new_down &= g_input_system_state->input_state.get_key_state(key).is_down;
 		}
 
 		if (new_down != combo.down)
@@ -96,12 +106,12 @@ void c_input_system::update()
 
 s_key_state input_system_get_key_state(e_input_keycode key)
 {
-	return g_input_state.key_states[key];
+	return g_input_system_state->input_state.key_states[key];
 }
 
 void input_system_consume_key_state(e_input_keycode key)
 {
-	s_key_state& state = g_input_state.key_states[key];
+	s_key_state& state = g_input_system_state->input_state.key_states[key];
 	if (state.is_down)
 	{
 		state.is_down = false;
@@ -110,12 +120,12 @@ void input_system_consume_key_state(e_input_keycode key)
 
 const s_mouse_state* input_system_get_mouse_state()
 {
-	return &g_input_state.mouse_state;
+	return &g_input_system_state->input_state.mouse_state;
 }
 
 const s_input_state* input_system_get_current_input_state()
 {
-	return &g_input_state;
+	return &g_input_system_state->input_state;
 }
 
 void input_system_handle_event(s_event& event)
@@ -153,7 +163,6 @@ void input_system_handle_event(s_event& event)
 }
 
 // private methods
-
 void process_input_event_queue_internal()
 {
 	t_timestamp current_time = get_high_precision_timestamp();
@@ -169,13 +178,13 @@ void process_input_event_queue_internal()
 		case event_type_input_key:
 		{
 			s_input_event_key_data& data = event.key_data;
-			s_key_state& key = g_input_state.key_states[data.key];
+			s_key_state& key = g_input_system_state->input_state.key_states[data.key];
 
 			if (key.is_down != data.down)
 			{
 				key.is_down = data.down;
 				key.time_in_state = s_time_span(0.0f);
-				g_key_timestamps[data.key] = current_time;
+				g_input_system_state->key_timestamps[data.key] = current_time;
 			}
 			else
 			{
@@ -193,9 +202,9 @@ void process_input_event_queue_internal()
 		case event_type_input_mouse:
 		{
 			s_input_event_mouse_data& data = event.mouse_data;
-			g_input_state.mouse_state.position.x =  event.mouse_data.x;
-			g_input_state.mouse_state.position.y = event.mouse_data.y;
-			g_input_state.mouse_state.position.last_changedtimestamp = event.timestamp;
+			g_input_system_state->input_state.mouse_state.position.x =  event.mouse_data.x;
+			g_input_system_state->input_state.mouse_state.position.y = event.mouse_data.y;
+			g_input_system_state->input_state.mouse_state.position.last_changedtimestamp = event.timestamp;
 			//log_message(verbose, "input system: mouse position x:{i} y:{i}", data.x, data.y);
 			break;
 		}

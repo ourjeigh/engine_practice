@@ -55,7 +55,15 @@ int32 c_file::read_bytes(int32 start, int32 length, c_array<byte> out_buffer)
 		out_buffer);
 }
 
-int32 c_file::write_bytes(int32 start, const c_array<byte>& buffer)
+int32 c_file::read_memory(int32 start, int32 length, void* out_memory)
+{
+	c_array<byte> buffer(reinterpret_cast<byte*>(out_memory), length);
+
+	return read_bytes(start, length, buffer);
+}
+
+
+int32 c_file::write_bytes(int32 start, const c_array<const byte>& buffer)
 {
 	ASSERT(is_open());
 	ASSERT(m_flags.test(file_open_mode_write));
@@ -63,10 +71,17 @@ int32 c_file::write_bytes(int32 start, const c_array<byte>& buffer)
 	return platform_file_write_bytes(m_file_handle, m_flags, start, buffer);
 }
 
-int32 c_file::write_string(int32 start, const c_array<char>& buffer)
+int32 c_file::write_string(int32 start, const c_array<const char>& buffer)
 {
 	return platform_file_write_string(m_file_handle, m_flags, start, buffer);
 }
+
+int32 c_file::write_memory(int32 start, const void* memory, int32 size)
+{
+	c_array<const byte> buffer(reinterpret_cast<const byte*>(memory), size);
+	return write_bytes(start, buffer);
+}
+
 
 bool c_file_buffered::open(const c_file_path& file_path, t_file_open_mode_flags flags)
 {

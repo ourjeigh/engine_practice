@@ -409,6 +409,11 @@ public:
 		return c_array<t_type>(this->data(), used());
 	}
 
+	c_array<const t_type> make_array_const()
+	{
+		return c_array<const t_type>(this->data(), used());
+	}
+
 	int32& top_index() { return this->self().top_index(); }
 	const int32& top_index() const { return this->self().top_index(); }
 

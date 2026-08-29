@@ -37,7 +37,7 @@ enum e_memory_arena
 const c_static_array<int32, k_memory_arena_count> k_arena_sizes =
 {
 	10 * k_byte_mb,									// memory_arena_system
-	 1 * k_byte_mb,									// memory_arena_engine_state
+	10 * k_byte_mb,									// memory_arena_engine_state
 	10 * k_byte_mb,									// memory_arena_game_state
 	10 * k_byte_mb,									// memory_arena_frame
 	DEBUG_ONLY_PARAM_RIGHT_COMMA(1 * k_byte_mb)		// memory_arena_debug
@@ -51,6 +51,11 @@ public:
 	void update();
 
 	static_member_function void* allocate(uint64 size, uint64 align, e_memory_arena arena);
+
+#ifdef FEATURE_REPLAY
+	static_member_function void get_memory_block_for_replay(const void** out_block, uint64& out_size);
+	static_member_function void set_memory_block_for_replay(const void* block, uint64 size);
+#endif //FEATURE_REPLAY
 };
 
 #endif //__MEMORY_SYSTEM_H__

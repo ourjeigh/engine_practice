@@ -74,29 +74,33 @@ private:
 	bool m_is_running;
 };
 
-void process_new_asset(s_load_asset_request& request, s_asset_internal& asset);
 void process_bitmap_asset(c_array<byte> const_ptr asset_data, s_bitmap_asset& out_bitmap_info);
 void process_wav_asset(c_array<byte> const_ptr asset_data, s_wav_asset& out_wav_asset);
 
-using t_asset_request_stack = c_static_spsc_queue<s_load_asset_request, k_max_asset_load_requests>;
-t_asset_request_stack* g_asset_load_requests;
+using t_asset_request_queue = c_static_spsc_queue<s_load_asset_request, k_max_asset_load_requests>;
+t_asset_request_queue* g_asset_load_requests;
 
 using t_asset_hash_map = c_hash_map<uint64, s_asset_internal, k_max_active_assets, s_asset_internal_hasher, s_asset_internal_comparitor>;
-t_asset_hash_map* g_active_assets;
+
+struct s_asset_system_state
+{
+	t_asset_hash_map active_assets;
+};
 
 c_asset_loader_thread g_asset_loader_thread;
 c_platform_handle g_asset_loader_thread_wake_event;
+s_asset_system_state* g_asset_system_state;
 
 void c_asset_system::init()
 {
-	g_asset_load_requests = ALLOCATE_NEW_GLOBAL(t_asset_request_stack, memory_arena_system);
-	g_active_assets = ALLOCATE_NEW_GLOBAL(t_asset_hash_map, memory_arena_system);
+	g_asset_load_requests = ALLOCATE_NEW_GLOBAL(t_asset_request_queue, memory_arena_system);
+	g_asset_system_state = ALLOCATE_NEW_GLOBAL(s_asset_system_state, memory_arena_engine_state);
 
 	ASSERT(g_asset_load_requests != nullptr);
-	ASSERT(g_active_assets != nullptr);
+	ASSERT(g_asset_system_state != nullptr);
 
 	g_asset_load_requests->clear();
-	g_active_assets->clear();
+	g_asset_system_state->active_assets.clear();
 
 	g_asset_loader_thread_wake_event = platform_thread_create_event(false, false, t_string_128("process assets event"));
 	ASSERT(g_asset_loader_thread_wake_event.is_valid());
@@ -153,7 +157,7 @@ const s_asset* c_asset_system::get_asset(c_string_id asset_id)
 
 	s_asset_internal* asset;
 	
-	if (g_active_assets->try_find(asset_id.get_id(), &asset))
+	if (g_asset_system_state->active_assets.try_find(asset_id.get_id(), &asset))
 	{
 		if (asset->memory.is_valid())
 		{
@@ -188,7 +192,8 @@ void c_asset_loader_thread::init()
 void c_asset_loader_thread::term()
 {
 	m_is_running = false;
-	join();
+	// BUG - join is getting hung up waiting for g_asset_loader_thread_wake_event
+	//join();
 }
 
 void c_asset_loader_thread::asset_loader_thread_entry_point(c_asset_loader_thread* thread)
@@ -204,7 +209,6 @@ void c_asset_loader_thread::asset_loader_thread_entry_point(c_asset_loader_threa
 
 void c_asset_loader_thread::process_asset_loads()
 {
-
 	while (!g_asset_load_requests->empty())
 	{
 		s_load_asset_request request;
@@ -213,7 +217,7 @@ void c_asset_loader_thread::process_asset_loads()
 
 		// first check if we have the asset loaded already
 		bool found;
-		s_asset_internal& asset = g_active_assets->find_or_insert(asset_id.get_id(), found);
+		s_asset_internal& asset = g_asset_system_state->active_assets.find_or_insert(asset_id.get_id(), found);
 
 		if (found)
 		{
@@ -261,7 +265,7 @@ void c_asset_loader_thread::process_asset_loads()
 					{
 					case asset_type_bitmap:
 					{
-						s_bitmap_asset* new_asset = ALLOCATE_GLOBAL_NO_CONSTRUCTOR(s_bitmap_asset, memory_arena_system);
+						s_bitmap_asset* new_asset = ALLOCATE_GLOBAL_NO_CONSTRUCTOR(s_bitmap_asset, memory_arena_engine_state);
 						ASSERT(new_asset != nullptr);
 						process_bitmap_asset(&asset.memory, *new_asset);
 						asset.asset = new_asset;
@@ -269,7 +273,7 @@ void c_asset_loader_thread::process_asset_loads()
 					}
 					case asset_type_wav:
 					{
-						s_wav_asset* new_asset = ALLOCATE_GLOBAL_NO_CONSTRUCTOR(s_wav_asset, memory_arena_system);
+						s_wav_asset* new_asset = ALLOCATE_GLOBAL_NO_CONSTRUCTOR(s_wav_asset, memory_arena_engine_state);
 						ASSERT(new_asset != nullptr);
 
 						process_wav_asset(&asset.memory, *new_asset);
@@ -293,7 +297,7 @@ void c_asset_loader_thread::process_asset_loads()
 				}
 				else
 				{
-					g_active_assets->remove(asset_id.get_id());
+					g_asset_system_state->active_assets.remove(asset_id.get_id());
 					log_message(critical, "asset_system: failed to open asset file! [asset: {s}, file: {s}]",
 						request.asset_definition.id.get_debug_string(),
 						request.asset_definition.path.get_full_path());
@@ -301,7 +305,7 @@ void c_asset_loader_thread::process_asset_loads()
 			}
 			else
 			{
-				ASSERT(g_active_assets->remove(asset_id.get_id()));
+				ASSERT(g_asset_system_state->active_assets.remove(asset_id.get_id()));
 				log_message(warning, "asset_system: file not found [asset: {s}, file: {s}]",
 					request.asset_definition.id.get_debug_string(),
 					request.asset_definition.path.get_full_path());
@@ -387,7 +391,7 @@ void process_bitmap_asset(c_array<byte> const_ptr asset_data, s_bitmap_asset& ou
 	int32 pixel_count = core->height * core->width;
 	ASSERT(pixel_count * sizeof(uint32) == core->image_size_bytes);
 
-	uint32* pixels = static_cast<uint32*>(c_memory_system::allocate(sizeof(uint32) * pixel_count, alignof(uint32), memory_arena_system));
+	uint32* pixels = static_cast<uint32*>(c_memory_system::allocate(sizeof(uint32) * pixel_count, alignof(uint32), memory_arena_engine_state));
 	out_bitmap_asset.pixels = c_array<uint32>(pixels, pixel_count);
 
 	c_array<uint32> temp_pixels(reinterpret_cast<uint32*>(asset_data->data() + header->bfOffBits), pixel_count);
@@ -650,7 +654,7 @@ void process_wav_asset(c_array<byte> const_ptr asset_data, s_wav_asset& out_wav_
 		real64 ratio = source_rate / target_rate;
 		int32 target_samples = sample_count * ratio;
 
-		real32* samples = static_cast<real32*>(c_memory_system::allocate(sizeof(real32) * target_samples * channel_count, alignof(real32), memory_arena_system));
+		real32* samples = static_cast<real32*>(c_memory_system::allocate(sizeof(real32) * target_samples * channel_count, alignof(real32), memory_arena_engine_state));
 		out_wav_asset.buffer = t_audio_buffer_real32(channel_count, target_samples);
 		out_wav_asset.buffer.set_data(samples);
 
@@ -726,7 +730,7 @@ void process_wav_asset(c_array<byte> const_ptr asset_data, s_wav_asset& out_wav_
 	}
 	else
 	{
-		real32* samples = static_cast<real32*>(c_memory_system::allocate(sizeof(real32) * sample_count * channel_count, alignof(real32), memory_arena_system));
+		real32* samples = static_cast<real32*>(c_memory_system::allocate(sizeof(real32) * sample_count * channel_count, alignof(real32), memory_arena_engine_state));
 		out_wav_asset.buffer = t_audio_buffer_real32(channel_count, sample_count);
 		out_wav_asset.buffer.set_data(samples);
 
@@ -748,5 +752,4 @@ void process_wav_asset(c_array<byte> const_ptr asset_data, s_wav_asset& out_wav_
 			format_chunk.block_align,
 			&out_wav_asset.buffer);
 	}
-
 }

@@ -39,7 +39,7 @@ void c_logging_system::init(s_log_config config)
 
 	t_string_128 header = "Timestamp\t\tTime\tThread\tLevel\tMessage\n";
 	header.pop();
-	m_file.write_string(k_invalid, header.make_array());
+	m_file.write_string(k_invalid, header.make_array_const());
 	m_tick = 0;
 }
 
@@ -107,7 +107,7 @@ void c_logging_system::process_log_events()
 			// hack, should c_string.make_reference remove the trailing null term?
 			// we don't want to write it to file...
 			output.pop(); 
-			m_file.write_string(k_invalid, output.make_array());
+			m_file.write_string(k_invalid, output.make_array_const());
 		}
 
 		g_log_stack.clear();

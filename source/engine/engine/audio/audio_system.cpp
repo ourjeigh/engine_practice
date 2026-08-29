@@ -42,37 +42,46 @@ c_audio_engine_thread g_audio_engine_thread;
 
 // TODO: move this, maybe to application, that's what owns the graphics renderer
 c_audio_render_thread g_audio_render_thread;
-s_audio_device_format g_audio_format;
 
-// TODO: move this all to an allocated state
-c_audio_threadsafe_ring_buffer<real32>* g_audio_output_ring_buffer;
+struct s_audio_system_state
+{
+	s_audio_device_format audio_format;
 
-t_sound_playback_id g_sound_id_top = 0;
+	c_audio_threadsafe_ring_buffer<real32> audio_output_ring_buffer;
 
-c_static_array<s_audio_playback, 64> g_audio_playbacks;
-c_hash_map<t_sound_playback_id, c_audio_source_file, 128> g_audio_playback_source_file_map;
-c_hash_map<t_sound_playback_id, c_audio_source_sine, 8> g_audio_playback_source_sine_map;
+	t_sound_playback_id sound_id_top = 0;
+
+	c_static_array<s_audio_playback, 64> audio_playbacks;
+	c_hash_map<t_sound_playback_id, c_audio_source_file, 128> audio_playback_source_file_map;
+	c_hash_map<t_sound_playback_id, c_audio_source_sine, 8> audio_playback_source_sine_map;
+};
+
+s_audio_system_state* g_audio_system_state;
 
 // public methods
 void c_audio_system::init()
 {
-	zero_object(g_audio_format);
+	g_audio_system_state = ALLOCATE_NEW_GLOBAL(s_audio_system_state, memory_arena_engine_state);
+
+	zero_object(g_audio_system_state->audio_format);
 
 	g_audio_render_thread.init();
 
 	// HACK? we need to wait for the audio render thread to setup the audio device and fill in the format
 	// replace with a flag checking for audio sync setup
-	while (g_audio_format.sample_rate == 0)
+	while (g_audio_system_state->audio_format.sample_rate == 0)
 	{
 		thread_sleep_for_milliseconds(100);
 	}
 	
 	{
-		uint64 size = sizeof(real32) * k_audio_output_buffer_size * g_audio_format.channel_count;
-		real32* buffer_data = reinterpret_cast<real32*>(c_memory_system::allocate(size, alignof(real32), memory_arena_system));
-		g_audio_output_ring_buffer = ALLOCATE_GLOBAL_NO_CONSTRUCTOR(c_audio_threadsafe_ring_buffer<real32>, memory_arena_system);
+		uint64 size = sizeof(real32) * k_audio_output_buffer_size * g_audio_system_state->audio_format.channel_count;
+		real32* buffer_data = reinterpret_cast<real32*>(c_memory_system::allocate(size, alignof(real32), memory_arena_engine_state));
 
-		g_audio_output_ring_buffer->init(g_audio_format.channel_count, k_audio_output_buffer_size, buffer_data);
+		g_audio_system_state->audio_output_ring_buffer.init(
+			g_audio_system_state->audio_format.channel_count, 
+			k_audio_output_buffer_size, 
+			buffer_data);
 	}
 
 	g_audio_engine_thread.init();
@@ -95,7 +104,7 @@ void c_audio_system::update()
 	if (false)
 	{
 		int32 active_sounds = 0;
-		for (auto it = g_audio_playbacks.begin(); it != g_audio_playbacks.end(); ++it)
+		for (auto it = g_audio_system_state->audio_playbacks.begin(); it != g_audio_system_state->audio_playbacks.end(); ++it)
 		{
 			if (it->id != k_invalid)
 			{
@@ -116,15 +125,15 @@ t_sound_playback_id c_audio_system::play_sound(const s_wav_asset& asset, const s
 	// todo: This either needs to go faster than iterating thru g_audio_playbacks, or (preferrably) it should just add
 	// the playrequest to a queue that we'll process in update()
 
-	for (auto it = g_audio_playbacks.begin(); it != g_audio_playbacks.end(); ++it)
+	for (auto it = g_audio_system_state->audio_playbacks.begin(); it != g_audio_system_state->audio_playbacks.end(); ++it)
 	{
 		if (it->id == k_invalid)
 		{
-			if (!g_audio_playback_source_file_map.full())
+			if (!g_audio_system_state->audio_playback_source_file_map.full())
 			{
-				t_sound_playback_id new_id = g_sound_id_top++;
+				t_sound_playback_id new_id = g_audio_system_state->sound_id_top++;
 				bool found = false;
-				c_audio_source_file& source = g_audio_playback_source_file_map.find_or_insert(new_id, found);
+				c_audio_source_file& source = g_audio_system_state->audio_playback_source_file_map.find_or_insert(new_id, found);
 				source.set_buffer(asset.buffer);
 				
 				it->id = new_id;
@@ -139,7 +148,7 @@ t_sound_playback_id c_audio_system::play_sound(const s_wav_asset& asset, const s
 			else
 			{
 				log_message(error, "audio_system: could not create new playback source file, map full ({d} sources)",
-					g_audio_playback_source_file_map.used());
+					g_audio_system_state->audio_playback_source_file_map.used());
 				return k_invalid;
 			}
 		}
@@ -169,15 +178,15 @@ t_sound_playback_id c_audio_system::play_sound(s_sound_info& info)
 
 t_sound_playback_id c_audio_system::play_debug_pip()
 {
-	for (auto it = g_audio_playbacks.begin(); it != g_audio_playbacks.end(); ++it)
+	for (auto it = g_audio_system_state->audio_playbacks.begin(); it != g_audio_system_state->audio_playbacks.end(); ++it)
 	{
 		if (it->id == k_invalid)
 		{
-			if (!g_audio_playback_source_sine_map.full())
+			if (!g_audio_system_state->audio_playback_source_sine_map.full())
 			{
-				t_sound_playback_id new_id = g_sound_id_top++;
+				t_sound_playback_id new_id = g_audio_system_state->sound_id_top++;
 				bool found = false;
-				c_audio_source_sine& source = g_audio_playback_source_sine_map.find_or_insert(new_id, found);
+				c_audio_source_sine& source = g_audio_system_state->audio_playback_source_sine_map.find_or_insert(new_id, found);
 				source.set_frequency(1000);
 				it->id = new_id;
 				it->source = &source;
@@ -190,7 +199,7 @@ t_sound_playback_id c_audio_system::play_debug_pip()
 			else
 			{
 				log_message(error, "audio_system: could not create new playback source sine, map full ({d} sources)",
-					g_audio_playback_source_sine_map.used());
+					g_audio_system_state->audio_playback_source_sine_map.used());
 				return k_invalid;
 			}
 		}
@@ -202,7 +211,7 @@ t_sound_playback_id c_audio_system::play_debug_pip()
 
 void c_audio_system::update_sound(t_sound_playback_id playback_id, const s_sound_properties const_ptr properties)
 {
-	for (auto it = g_audio_playbacks.begin(); it != g_audio_playbacks.end(); ++it)
+	for (auto it = g_audio_system_state->audio_playbacks.begin(); it != g_audio_system_state->audio_playbacks.end(); ++it)
 	{
 		if (it->id == playback_id)
 		{
@@ -213,7 +222,7 @@ void c_audio_system::update_sound(t_sound_playback_id playback_id, const s_sound
 
 void c_audio_system::stop_sound(t_sound_playback_id playback_id)
 {
-	for (auto it = g_audio_playbacks.begin(); it != g_audio_playbacks.end(); ++it)
+	for (auto it = g_audio_system_state->audio_playbacks.begin(); it != g_audio_system_state->audio_playbacks.end(); ++it)
 	{
 		if (it->id == playback_id)
 		{
@@ -249,9 +258,9 @@ void c_audio_engine_thread::term()
 
 void c_audio_engine_thread::audio_engine_thread_entry_point(c_audio_engine_thread* thread)
 {
-	g_audio_format.buffer_size = k_audio_engine_buffer_size;
+	g_audio_system_state->audio_format.buffer_size = k_audio_engine_buffer_size;
 
-	const real64 update_period_ms = static_cast<real32>(g_audio_format.buffer_size) / g_audio_format.sample_rate * 1000.0f;
+	const real64 update_period_ms = static_cast<real32>(g_audio_system_state->audio_format.buffer_size) / g_audio_system_state->audio_format.sample_rate * 1000.0f;
 
 	c_platform_handle timer_handle = platform_thread_create_waitable_timer(false, true, t_string_128("unused"));
 	ASSERT(timer_handle.is_valid());
@@ -282,7 +291,7 @@ void c_audio_engine_thread::process_audio()
 	mix_buffer.zero();
 
 	real32 playbacks_processed = 0.0f;
-	for (auto it = g_audio_playbacks.begin(); it != g_audio_playbacks.end(); ++it)
+	for (auto it = g_audio_system_state->audio_playbacks.begin(); it != g_audio_system_state->audio_playbacks.end(); ++it)
 	{
 		if (it->id != k_invalid)
 		{
@@ -361,7 +370,7 @@ void c_audio_engine_thread::process_audio()
 	// we need to be able to write the full mix_buffer, so wait until there's room.
 	// TODO: we could allow the sink thread to alert this thread when there is
 	// enough space to consume, and eliminate the polling here completely.
-	while (g_audio_output_ring_buffer->free_sample_count() < mix_buffer.size())
+	while (g_audio_system_state->audio_output_ring_buffer.free_sample_count() < mix_buffer.size())
 	{
 		c_platform_handle timer_handle = platform_thread_create_waitable_timer(true, true, t_string_128("unused"));
 		ASSERT(timer_handle.is_valid());
@@ -370,7 +379,7 @@ void c_audio_engine_thread::process_audio()
 		timer_handle.close();
 	}
 
-	int32 samples_written = g_audio_output_ring_buffer->write(&mix_buffer, mix_buffer.size());
+	int32 samples_written = g_audio_system_state->audio_output_ring_buffer.write(&mix_buffer, mix_buffer.size());
 
 	ASSERT(samples_written == mix_buffer.size());
 }
@@ -390,7 +399,7 @@ bool c_audio_render_thread::setup_audio_sink()
 
 	if (m_sink.register_sink(requested_format, m_render_event_handle))
 	{
-		g_audio_format = requested_format;
+		g_audio_system_state->audio_format = requested_format;
 
 		result = true;
 		log_message(verbose, "Audio Sink registration succeeded");
@@ -441,7 +450,7 @@ void c_audio_render_thread::shutdown_audio_sink()
 void c_audio_render_thread::render_audio()
 {
 	// replace this with a flag check to verify audio sink is started
-	if (g_audio_output_ring_buffer == nullptr || !g_audio_output_ring_buffer->is_initialized()) return;
+	if (g_audio_system_state == nullptr || !g_audio_system_state->audio_output_ring_buffer.is_initialized()) return;
 
 	real32* buffer = nullptr;
 	uint32 buffer_size;
@@ -449,8 +458,8 @@ void c_audio_render_thread::render_audio()
 	if (m_sink.begin_render(buffer, buffer_size))
 	{
 		ASSERT(buffer != nullptr);
-		ASSERT(g_audio_output_ring_buffer->channel_count() == g_audio_format.channel_count);
-		IF_DEBUG(int32 read_samples = ) g_audio_output_ring_buffer->read_interleaved(buffer, buffer_size);
+		ASSERT(g_audio_system_state->audio_output_ring_buffer.channel_count() == g_audio_system_state->audio_format.channel_count);
+		IF_DEBUG(int32 read_samples = ) g_audio_system_state->audio_output_ring_buffer.read_interleaved(buffer, buffer_size);
 
 #ifdef CONFIG_DEBUG
 		// once we have begun reading, we should always be able to read the full amount
@@ -474,12 +483,12 @@ void c_audio_render_thread::render_audio()
 
 uint32 audio_system_get_sample_rate()
 {
-	return g_audio_format.sample_rate;
+	return g_audio_system_state->audio_format.sample_rate;
 }
 
 const s_audio_device_format& audio_get_format()
 {
-	return g_audio_format;
+	return g_audio_system_state->audio_format;
 }
 
 // private
@@ -490,10 +499,10 @@ void stop_audio_playback_internal(s_audio_playback* playback)
 	switch (playback->source->type())
 	{
 	case audio_source_type_file:
-		g_audio_playback_source_file_map.remove(playback->id);
+		g_audio_system_state->audio_playback_source_file_map.remove(playback->id);
 		break;
 	case audio_source_type_sine:
-		g_audio_playback_source_sine_map.remove(playback->id);
+		g_audio_system_state->audio_playback_source_sine_map.remove(playback->id);
 		break;
 	default:
 		HALT_UNIMPLEMENTED();

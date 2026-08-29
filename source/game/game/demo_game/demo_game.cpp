@@ -23,6 +23,9 @@ void c_demo_game::init(const s_game_memory& game_memory)
 	ASSERT(g_game_state != nullptr);
 	
 	g_game_flow.init(&g_game_state->game_flow_state_machine_data);
+	/*g_game_flow.init_with_state(
+		&g_game_state->game_flow_state_machine_data,
+		"demo_game_flow_state::collision_scene");*/
 }
 
 void c_demo_game::update(const s_input_state const_ptr input_state, real32 dt)

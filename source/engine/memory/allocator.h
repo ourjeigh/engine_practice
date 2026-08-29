@@ -37,8 +37,10 @@ class c_stack_allocator : i_allocator
 public:
 	c_stack_allocator();
 	c_stack_allocator(void* memory, uint64 size) { set_memory(memory, size); }
-	void set_memory(void* memory, uint64 size);
-	
+	void set_memory(const void* memory, uint64 size);
+	void* get_base() { return reinterpret_cast<void*>(m_base); }
+	const void* get_base_const() { return reinterpret_cast<const void*>(m_base); }
+	uint64 get_capacity() { return m_end - m_base; }
 
 	void* allocate(uint64 size, uint64 align) override;
 	void* allocate(uint64 size, uint64 align, t_stack_allocator_marker& out_marker);
@@ -46,6 +48,7 @@ public:
 	void free(void* memory) override {} // NOP
 	void free_to_marker(t_stack_allocator_marker marker);
 	void clear();
+
 private:
 	uint64 m_top;
 	uint64 m_base;

@@ -22,7 +22,7 @@ c_stack_allocator::c_stack_allocator() :
 {
 }
 
-void c_stack_allocator::set_memory(void* memory, uint64 size)
+void c_stack_allocator::set_memory(const void* memory, uint64 size)
 {
 	m_base = reinterpret_cast<uint64>(memory);
 	m_top = m_base;

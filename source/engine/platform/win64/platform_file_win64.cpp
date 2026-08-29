@@ -131,7 +131,7 @@ int32 platform_file_write_bytes(
 	c_platform_handle& file_handle,
 	t_file_open_mode_flags flags,
 	int32 start,
-	const c_array<byte>& buffer)
+	const c_array<const byte>& buffer)
 {
 	return write_file_internal(file_handle, flags, start, buffer);
 }
@@ -150,7 +150,7 @@ int32 platform_file_write_string(
 	c_platform_handle& file_handle,
 	t_file_open_mode_flags flags,
 	int32 start,
-	const c_array<char>& buffer)
+	const c_array<const char>& buffer)
 {
 	return write_file_internal(file_handle, flags, start, buffer);
 }

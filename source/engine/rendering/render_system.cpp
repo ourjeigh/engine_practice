@@ -85,6 +85,7 @@ void process_draw_string_message_internal(const s_render_message_data_draw_strin
 inline void draw_pixel_to_buffer_internal(int32 x, int32 y, const c_color& color, s_backbuffer const_ptr buffer);
 void draw_horizontal_line_internal(int32 start_x, int32 end_x, int32 y, const c_color& color, s_backbuffer const_ptr buffer);
 
+// this could just be replaced with memory_arena_frame allocations
 const int32 k_render_commands_size_kb = k_byte_mib;
 static_global c_static_stack_allocator<k_render_commands_size_kb>* g_render_commands_allocator;
 
@@ -108,7 +109,6 @@ void c_render_system::init()
 void c_render_system::term()
 {
 }
-
 
 void c_render_system::update()
 {

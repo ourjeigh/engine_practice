@@ -74,6 +74,8 @@ enum e_input_keycode : int16
 	input_key_special_backspace,
 	input_key_special_tab,
 	input_key_special_esc,
+	input_key_special_home,
+	input_key_special_end,
 
 	input_mouse_left,
 	input_mouse_middle,
