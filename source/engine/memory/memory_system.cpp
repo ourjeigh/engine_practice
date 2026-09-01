@@ -49,27 +49,21 @@ void* c_memory_system::allocate(uint64 size, uint64 align, e_memory_arena arena)
 }
 
 #ifdef FEATURE_REPLAY
-void c_memory_system::get_memory_block_for_replay(const void** out_block, uint64& out_size)
+const void* c_memory_system::get_memory_block_for_replay_read(uint64& out_size)
 {
-	*out_block = g_arenas.get_item(memory_arena_engine_state)->get_base_const();
-
 	out_size =
 		g_arenas.get_item(memory_arena_engine_state)->get_capacity() +
 		g_arenas.get_item(memory_arena_game_state)->get_capacity();
+
+	return g_arenas.get_item(memory_arena_engine_state)->get_base_const();
 }
 
-void c_memory_system::set_memory_block_for_replay(const void* block, uint64 size)
+// we keep this a separate method so that we can assert the size match, catching cases where a replay
+// is loaded from a different memory "version."
+void* c_memory_system::get_memory_block_for_replay_write(uint64 size)
 {
 	ASSERT(size == k_arena_sizes[memory_arena_engine_state] + k_arena_sizes[memory_arena_game_state]);
-
-	memory_copy(
-		g_arenas.get_item(memory_arena_engine_state)->get_base(),
-		block,
-		k_arena_sizes[memory_arena_engine_state]);
-
-	memory_copy(
-		g_arenas.get_item(memory_arena_game_state)->get_base(),
-		static_cast<const void*>(static_cast<const byte*>(block) + k_arena_sizes[memory_arena_engine_state]),
-		k_arena_sizes[memory_arena_game_state]);
+	return g_arenas.get_item(memory_arena_engine_state)->get_base();
 }
+
 #endif //FEATURE_REPLAY

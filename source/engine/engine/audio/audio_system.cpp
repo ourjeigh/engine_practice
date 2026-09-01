@@ -34,6 +34,17 @@ struct s_audio_playback
 	s_sound_properties properties;
 };
 
+struct s_audio_system_state
+{
+	s_audio_device_format audio_format;
+
+	t_sound_playback_id sound_id_top = 0;
+
+	c_static_array<s_audio_playback, 64> audio_playbacks;
+	c_hash_map<t_sound_playback_id, c_audio_source_file, 128> audio_playback_source_file_map;
+	c_hash_map<t_sound_playback_id, c_audio_source_sine, 8> audio_playback_source_sine_map;
+};
+
 // private prototypes
 void stop_audio_playback_internal(s_audio_playback* playback);
 
@@ -43,18 +54,8 @@ c_audio_engine_thread g_audio_engine_thread;
 // TODO: move this, maybe to application, that's what owns the graphics renderer
 c_audio_render_thread g_audio_render_thread;
 
-struct s_audio_system_state
-{
-	s_audio_device_format audio_format;
-
-	c_audio_threadsafe_ring_buffer<real32> audio_output_ring_buffer;
-
-	t_sound_playback_id sound_id_top = 0;
-
-	c_static_array<s_audio_playback, 64> audio_playbacks;
-	c_hash_map<t_sound_playback_id, c_audio_source_file, 128> audio_playback_source_file_map;
-	c_hash_map<t_sound_playback_id, c_audio_source_sine, 8> audio_playback_source_sine_map;
-};
+// keeping out of engine state for now since the buffer pointer breaks if we load state via replay
+c_audio_threadsafe_ring_buffer<real32> g_audio_output_ring_buffer;
 
 s_audio_system_state* g_audio_system_state;
 
@@ -76,9 +77,9 @@ void c_audio_system::init()
 	
 	{
 		uint64 size = sizeof(real32) * k_audio_output_buffer_size * g_audio_system_state->audio_format.channel_count;
-		real32* buffer_data = reinterpret_cast<real32*>(c_memory_system::allocate(size, alignof(real32), memory_arena_engine_state));
+		real32* buffer_data = reinterpret_cast<real32*>(c_memory_system::allocate(size, alignof(real32), memory_arena_system));
 
-		g_audio_system_state->audio_output_ring_buffer.init(
+		g_audio_output_ring_buffer.init(
 			g_audio_system_state->audio_format.channel_count, 
 			k_audio_output_buffer_size, 
 			buffer_data);
@@ -370,7 +371,7 @@ void c_audio_engine_thread::process_audio()
 	// we need to be able to write the full mix_buffer, so wait until there's room.
 	// TODO: we could allow the sink thread to alert this thread when there is
 	// enough space to consume, and eliminate the polling here completely.
-	while (g_audio_system_state->audio_output_ring_buffer.free_sample_count() < mix_buffer.size())
+	while (g_audio_output_ring_buffer.free_sample_count() < mix_buffer.size())
 	{
 		c_platform_handle timer_handle = platform_thread_create_waitable_timer(true, true, t_string_128("unused"));
 		ASSERT(timer_handle.is_valid());
@@ -379,7 +380,7 @@ void c_audio_engine_thread::process_audio()
 		timer_handle.close();
 	}
 
-	int32 samples_written = g_audio_system_state->audio_output_ring_buffer.write(&mix_buffer, mix_buffer.size());
+	int32 samples_written = g_audio_output_ring_buffer.write(&mix_buffer, mix_buffer.size());
 
 	ASSERT(samples_written == mix_buffer.size());
 }
@@ -450,7 +451,7 @@ void c_audio_render_thread::shutdown_audio_sink()
 void c_audio_render_thread::render_audio()
 {
 	// replace this with a flag check to verify audio sink is started
-	if (g_audio_system_state == nullptr || !g_audio_system_state->audio_output_ring_buffer.is_initialized()) return;
+	if (g_audio_system_state == nullptr || !g_audio_output_ring_buffer.is_initialized()) return;
 
 	real32* buffer = nullptr;
 	uint32 buffer_size;
@@ -458,8 +459,8 @@ void c_audio_render_thread::render_audio()
 	if (m_sink.begin_render(buffer, buffer_size))
 	{
 		ASSERT(buffer != nullptr);
-		ASSERT(g_audio_system_state->audio_output_ring_buffer.channel_count() == g_audio_system_state->audio_format.channel_count);
-		IF_DEBUG(int32 read_samples = ) g_audio_system_state->audio_output_ring_buffer.read_interleaved(buffer, buffer_size);
+		ASSERT(g_audio_output_ring_buffer.channel_count() == g_audio_system_state->audio_format.channel_count);
+		IF_DEBUG(int32 read_samples = ) g_audio_output_ring_buffer.read_interleaved(buffer, buffer_size);
 
 #ifdef CONFIG_DEBUG
 		// once we have begun reading, we should always be able to read the full amount

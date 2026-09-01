@@ -123,6 +123,11 @@ public:
 
 private:
 	c_static_stack<s_key_combo_delegate, 32> m_key_combo_callbacks;
+
+#ifdef FEATURE_REPLAY
+	friend class c_replay_system;
+	static_member_function s_input_state* get_input_state_for_write();
+#endif //FEATURE_REPLAY
 };
 
 void input_system_handle_event(s_event& event);

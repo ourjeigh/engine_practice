@@ -53,8 +53,10 @@ public:
 	static_member_function void* allocate(uint64 size, uint64 align, e_memory_arena arena);
 
 #ifdef FEATURE_REPLAY
-	static_member_function void get_memory_block_for_replay(const void** out_block, uint64& out_size);
-	static_member_function void set_memory_block_for_replay(const void* block, uint64 size);
+private:
+	friend class c_replay_system;
+	static_member_function const void* get_memory_block_for_replay_read(uint64& out_size);
+	static_member_function void* get_memory_block_for_replay_write(uint64 size);
 #endif //FEATURE_REPLAY
 };
 

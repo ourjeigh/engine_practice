@@ -128,6 +128,11 @@ const s_input_state* input_system_get_current_input_state()
 	return &g_input_system_state->input_state;
 }
 
+s_input_state* c_input_system::get_input_state_for_write()
+{
+	return &g_input_system_state->input_state;
+}
+
 void input_system_handle_event(s_event& event)
 {
 	ASSERT(event.get_category() == window_event_type_input);

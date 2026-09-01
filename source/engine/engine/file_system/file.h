@@ -38,6 +38,7 @@ public:
 	bool close();
 
 	bool is_open() const { return m_file_handle.is_valid(); }
+	uint64 file_size() const { return m_file_size; }
 
 	int32 read_bytes(int32 start, int32 length, c_array<byte> out_buffer);
 	int32 read_memory(int32 start, int32 length, void* out_memory);

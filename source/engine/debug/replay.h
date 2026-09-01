@@ -19,6 +19,7 @@ enum e_replay_state
 struct s_replay_info
 {
 	int32 frame_count;
+	uint64 memory_size;
 };
 
 class c_replay_system : public c_engine_system<c_replay_system>
@@ -29,6 +30,14 @@ public:
 	void update();
 
 	static_member_function e_replay_state get_replay_state();
+
+private:
+	void start_record_internal();
+	void stop_record_internal();
+	void update_record_internal();
+	void start_replay_internal();
+	void stop_replay_internal();
+	void update_replay_internal();
 };
 #endif //FEATURE_REPLAY
 #endif // !__REPLAY_H__
